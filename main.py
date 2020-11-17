@@ -203,8 +203,6 @@ import string
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
-global firstRun
-firstRun = True
 width=225
 padx=8
 pady=5
@@ -308,8 +306,9 @@ class Admin():
         userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
         self.userID_var = tk.StringVar()
-        #set the variable to +1 the highest userID in the database to make a new account on that record.
-        self.userID_var.set('')
+        select_highest_userID = c.execute("SELECT MAX(user_id)+1 FROM Accounts").fetchall()
+        highest_userID = [x[0] for x in select_highest_userID][0]
+        self.userID_var.set(highest_userID)
 
         self.userID_entry = ttk.Entry(self.userID_container)
         self.userID_entry.config(textvariable=self.userID_var, state=tk.DISABLED)
@@ -352,6 +351,29 @@ class Admin():
         self.confirm_password_entry = ttk.Entry(self.confirm_password_container, textvariable=self.confirm_password_var)
         self.confirm_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
+        
+        #Staff Mode Box
+        add_mode_container = tk.Frame(add_account_container, bg=bg)
+        add_mode_container.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+
+        add_mode_label = tk.Label(add_mode_container, text='Staff Mode: ', bg=bg)
+        add_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+
+        self.add_staff_mode_var = tk.IntVar()
+
+        add_staff_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_staff_mode_var)
+        add_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+
+
+        #Admin Mode Box
+        add_admin_mode_label = tk.Label(add_mode_container, text='Admin Mode: ', bg=bg)
+        add_admin_mode_label.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+
+        self.add_admin_mode_var = tk.IntVar()
+
+        add_admin_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_admin_mode_var)
+        add_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+
 
         #Add Account
         add_account_button_container = tk.Frame(add_account_container, bg=bg)
@@ -364,9 +386,73 @@ class Admin():
 
 
 
+        #Update Existing Account
+        #Allows an admin to update the permissions of a staff/user account.
+        update_account_header = tk.Label(add_account_container, text='Update Account', font='System 18', bg=bg)
+        update_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
+
+        #UserID Entry Field
+        self.update_account_userID_container = tk.Frame(add_account_container, bg=bg)
+        self.update_account_userID_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
+
+        update_userID_label = tk.Label(self.update_account_userID_container, text='User ID: ', bg=bg)
+        update_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+
+        self.update_userID_var = tk.StringVar()
+
+        self.update_userID_var = ttk.Entry(self.update_account_userID_container)
+        self.update_userID_var.config(textvariable=self.update_userID_var, state=tk.DISABLED)
+        self.update_userID_var.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
 
-         #Add Staff Account
+        #Email Address Entry Field
+        self.update_account_email_container = tk.Frame(add_account_container, bg=bg)
+        self.update_account_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
+
+        update_email_label = tk.Label(self.update_account_email_container, text='Email Address: ', bg=bg)
+        update_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+
+        self.update_email_var = tk.StringVar()
+
+        self.update_email_entry = ttk.Entry(self.update_account_email_container, textvariable=self.update_email_var)
+        self.update_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+
+
+        #Update staff mode frame
+        update_mode_container = tk.Frame(add_account_container, bg=bg)
+        update_mode_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
+
+        update_staff_mode_label = tk.Label(update_mode_container, text='Staff Mode: ', bg=bg)
+        update_staff_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+
+        self.update_staff_mode_var = tk.IntVar()
+
+        update_staff_mode_checkbtn = ttk.Checkbutton(update_mode_container, variable=self.update_staff_mode_var)
+        update_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+
+
+        #Admin Mode Box
+        update_admin_mode_label = tk.Label(update_mode_container, text='Admin Mode: ', bg=bg)
+        update_admin_mode_label.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+
+        self.update_admin_mode_var = tk.IntVar()
+
+        update_admin_mode_checkbtn = ttk.Checkbutton(update_mode_container, variable=self.update_admin_mode_var)
+        update_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+
+
+        #Update Account Button
+        update_account_button_container = tk.Frame(add_account_container, bg=bg)
+        update_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
+
+        update_account_btn = ttk.Button(update_account_button_container)
+        update_account_btn.config(text='    Update Account    ', command=self.update_account)
+        update_account_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+
+
+
+
+        #Remove Account
         remove_account_container = tk.Frame(admin_page, bg=bg)
         remove_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
 
@@ -381,11 +467,10 @@ class Admin():
         remove_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
         self.remove_userID_var = tk.StringVar()
-        #set the variable to +1 the highest userID in the database to make a new account on that record.
         self.remove_userID_var.set('')
 
         self.remove_userID_entry = ttk.Entry(self.remove_userID_container)
-        self.remove_userID_entry.config(textvariable=self.remove_userID_var, state=tk.DISABLED)
+        self.remove_userID_entry.config(textvariable=self.remove_userID_var)
         self.remove_userID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
         #Email Address Entry Field
@@ -412,74 +497,165 @@ class Admin():
 
 
 
-
-
-
-
-        #Update Existing Account
-        #Allows an admin to update the permissions of a staff/user account.
-        update_account_container = tk.Frame(admin_page, bg=bg)
-        update_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
-
-        update_account_header = tk.Label(update_account_container, text='Update Account', font='System 18', bg=bg)
-        update_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
-
-        #UserID Entry Field
-        self.update_account_userID_container = tk.Frame(update_account_container, bg=bg)
-        self.update_account_userID_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-
-        update_userID_label = tk.Label(self.update_account_userID_container, text='User ID: ', bg=bg)
-        update_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-
-        self.update_userID_var = tk.StringVar()
-
-        self.update_userID_var = ttk.Entry(self.update_account_userID_container)
-        self.update_userID_var.config(textvariable=self.update_userID_var, state=tk.DISABLED)
-        self.update_userID_var.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
-
-
-        #Email Address Entry Field
-        self.update_account_email_container = tk.Frame(update_account_container, bg=bg)
-        self.update_account_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-
-        update_email_label = tk.Label(self.update_account_email_container, text='Email Address: ', bg=bg)
-        update_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-
-        self.update_email_var = tk.StringVar()
-
-        self.update_email_entry = ttk.Entry(self.update_account_email_container, textvariable=self.update_email_var)
-        self.update_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
-
-
-        #Update staff mode frame
-        update_mode_container = tk.Frame(update_account_container, bg=bg)
-        update_mode_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-
-        update_mode_label = tk.Label(update_mode_container, text='Staff Mode: ', bg=bg)
-        update_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-
-        self.staff_mode_var = tk.IntVar()
-
-        staff_mode_checkbtn = ttk.Checkbutton(update_mode_container, variable=self.staff_mode_var)
-        staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
-
-
-        #Update Account Button
-        update_account_button_container = tk.Frame(update_account_container, bg=bg)
-        update_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
-
-        update_account_btn = ttk.Button(update_account_button_container)
-        update_account_btn.config(text='    Update Account    ', command=self.update_account)
-        update_account_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-
-
-
         #Analytical Information
         analytics_container = tk.Frame(admin_page, bg=bg)
         analytics_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
 
-        analytics_header = tk.Label(analytics_container, text='Analytics', font='System 18', bg=bg)
-        analytics_header.pack(anchor=tk.W, padx=padx, pady=pady, expand=True, fill=tk.BOTH)
+        analytics_header = tk.Label(analytics_container, text='Analytics', font='System 18')
+        analytics_header.pack(anchor=tk.W, padx=padx, pady=pady, side=tk.TOP)
+
+
+        #Number of total users
+        fetch_number_users = c.execute("SELECT * FROM Accounts").fetchall()
+        number_users = len([x[0] for x in fetch_number_users])
+
+        number_users_frame = tk.Frame(analytics_container)
+        number_users_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_users_label = tk.Label(number_users_frame, text='Number of Users:%d' % number_users)
+        number_users_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+        #Number of total patron accounts
+        fetch_number_patrons = c.execute("SELECT * FROM Accounts WHERE staff_mode=0 AND admin_mode=0").fetchall()
+        number_patrons = len([x[0] for x in fetch_number_patrons])
+
+        number_patrons_frame = tk.Frame(analytics_container)
+        number_patrons_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_patrons_label = tk.Label(number_patrons_frame, text='Number of Patrons:%d' % number_patrons)
+        number_patrons_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+        #Number of total staff accounts
+        fetch_number_staff = c.execute("SELECT * FROM Accounts WHERE staff_mode=1 AND admin_mode=0").fetchall()
+        number_staff = len([x[0] for x in fetch_number_staff])
+
+        number_staff_frame = tk.Frame(analytics_container)
+        number_staff_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_staff_label = tk.Label(number_staff_frame, text='Number of Staff:%d' % number_staff)
+        number_staff_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+        #Number of total admin accounts
+        fetch_number_admins = c.execute("SELECT * FROM Accounts WHERE staff_mode=1 AND admin_mode=1").fetchall()
+        number_admins = len([x[0] for x in fetch_number_admins])
+
+        number_admins_frame = tk.Frame(analytics_container)
+        number_admins_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_admins_label = tk.Label(number_admins_frame, text='Number of Admins:%d' % number_admins)
+        number_admins_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+
+
+        #Total book tally
+        fetch_number_books = c.execute("SELECT * FROM Books").fetchall()
+        number_books = len([x[0] for x in fetch_number_books])
+
+        number_books_frame = tk.Frame(analytics_container)
+        number_books_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_books_label = tk.Label(number_books_frame, text='Number of books:%d' % number_books)
+        number_books_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+        #Total issued book tally
+        fetch_number_issued_books = c.execute("SELECT * FROM Books WHERE issued=1").fetchall()
+        number_issued_books = len([x[0] for x in fetch_number_issued_books])
+
+        number_issued_books_frame = tk.Frame(analytics_container)
+        number_issued_books_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_issued_books_label = tk.Label(number_issued_books_frame, text='Number of issued books:%d' % number_issued_books)
+        number_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+        #Total non-issued book tally
+        fetch_number_non_issued_books = c.execute("SELECT * FROM Books WHERE issued=0").fetchall()
+        number_non_issued_books = len([x[0] for x in fetch_number_non_issued_books])
+
+        number_non_issued_books_frame = tk.Frame(analytics_container)
+        number_non_issued_books_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+
+        number_non_issued_books_label = tk.Label(number_non_issued_books_frame, text='Number of non-issued books:%d' % number_non_issued_books)
+        number_non_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
+
+
+
+        # #Average Number of days before return
+        # fetch_issue_dates = c.execute("SELECT date_issued FROM MyBooks").fetchall()
+        # issue_dates_list = [x[0] for x in fetch_issue_dates]
+
+        # fetch_actual_return_dates = c.execute("SELECT actual_return_date FROM MyBooks").fetchall()
+        # actual_dates_list = [x[0] for x in fetch_actual_return_dates]
+
+        # day_difference_list = []
+
+        # print(issue_dates_list)
+        # for i in len(issue_dates_list):
+        #     if actual_dates_list[i] != '':
+        #         day_difference_list.append(actual_dates_list[i] - issue_dates_list[i])
+
+
+
+       
+        #Average number of books issued out on a single day over the past week
+        week_ago = (datetime.today() - timedelta(days=7)).date()
+        try:
+            for j in range(7):
+                date_issued = week_ago + timedelta(days=j)
+                date_issued_string = date_issued.strftime('%Y-%m-%d')
+                fetch_issued_books_past_week = c.execute("SELECT bookID FROM MyBooks WHERE date_issued=?",(date_issued,))
+                issued_books_past_week = [x[0] for x in fetch_issued_books_past_week]
+                print(week_ago, date_issued_string)
+                print(type(week_ago), type(date_issued_string))
+
+                if date_issued_string == week_ago.strftime("%Y-%m-%d"):
+                    number_books_issued_7days_ago = len(issued_books_past_week)
+                    print("1.")
+
+                elif date_issued_string == (week_ago + timedelta(days=1)).strftime("%Y-%m-%d"):
+                    number_books_issued_6days_ago = len(issued_books_past_week)
+                    print("2.")
+
+                elif date_issued_string == (week_ago + timedelta(days=2)).strftime("%Y-%m-%d"):
+                    number_books_issued_5days_ago = len(issued_books_past_week)
+                    print("3.")
+
+                elif date_issued_string == (week_ago + timedelta(days=3)).strftime("%Y-%m-%d"):
+                    number_books_issued_4days_ago = len(issued_books_past_week)
+                    print("4.")
+
+                elif date_issued_string == (week_ago + timedelta(days=4)).strftime("%Y-%m-%d"):
+                    number_books_issued_3days_ago = len(issued_books_past_week)
+                    print("5.")
+
+                elif date_issued_string == (week_ago + timedelta(days=5)).strftime("%Y-%m-%d"):
+                    number_books_issued_2days_ago = len(issued_books_past_week)
+                    print("6.")
+
+                elif date_issued_string == (week_ago + timedelta(days=6)).strftime("%Y-%m-%d"):
+                    number_books_issued_1days_ago = len(issued_books_past_week)
+                    print("7.")
+
+            mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago)/7
+            #Tkinter display output here
+        except Exception:
+            ms.showwarning('Graph Warning','Not enough data to populate graph.')
+
+
+
+
+
+
+
+
+
+
+
         
 
 
@@ -493,10 +669,9 @@ class Admin():
         #   - Total book tally
         #   - Total issued book tally
         #   - Total Non-Issued book tally
-        #   - Ratio of successfully returned books to books that have been issued and not returned (more complex)
         #   - Average number of days before return
-        #   - Average number of books issued out on a single day
-        #
+        #   - Average number of books issued out on a single day over the past week
+        #   - Genre Popularity (numpy bar chart required).
 
     def add_account(self):
         pass
@@ -620,12 +795,12 @@ class BookDatabase():
 
         for i in range(len(bookID_list)):
             #Issue Date
-            c.execute("SELECT date_issued FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             date_issued_fetch = c.fetchall()
             date_issued_list = [x[0] for x in date_issued_fetch]
 
             #Return Date
-            c.execute("SELECT return_date FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
             #creates an entry in the tree for each element of the list
@@ -723,8 +898,6 @@ class BookDatabase():
         for self.col in self.columns:
                 self.tree.heading(self.col, text=self.col,
                                       command=lambda c=self.col: self.sort_upon_press(c))
-
-
 
 
         #Issue/Return Books UI
@@ -1048,7 +1221,7 @@ class BookDatabase():
 
         self.add_bookID_var.set(highest_val)
 
-        self.add_bookID_entry = ttk.Entry(self.add_container_bookID, textvariable=self.add_bookID_var, state=tk.DISABLED)
+        self.add_bookID_entry = ttk.Entry(self.add_container_bookID, textvariable=self.add_bookID_var)
         self.add_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
 
@@ -1309,12 +1482,12 @@ class BookDatabase():
 
         for i in range(len(bookID_list)):
             #Issue Date
-            c.execute("SELECT date_issued FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             date_issued_fetch = c.fetchall()
             date_issued_list = [x[0] for x in date_issued_fetch]
 
             #Return Date
-            c.execute("SELECT return_date FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
 
@@ -1345,7 +1518,7 @@ class BookDatabase():
         conn.commit()
 
         #Check if anyone owns said book and remove it from their My Books table
-        check_book_owned = c.execute('SELECT my_booksID FROM MyBooks WHERE bookID=?',(remove_bookID_var,)).fetchall()
+        check_book_owned = c.execute('SELECT user_id FROM MyBooks WHERE bookID=?',(remove_bookID_var,)).fetchall()
         book_owner = [x[0] for x in check_book_owned]
 
         if len(book_owner)==1:
@@ -1393,12 +1566,12 @@ class BookDatabase():
 
         for i in range(len(bookID_list)):
             #Issue Date
-            c.execute("SELECT date_issued FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             date_issued_fetch = c.fetchall()
             date_issued_list = [x[0] for x in date_issued_fetch]
 
             #Return Date
-            c.execute("SELECT return_date FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
 
@@ -1422,7 +1595,6 @@ class BookDatabase():
 
     def issue_book(self):
         #Send entered information to the database.
-
         #May need try/except block here
         bookID_var = self.bookID_var.get()
         title_var = self.title_var.get()
@@ -1440,41 +1612,145 @@ class BookDatabase():
 
             # Send info to db
             account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(recipient_email,)).fetchall()
-            account_mybooks_check = [x[5] for x in account_info_fetch][0]
+            if len(account_info_fetch) != 0:
+                account_mybooks_check = [x[0] for x in account_info_fetch][0]
 
-            #Check if book is already issued out
-            book_already_issued_fetch = c.execute('SELECT issued FROM Books WHERE bookID=?',(bookID_var,)).fetchall()
-            book_already_issued = [x[0] for x in book_already_issued_fetch][0]
+                #Check if book is already issued out
+                book_already_issued_fetch = c.execute('SELECT issued FROM Books WHERE bookID=?',(bookID_var,)).fetchall()
+                book_already_issued = [x[0] for x in book_already_issued_fetch][0]
 
-            if book_already_issued == 0:
-                insert_my_bookID = 'INSERT INTO MyBooks(my_booksID,bookID) VALUES(?,?)'
-                c.execute(insert_my_bookID,[(account_mybooks_check),(book_id)])
-                conn.commit()
+                if book_already_issued == 0:
+                    insert_my_bookID = 'INSERT INTO MyBooks(user_id,bookID) VALUES(?,?)'
+                    c.execute(insert_my_bookID,[(account_mybooks_check),(book_id)])
+                    conn.commit()
 
-                update_issued_val = c.execute('UPDATE Books SET issued=1 WHERE bookID=?',(book_id,))
-                conn.commit()
+                    update_issued_val = c.execute('UPDATE Books SET issued=1 WHERE bookID=?',(book_id,))
+                    conn.commit()
 
-                update_date_issued_val = c.execute("""UPDATE MyBooks
-                    SET date_issued=?
-                    WHERE my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(date_issued, recipient_email))
-                conn.commit()
+                    update_date_issued_val = c.execute("""UPDATE MyBooks
+                        SET date_issued=?
+                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(date_issued, recipient_email))
+                    conn.commit()
 
-                update_return_date_val = c.execute("""UPDATE MyBooks
-                    SET return_date=?
-                    WHERE my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(date_return, recipient_email))
-                conn.commit()
+                    update_return_date_val = c.execute("""UPDATE MyBooks
+                        SET return_date=?
+                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(date_return, recipient_email))
+                    conn.commit()
+                else:
+                    ms.showerror('Error','This book has already been issued.')
+
+                #Set entryfields to empty after issue
+                self.bookID_var.set('')
+                self.title_var.set('')
+                self.author_var.set('')
+                self.recipient_var.set('')
+
+                #update treeview BookDatabase when the book is issued
+                #gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
+
+                #Book IDs
+                c.execute("SELECT bookID FROM Books")
+                bookIDs_fetch = c.fetchall()
+                bookID_list = [x[0] for x in bookIDs_fetch]
+
+                #Titles
+                c.execute("SELECT title FROM Books")
+                title_fetch = c.fetchall()
+                title_list = [x[0] for x in title_fetch]
+
+                #Authors
+                c.execute("SELECT author FROM Books")
+                author_fetch = c.fetchall()
+                author_list = [x[0] for x in author_fetch]
+
+                #Genres
+                c.execute("SELECT genre FROM Books")
+                genre_fetch = c.fetchall()
+                genre_list = [x[0] for x in genre_fetch]
+
+                #location
+                c.execute("SELECT location FROM Books")
+                location_fetch = c.fetchall()
+                location_list = [x[0] for x in location_fetch]
+
+                #Issued/Not Issued
+                c.execute("SELECT issued FROM Books")
+                issued_fetch = c.fetchall()
+                issued_list = [x[0] for x in issued_fetch]
+
+                for k in self.tree.get_children():
+                    self.tree.delete(k)
+
+                for i in range(len(bookID_list)):
+                    #Issue Date
+                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                    date_issued_fetch = c.fetchall()
+                    date_issued_list = [x[0] for x in date_issued_fetch]
+
+                    #Return Date
+                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                    return_date_fetch = c.fetchall()
+                    return_date_list = [x[0] for x in return_date_fetch]
+
+                    #creates an entry in the tree for each element of the list
+                    #then stores the id of the tree in the self.ids list
+                    if len(date_issued_list)==0 or len(return_date_list)==0:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                    else:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                self.tree.pack()
+
+                for self.col in self.columns:
+                    self.tree.heading(self.col, text=self.col,
+                                          command=lambda c=self.col: self.sort_upon_press(c))
+
+                ms.showinfo('Success', 'Book issued out successfully')
             else:
-                ms.showerror('Error','This book has already been issued.')
+                ms.showerror('Error', 'Email was not found.', icon='error')
+        else:
+            ms.showerror('Error','Invalid DOI (Date of Issue)')
 
-            #Set entryfields to empty after issue
-            self.bookID_var.set('')
-            self.title_var.set('')
-            self.author_var.set('')
-            self.recipient_var.set('')
 
-            #update treeview BookDatabase when the book is issued
-            #gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
 
+    def return_book(self):
+        #Send entered information to the database.
+        #Retrieve all entryboxes variables
+
+        #May need try/except block here
+        title_var = self.ret_title_var.get()
+        author_var = self.ret_author_var.get()
+        return_email = self.return_email_var.get()
+        date_return = self.return_date_var.get()
+
+        book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ',(title_var, author_var)).fetchall()
+        book_id = [x[0] for x in book_id_search][0]
+
+        # Send info to db
+        #could be shortened a bit.
+        account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(return_email,)).fetchall()
+        if len(account_info_fetch) != 0:
+            ms.showerror('Error', 'Email was not found.', icon='error')
+
+            account_mybooks_check = [x[4] for x in account_info_fetch][0]
+
+
+            #Remove user_id from the ownership of the user and onto the public library.
+
+            remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+            c.execute(remove_user_id,[(book_id)])
+            conn.commit()
+
+            update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+            conn.commit()
+
+            #Set entryfields to empty after return
+            self.ret_bookID_var.set('')
+            self.ret_title_var.set('')
+            self.ret_author_var.set('')
+            self.return_email_var.set('')
+
+            #Update Treeview table in BookDatabase Page
+            #Maybe pack into a function?
             #Book IDs
             c.execute("SELECT bookID FROM Books")
             bookIDs_fetch = c.fetchall()
@@ -1510,12 +1786,12 @@ class BookDatabase():
 
             for i in range(len(bookID_list)):
                 #Issue Date
-                c.execute("SELECT date_issued FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+                c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
                 date_issued_fetch = c.fetchall()
                 date_issued_list = [x[0] for x in date_issued_fetch]
 
                 #Return Date
-                c.execute("SELECT return_date FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
+                c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
                 return_date_fetch = c.fetchall()
                 return_date_list = [x[0] for x in return_date_fetch]
 
@@ -1528,107 +1804,12 @@ class BookDatabase():
             self.tree.pack()
 
             for self.col in self.columns:
-                self.tree.heading(self.col, text=self.col,
-                                      command=lambda c=self.col: self.sort_upon_press(c))
+                    self.tree.heading(self.col, text=self.col,
+                                          command=lambda c=self.col: self.sort_upon_press(c))
 
-            ms.showinfo('Success', 'Book issued out successfully')
+            ms.showinfo('Success', 'Book returned successfully')
         else:
-            ms.showerror('Error','Invalid DOI (Date of Issue)')
-
-
-
-    def return_book(self):
-        #Send entered information to the database.
-        #Retrieve all entryboxes variables
-
-        #May need try/except block here
-        title_var = self.ret_title_var.get()
-        author_var = self.ret_author_var.get()
-        return_email = self.return_email_var.get()
-        date_return = self.return_date_var.get()
-
-        book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ',(title_var, author_var)).fetchall()
-        book_id = [x[0] for x in book_id_search][0]
-
-        # Send info to db
-        #could be shortened a bit.
-        account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(return_email,)).fetchall()
-        account_mybooks_check = [x[4] for x in account_info_fetch][0]
-
-        #Remove my_booksID from the ownership of the user and onto the public library.
-
-        remove_my_booksID = 'DELETE FROM MyBooks WHERE bookID=?'
-        c.execute(remove_my_booksID,[(book_id)])
-        conn.commit()
-
-        update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
-        conn.commit()
-
-        #Set entryfields to empty after return
-        self.ret_bookID_var.set('')
-        self.ret_title_var.set('')
-        self.ret_author_var.set('')
-        self.return_email_var.set('')
-
-        #Update Treeview table in BookDatabase Page
-        #Maybe pack into a function?
-        #Book IDs
-        c.execute("SELECT bookID FROM Books")
-        bookIDs_fetch = c.fetchall()
-        bookID_list = [x[0] for x in bookIDs_fetch]
-
-        #Titles
-        c.execute("SELECT title FROM Books")
-        title_fetch = c.fetchall()
-        title_list = [x[0] for x in title_fetch]
-
-        #Authors
-        c.execute("SELECT author FROM Books")
-        author_fetch = c.fetchall()
-        author_list = [x[0] for x in author_fetch]
-
-        #Genres
-        c.execute("SELECT genre FROM Books")
-        genre_fetch = c.fetchall()
-        genre_list = [x[0] for x in genre_fetch]
-
-        #location
-        c.execute("SELECT location FROM Books")
-        location_fetch = c.fetchall()
-        location_list = [x[0] for x in location_fetch]
-
-        #Issued/Not Issued
-        c.execute("SELECT issued FROM Books")
-        issued_fetch = c.fetchall()
-        issued_list = [x[0] for x in issued_fetch]
-
-        for k in self.tree.get_children():
-            self.tree.delete(k)
-
-        for i in range(len(bookID_list)):
-            #Issue Date
-            c.execute("SELECT date_issued FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
-            date_issued_fetch = c.fetchall()
-            date_issued_list = [x[0] for x in date_issued_fetch]
-
-            #Return Date
-            c.execute("SELECT return_date FROM MyBooks WHERE my_booksID=(SELECT my_booksID WHERE bookID=?)",(bookID_list[i],))
-            return_date_fetch = c.fetchall()
-            return_date_list = [x[0] for x in return_date_fetch]
-
-            #creates an entry in the tree for each element of the list
-            #then stores the id of the tree in the self.ids list
-            if len(date_issued_list)==0 or len(return_date_list)==0:
-                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
-            else:
-                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
-        self.tree.pack()
-
-        for self.col in self.columns:
-                self.tree.heading(self.col, text=self.col,
-                                      command=lambda c=self.col: self.sort_upon_press(c))
-
-        ms.showinfo('Success', 'Book returned successfully')
+            ms.showerror('Error', 'Email was not found.', icon='error')
 
     def bookID_validate(self, bookID_input):
         if bookID_input.isdigit():
@@ -1937,7 +2118,7 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
 
             self.ret_title_var.set(book_title)
             self.ret_author_var.set(book_author)
-            self.ret_date_entry.set_date(datetime.strptime(return_date, '%d-%m-%Y'))
+            self.ret_date_entry.set_date(datetime.strptime(return_date, '%Y-%m-%d'))
 
             self.ret_search_container_autocomplete.pack_forget()
             self.ret_search_container_canvas["height"]=0
@@ -2359,26 +2540,34 @@ class Library():
 
 
         #Genre Filter
-        genre_filter_label = tk.Label(filter_container, text='Genre:', bg=bg)
+        search_genre_container = tk.Frame(filter_container, bg=bg)
+        search_genre_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
+
+        genre_filter_label = tk.Label(search_genre_container, text='Genre:', bg=bg)
         genre_filter_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
         self.genre_var = tk.StringVar()
         self.genre_var.set("-EMPTY-")
         self.genre_var.trace("w", self._columns_searcher_genre)
 
-        self.genre_menu = ttk.OptionMenu(filter_container, self.genre_var,genre_choice_list[0], *genre_choice_list)
+        self.genre_menu = ttk.OptionMenu(search_genre_container, self.genre_var,genre_choice_list[0], *genre_choice_list)
         self.genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
         #location Filter
-        location_filter_label = tk.Label(filter_container, text='Location:', bg=bg)
+        search_location_container = tk.Frame(filter_container, bg=bg)
+        search_location_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
+
+        location_filter_label = tk.Label(search_location_container, text='Location:', bg=bg)
         location_filter_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
         self.location_var = tk.StringVar()
         self.location_var.set("-EMPTY-")
         self.location_var.trace("w", self._columns_searcher_location)
 
-        self.location_menu = ttk.OptionMenu(filter_container, self.location_var,location_choice_list[0], *location_choice_list)
+        self.location_menu = ttk.OptionMenu(search_location_container, self.location_var,location_choice_list[0], *location_choice_list)
         self.location_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+
+
 
 
     def notebook_tab_change(self, event):
@@ -2573,27 +2762,34 @@ class MyBooks():
         header = tk.Label(header_frame, text='My Books', font='System 30')
         header.pack(side=tk.TOP)
 
+        current_books_header = ttk.Label(header_frame, text='Current Books', font='System 25')
+        current_books_header.pack(side=tk.TOP)
+
+        current_books_frame = tk.Frame(my_books_page)
+        current_books_frame.pack(side=tk.TOP, anchor=tk.N)
+
         # Library TreeView Book Database Frame
-        tree_container = tk.Frame(my_books_page)
+        tree_container = tk.Frame(current_books_frame)
         tree_container.pack(side=tk.RIGHT, anchor=tk.N, padx=padx)
 
-        tree_header = tk.Label(tree_container, text='Database', font='System 18', bg=bg)
-        tree_header.pack(padx=padx, pady=pady)
-
         #Set up TreeView table
-        self.columns = ('Book ID','Title', 'Author', 'Genre','Location')
+        self.columns = ('Book ID','Title', 'Author', 'Genre','Location','Issue Date','Return Date')
         self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
         self.tree.heading("Book ID", text='Book ID')
         self.tree.heading("Title", text='Title')
         self.tree.heading("Author", text='Author')
         self.tree.heading("Genre", text='Genre')
         self.tree.heading("Location", text='Location')
+        self.tree.heading("Issue Date", text='Issue Date')
+        self.tree.heading("Return Date", text="Return Date")
 
         self.tree.column("Book ID", width=width, anchor=tk.CENTER)
         self.tree.column("Title", width=width, anchor=tk.CENTER)
         self.tree.column("Author", width=width, anchor=tk.CENTER)
         self.tree.column("Genre", width=width, anchor=tk.CENTER)
         self.tree.column("Location", width=width, anchor=tk.CENTER)
+        self.tree.column("Issue Date", width=width, anchor=tk.CENTER)
+        self.tree.column("Return Date", width=width, anchor=tk.CENTER)
 
         #BookIDs
         c.execute("""SELECT Books.bookID
@@ -2601,8 +2797,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_bookIDs_fetch = c.fetchall()
         user_book_bookID_list = [x[0] for x in user_books_bookIDs_fetch]
 
@@ -2613,8 +2809,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_title_fetch = c.fetchall()
         user_book_title_list = [x[0] for x in user_books_title_fetch]
 
@@ -2625,8 +2821,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_author_fetch = c.fetchall()
         user_book_author_list = [x[0] for x in user_books_author_fetch]
 
@@ -2637,19 +2833,46 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_genre_fetch = c.fetchall()
         user_book_genre_list = [x[0] for x in user_books_genre_fetch]
+
+        #Location
+        c.execute("""SELECT Books.location
+            FROM MyBooks
+            INNER JOIN Books
+            ON MyBooks.bookID = Books.bookID
+            INNER JOIN Accounts
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
+        user_books_location_fetch = c.fetchall()
+        user_book_location_list = [x[0] for x in user_books_location_fetch]
+
+
+        #Issue Date
+        c.execute("""SELECT date_issued
+            FROM MyBooks
+            WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
+        user_books_issue_date_fetch = c.fetchall()
+        user_book_issue_date_list = [x[0] for x in user_books_issue_date_fetch]
+
+
+        #Return Date
+        c.execute("""SELECT return_date
+            FROM MyBooks
+            WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
+        user_books_return_date_fetch = c.fetchall()
+        user_book_return_date_list = [x[0] for x in user_books_return_date_fetch]
 
         for i in range(len(user_book_bookID_list)):
             #creates an entry in the tree for each element of the list
             #then stores the id of the tree in the self.ids list
-            self.tree_ids.append(self.tree.insert("", "end", values=(user_book_bookID_list[i], user_book_title_list[i], user_book_author_list[i], user_book_genre_list[i])))
+            self.tree_ids.append(self.tree.insert("", "end", values=(user_book_bookID_list[i], user_book_title_list[i], user_book_author_list[i], user_book_genre_list[i], user_book_location_list[i],user_book_issue_date_list[i], user_book_return_date_list[i])))
         self.tree.pack()
 
         #Search Books UI
-        filter_container = tk.Frame(my_books_page, bg=bg)
+        filter_container = tk.Frame(current_books_frame, bg=bg)
         filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
 
         filter_header = tk.Label(filter_container, text='Filters', font='System 18', bg=bg)
@@ -2746,6 +2969,7 @@ class MyBooks():
 
         root.bind("<F5>", self.refresh_page)
 
+
     def refresh_page(self, *args):
         for k in self.tree.get_children():
             self.tree.delete(k)
@@ -2756,8 +2980,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_bookIDs_fetch = c.fetchall()
         user_book_bookID_list = [x[0] for x in user_books_bookIDs_fetch]
 
@@ -2768,8 +2992,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_title_fetch = c.fetchall()
         user_book_title_list = [x[0] for x in user_books_title_fetch]
 
@@ -2780,8 +3004,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_author_fetch = c.fetchall()
         user_book_author_list = [x[0] for x in user_books_author_fetch]
 
@@ -2792,8 +3016,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_genre_fetch = c.fetchall()
         user_book_genre_list = [x[0] for x in user_books_genre_fetch]
 
@@ -2803,8 +3027,8 @@ class MyBooks():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_location_fetch = c.fetchall()
         user_book_location_list = [x[0] for x in user_books_location_fetch]
 
@@ -2837,6 +3061,7 @@ class MyBooks():
                              command=lambda value=string: self.location_var.set(value))
 
 
+
         ms.showinfo('Success','You have refreshed the My Books Page!')
 
     def bookID_validate(self, bookID_input):
@@ -2846,6 +3071,9 @@ class MyBooks():
             return True
         else:
             return False
+
+
+
 
     def _columns_searcher_bookID(self, *args):
         children = list(self._detached) + list(self.tree.get_children())
@@ -2881,6 +3109,10 @@ class MyBooks():
         query_location = self.location_var.get()
 
         self.search_location_tv(children, query_location)
+
+
+
+
 
     def search_bookID_tv(self, children, query_bookID):
         i_r = -1
@@ -2970,8 +3202,8 @@ class AutoCompleteEntryMB():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_title_fetch = c.fetchall()
         user_book_title_list = [x[0] for x in user_books_title_fetch]
 
@@ -2994,8 +3226,8 @@ class AutoCompleteEntryMB():
             INNER JOIN Books
             ON MyBooks.bookID = Books.bookID
             INNER JOIN Accounts
-            ON MyBooks.my_booksID = Accounts.my_booksID
-            WHERE Accounts.my_booksID = (SELECT my_booksID FROM Accounts WHERE email_address=?)""",(self.user_email,))
+            ON MyBooks.user_id = Accounts.user_id
+            WHERE Accounts.user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
         user_books_title_fetch = c.fetchall()
         user_book_title_list = [x[0] for x in user_books_title_fetch]
 
@@ -3857,14 +4089,14 @@ class Register():
             with sqlite3.connect('LibrarySystem.db') as db:
                     c = db.cursor()
             #IF YOU DELETED THE DB, COMMENT THE 2 LINES BELOW, AND COPY THIS PART BELOW IT
-            # insert = 'INSERT INTO Accounts(email_address,password,my_booksID,staff_mode,admin_mode) VALUES(?,?,?,?,?)'
+            # insert = 'INSERT INTO Accounts(email_address,password,user_id,staff_mode,admin_mode) VALUES(?,?,?,?,?)'
             # c.execute(insert,[(self.reg_email),(self.db_hashed_pw),("1"),("1"),("1")])
             # db.commit()
 
-            select_highest_val = c.execute('SELECT MAX(my_booksID) + 1 FROM Accounts').fetchall()
+            select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
             highest_val = [x[0] for x in select_highest_val][0]
 
-            insert = 'INSERT INTO Accounts(email_address,password,my_booksID) VALUES(?,?,?)'
+            insert = 'INSERT INTO Accounts(email_address,password,user_id) VALUES(?,?,?)'
             c.execute(insert,[(self.reg_email),(self.db_hashed_pw),(highest_val)])
             db.commit()
 

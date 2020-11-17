@@ -4,14 +4,13 @@ conn = connect('LibrarySystem.db')
 c = conn.cursor()
 
 
+
 c.execute("""CREATE TABLE Accounts (
 			user_id INTEGER PRIMARY KEY,
 			email_address NVARCHAR(320) NOT NULL DEFAULT '',
 			password VARCHAR(60) NOT NULL DEFAULT '',
 			staff_mode INTEGER NOT NULL DEFAULT 0,
-			admin_mode INTEGER NOT NULL DEFAULT 0,
-			my_booksID INTEGER NOT NULL DEFAULT 0,
-			FOREIGN KEY(my_booksID) REFERENCES MyBooks(my_bookID)
+			admin_mode INTEGER NOT NULL DEFAULT 0
 			)""")
 conn.commit()
 
@@ -28,11 +27,24 @@ c.execute("""CREATE TABLE Books (
 conn.commit()
 
 c.execute("""CREATE TABLE MyBooks (
-			my_booksID INTEGER NOT NULL DEFAULT '',
+			user_id INTEGER NOT NULL DEFAULT '',
 			bookID INTEGER NOT NULL DEFAULT '',
 			date_issued TIMESTAMP NOT NULL DEFAULT '',
 			return_date TIMESTAMP NOT NULL DEFAULT '',
-			FOREIGN KEY(bookID) REFERENCES Books(bookID)
+			actual_return_date TIMESTAMP NOT NULL DEFAULT '',
+			FOREIGN KEY(bookID) REFERENCES Books(bookID),
+			FOREIGN KEY(user_id) REFERENCES Accounts(user_id)
+			)""")
+conn.commit()
+
+c.execute("""CREATE TABLE UserBookHistory (
+			user_id INTEGER NOT NULL DEFAULT '',
+			bookID INTEGER NOT NULL DEFAULT '',
+			date_issued TIMESTAMP NOT NULL DEFAULT '',
+			return_date TIMESTAMP NOT NULL DEFAULT '',
+			actual_return_date TIMESTAMP NOT NULL DEFAULT '',
+			FOREIGN KEY(bookID) REFERENCES Books(bookID),
+			FOREIGN KEY(user_id) REFERENCES Accounts(user_id)
 			)""")
 conn.commit()
 
@@ -43,4 +55,6 @@ conn.commit()
 
 c.execute("INSERT INTO Genres VALUES('-EMPTY-')")
 conn.commit()
+
+#Need an insert for the guest account login.
 
