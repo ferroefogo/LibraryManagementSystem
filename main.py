@@ -17,9 +17,9 @@ Ideas Up for Debate:
     -
 '''
 
-# UPDATE 02/08/2020
-# - FIXED DATABASE ISSUES REGARDING MyBooks page displaying incorrect information HUGE ISSUE EZY CLAP
-# - NEXT STEP: ALLOW STAFF TO RETRIEVE USER BOOK (would involve making the 'issued' field in the Books table 0 instead of 1 when it has been turned in) DONE
+# UPDATE 02/08/2020 - FIXED DATABASE ISSUES REGARDING MyBooks page displaying incorrect information HUGE ISSUE EZY
+# CLAP - NEXT STEP: ALLOW STAFF TO RETRIEVE USER BOOK (would involve making the 'issued' field in the Books table 0
+# instead of 1 when it has been turned in) DONE
 
 # UPDATE 03/08/2020
 # - ADDED RETURN BOOK FUNCTIONALITY AS NEEDED ABOVE.
@@ -38,11 +38,10 @@ Ideas Up for Debate:
 #                   AUTOCOMPLETE BOX (ON BOOK DATABASE CLASS) APPEARING TWICE UPON ISSUE/RETURN BUTTON BEING PRESSED
 #                   AUTOCOMPLETE FILTER BOX (ON MY BOOKS CLASS) SHOWING ALL BOOKS RATHER USER'S BOOKS.
 
-# UPDATE 03/09/2020 AND 04/09/2020
-# - FIXES:
-#       - AUTOCOMPLETE BOX (ON BOOK DATABASE CLASS) NOT FETCHING UPDATED DATABASE TITLES AFTER A BOOK ISSUE/RETURN, HOWEVER IT FIXES ITSELF AFTER A RESTART/ CAUSED BY PRESSING RETURN/ISSUE BUTTON;
-#       - AUTOCOMPLETE BOX (ON BOOK DATABASE CLASS) APPEARING TWICE UPON ISSUE/RETURN BUTTON BEING PRESSED
-#       - AUTOCOMPLETE FILTER BOX (ON MY BOOKS CLASS) SHOWING ALL BOOKS RATHER USER'S BOOKS.
+# UPDATE 03/09/2020 AND 04/09/2020 - FIXES: - AUTOCOMPLETE BOX (ON BOOK DATABASE CLASS) NOT FETCHING UPDATED DATABASE
+# TITLES AFTER A BOOK ISSUE/RETURN, HOWEVER IT FIXES ITSELF AFTER A RESTART/ CAUSED BY PRESSING RETURN/ISSUE BUTTON;
+# - AUTOCOMPLETE BOX (ON BOOK DATABASE CLASS) APPEARING TWICE UPON ISSUE/RETURN BUTTON BEING PRESSED - AUTOCOMPLETE
+# FILTER BOX (ON MY BOOKS CLASS) SHOWING ALL BOOKS RATHER USER'S BOOKS.
 
 #       - AUTOCOMPLETE IS NOW INDEPENDENT FOR EACH ENTRY BOX. HOWEVER, IF YOU SELECT AN AUTOCOMPLETE OPTION,
 #         THE OTHERS WILL TRIGGER AND YOU WONT BE ABLE TO CLOSE ALL THE AUTOCOMPLETE BOXES.
@@ -54,24 +53,23 @@ Ideas Up for Debate:
 #       - ALLOW LIBRARY AND MY BOOKS PAGE TO BE SEARCHED BY bookID - COMPLETE
 #       - SHOW bookID COLUMN ON THE TREEVIEW TABLES. - COMPLETE
 
-# UPDATE 05/09/2020
-# - QUALITY OF LIFE ADDITIONS/FIXES:
-#       - FOCUS SIGN IN PAGE ONTO THE LOGIN BOX (so that the user can start typing their email immediately) - COMPLETE
-#       - ALLOW <Return> BUTTON TO LOGIN/REGISTER THE USER AMONG OTHER PLACES WHERE PRESSING <Return> FEELS NATURAL TO COMPLETE A TASK - COMPLETE
-#       - MOVE SOME OF THE FILTER FRAMES CLOSER TO THE TREEVIEWS FOR EASIER ACCESS AND INTERPRETATION - COMPLETE
-#       - DON'T ALLOW STAFF TO CHANGE THE DATE OF ISSUING/RETURN ON THE BOOK DATABASE PAGE
-#       - INPUT VALIDATION SO THAT INCORRECT/INVALID DATA CANNOT BE ENTERED INTO MANY FIELDS LIKE THE ISSUE/RETURN BOOKS PAGE
-#       - ADD A FEW CUSTOMISATION OPTIONS ONTO THE OPTIONS PAGE
-#       - FIND USE FOR HOME PAGE OR REMOVE IT AND MAKE THE DEFAULT PAGE UPON LOGIN THE LIBRARY PAGE.
-#       - MOVE THE AUTOCOMPLETE BOX TO A MORE ADEQUATE LOCATION - COMPLETE
-#       - FIND A WAY TO FETCH THE LOWEST AVAILABLE BOOK IDS THAT ARE NOT BEING USED, DUE TO THEM BEING REMOVED PREVIOUSLY. FIND VACANT BOOKIDS IF YOU WILL. - NOT NEEDED ANYMORE
-#       - ALLOW STAFF TO ADD NEW GENRES TO THE OptionMenu - HALFWAY THROUGH THIS - COMPLETE
+# UPDATE 05/09/2020 - QUALITY OF LIFE ADDITIONS/FIXES: - FOCUS SIGN IN PAGE ONTO THE LOGIN BOX (so that the user can
+# start typing their email immediately) - COMPLETE - ALLOW <Return> BUTTON TO LOGIN/REGISTER THE USER AMONG OTHER
+# PLACES WHERE PRESSING <Return> FEELS NATURAL TO COMPLETE A TASK - COMPLETE - MOVE SOME OF THE FILTER FRAMES CLOSER
+# TO THE TREEVIEWS FOR EASIER ACCESS AND INTERPRETATION - COMPLETE - DON'T ALLOW STAFF TO CHANGE THE DATE OF
+# ISSUING/RETURN ON THE BOOK DATABASE PAGE - INPUT VALIDATION SO THAT INCORRECT/INVALID DATA CANNOT BE ENTERED INTO
+# MANY FIELDS LIKE THE ISSUE/RETURN BOOKS PAGE - ADD A FEW CUSTOMISATION OPTIONS ONTO THE OPTIONS PAGE - FIND USE FOR
+# HOME PAGE OR REMOVE IT AND MAKE THE DEFAULT PAGE UPON LOGIN THE LIBRARY PAGE. - MOVE THE AUTOCOMPLETE BOX TO A MORE
+# ADEQUATE LOCATION - COMPLETE - FIND A WAY TO FETCH THE LOWEST AVAILABLE BOOK IDS THAT ARE NOT BEING USED,
+# DUE TO THEM BEING REMOVED PREVIOUSLY. FIND VACANT BOOKIDS IF YOU WILL. - NOT NEEDED ANYMORE - ALLOW STAFF TO ADD
+# NEW GENRES TO THE OptionMenu - HALFWAY THROUGH THIS - COMPLETE
 
 # UPDATE 06/09/2020
 #       - MAKE ALL DATE ENTRIES THE SAME FORMAT (UK FORMAT DD/MM/YYYY) - COMPLETE
 #       - FIX ENCRYPTED PASSWORD SHTICK
 #
-#       - DISALLOW USERS FROM TAKING OUT THE SAME BOOK MULTIPLE TIMES, SO IF I HAVE A BOOK WITH THE bookID = 1, THAT BOOK CANNOT BE ISSUED OUT ANYMORE. -COMPLETE
+# - DISALLOW USERS FROM TAKING OUT THE SAME BOOK MULTIPLE TIMES, SO IF I HAVE A BOOK WITH THE bookID = 1,
+# THAT BOOK CANNOT BE ISSUED OUT ANYMORE. -COMPLETE
 #
 #       - INPUT VALIDATION FOR THE FOLLOWING:
 #             - BOOKID FILTER IN MYBOOKS MUST BE INTEGERS ONLY - COMPLETE
@@ -158,22 +156,35 @@ Ideas Up for Debate:
 #        
 # - TODO: (07/11/20)
 #       - Treeview sorting algorithm using quicksort (already works with what i have, but it isnt coursework. I want to apply it for more marks) /DONE (Needs tweaking so that when the filters are put on it can filter within that.)
-#       - Autocomplete book with all fields in the issue book, return book and remove book sections
-#       - Send emails regarding return dates as they draw near. (Admin button to send out alerts that are nearing perhaps)
-#       - Complete analytics side of admin page with numpy maybe and other graphs
-#       - Make Filters on Library and MyBooks work together to find a value. (optimising the filters)
-#       - Add filters using tkCalendar to allow the staff to search by return date or issue date. The same applies to the MyBooks page where the user can search the treeview based on a return/issue date using a filter.
-#       -
-#       -
-#       -
-#       -
-#       -
-#       -
-#       -
-#       -
-#       -
-#       -
+#       - Complete analytics side of admin page with numpy maybe and other graphs /DONE
+#       
+# - UPDATES: (24/11/20)
+#       - Fixed a few tings
+#       - Added functionality behind add, update and remove accounts.
+
+
+
+
+# - TODO: (24/11/20) 
+#       - Look into the Date Return functionality. Only allow it to be the current date. When returning, make sure the date of return that is entered by the staff is saved in the ACTUAL_RETURN_DATE column in the table.
+#       - Create admin treeview table with the information of all accounts in the system, (except for passwords).
+#       - Make all filters work together to find a final result. (each field will narrow the search down.) (MAYBE)
+#       - Add filters using tkCalendar to allow the staff on BookDatabase to search by return date or issue date. The same applies to the MyBooks page where the user can search the treeview based on a return/issue date using a filter.
+#       - Treeview sorting algorithm using quicksort (already works with what i have, but it isnt coursework. I want to apply it for more marks) /DONE (Needs tweaking so that when the filters are put on it can filter within that.)
 #
+#       LESS IMPORTANT CHANGES:
+#           - Add functionality to sending an email to the target address when a book is issued/returned.
+#           - Update help pages to match the correct descriptions.
+#           - Send emails regarding return dates as they draw near. (Admin button to send out alerts that are nearing perhaps)
+#        
+#
+#       SYSTEM CHANGES:
+#           - Refactor code within this file.
+#           - Split this file into as many subfiles as possible. (Research if this is possible in the first place)
+#           - Attempt to condense repetitive code.
+#           - Review code adherance to PEP8 Guidelines
+#           - Create requirements notepad. (like the one from last year)
+
 
 import tkinter as tk
 from tkinter import ttk
@@ -273,6 +284,122 @@ class Options():
         global_font = self.font_list_var.get()
 
 
+class GuestHelp():
+    def __init__(self, root, notebook):
+        self.root = root
+        self.notebook = notebook
+
+        guest_help_page = tk.Frame(self.notebook)
+        notebook.add(guest_help_page, text="Guest Help Page")
+
+        header_frame = tk.Frame(guest_help_page)
+        header_frame.pack(fill=tk.X, side=tk.TOP)
+
+        header = tk.Label(header_frame, text="Guest Help Page", font='System 30')
+        header.pack(side=tk.TOP)
+
+        large_frame = tk.Frame(guest_help_page)
+        large_frame.pack(fill=tk.BOTH, expand=True)
+
+        _help = tk.Label(large_frame, text="""The guest page is designed for those who do no want to create an account but
+still want to use the system to search for books.The library page allows you
+to view and filter through all available books in the library.
+
+Use key fields such as Title, Author or Genre to view what kinds of books we 
+have in stock. 
+
+Additionaly, we display which bookshelf a particular book is on, therefore 
+the code that can be filtered and seen on the table matches the code on the 
+bookshelf in the physical library.""", justify=tk.CENTER)
+        _help.pack()
+
+class AdminHelp():
+    def __init__(self, root, notebook, user_email):
+        self.root = root
+        self.notebook = notebook
+
+        admin_help_page = tk.Frame(self.notebook)
+        notebook.add(admin_help_page, text="Admin Help Page")
+
+        header_frame = tk.Frame(admin_help_page)
+        header_frame.pack(fill=tk.X, side=tk.TOP)
+
+        header = tk.Label(header_frame, text="Admin Help Page", font='System 30')
+        header.pack(side=tk.TOP)
+
+        large_frame = tk.Frame(admin_help_page)
+        large_frame.pack(fill=tk.BOTH, expand=True)
+
+        _help = tk.Label(large_frame, text="""The guest page is designed for those who do no want to create an account but
+still want to use the system to search for books.The library page allows you
+to view and filter through all available books in the library.
+
+Use key fields such as Title, Author or Genre to view what kinds of books we 
+have in stock. 
+
+Additionaly, we display which bookshelf a particular book is on, therefore 
+the code that can be filtered and seen on the table matches the code on the 
+bookshelf in the physical library.""", justify=tk.CENTER)
+        _help.pack()
+
+
+class StaffHelp():
+    def __init__(self, root, notebook, user_email):
+        self.root = root
+        self.notebook = notebook
+
+        staff_help_page = tk.Frame(self.notebook)
+        notebook.add(staff_help_page, text="Staff Help Page")
+
+        header_frame = tk.Frame(staff_help_page)
+        header_frame.pack(fill=tk.X, side=tk.TOP)
+
+        header = tk.Label(header_frame, text="Staff Help Page", font='System 30')
+        header.pack(side=tk.TOP)
+
+        large_frame = tk.Frame(staff_help_page)
+        large_frame.pack(fill=tk.BOTH, expand=True)
+
+        _help = tk.Label(large_frame, text="""The guest page is designed for those who do no want to create an account but
+still want to use the system to search for books.The library page allows you
+to view and filter through all available books in the library.
+
+Use key fields such as Title, Author or Genre to view what kinds of books we 
+have in stock. 
+
+Additionaly, we display which bookshelf a particular book is on, therefore 
+the code that can be filtered and seen on the table matches the code on the 
+bookshelf in the physical library.""", justify=tk.CENTER)
+        _help.pack()
+
+class UserHelp():
+    def __init__(self, root, notebook, user_email):
+        self.root = root
+        self.notebook = notebook
+
+        user_help_page = tk.Frame(self.notebook)
+        notebook.add(user_help_page, text="User Help Page")
+
+        header_frame = tk.Frame(user_help_page)
+        header_frame.pack(fill=tk.X, side=tk.TOP)
+
+        header = tk.Label(header_frame, text="User Help Page", font='System 30')
+        header.pack(side=tk.TOP)
+
+        large_frame = tk.Frame(user_help_page)
+        large_frame.pack(fill=tk.BOTH, expand=True)
+
+        _help = tk.Label(large_frame, text="""The guest page is designed for those who do no want to create an account but
+still want to use the system to search for books.The library page allows you
+to view and filter through all available books in the library.
+
+Use key fields such as Title, Author or Genre to view what kinds of books we 
+have in stock. 
+
+Additionaly, we display which bookshelf a particular book is on, therefore 
+the code that can be filtered and seen on the table matches the code on the 
+bookshelf in the physical library.""", justify=tk.CENTER)
+        _help.pack()
 
 class Admin():
     #ADMIN ACCESS ONLY (NO STAFF OR REGULAR USERS ALLOWED)
@@ -335,11 +462,11 @@ class Admin():
 
         self.password_var = tk.StringVar()
 
-        self.password_entry = ttk.Entry(self.password_container, textvariable=self.password_var)
+        self.password_entry = ttk.Entry(self.password_container, textvariable=self.password_var, show='*')
         self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
 
-        #Password Entry Field
+        #Confirm Password Entry Field
         self.confirm_password_container = tk.Frame(add_account_container, bg=bg)
         self.confirm_password_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
@@ -348,7 +475,7 @@ class Admin():
 
         self.confirm_password_var = tk.StringVar()
 
-        self.confirm_password_entry = ttk.Entry(self.confirm_password_container, textvariable=self.confirm_password_var)
+        self.confirm_password_entry = ttk.Entry(self.confirm_password_container, textvariable=self.confirm_password_var, show='*')
         self.confirm_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
         
@@ -398,10 +525,10 @@ class Admin():
         update_userID_label = tk.Label(self.update_account_userID_container, text='User ID: ', bg=bg)
         update_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
-        self.update_userID_var = tk.StringVar()
+        self.update_userID_var = tk.IntVar()
 
         self.update_userID_var = ttk.Entry(self.update_account_userID_container)
-        self.update_userID_var.config(textvariable=self.update_userID_var, state=tk.DISABLED)
+        self.update_userID_var.config(textvariable=self.update_userID_var)
         self.update_userID_var.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
 
@@ -466,7 +593,7 @@ class Admin():
         remove_userID_label = tk.Label(self.remove_userID_container, text='User ID: ', bg=bg)
         remove_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
-        self.remove_userID_var = tk.StringVar()
+        self.remove_userID_var = tk.IntVar()
         self.remove_userID_var.set('')
 
         self.remove_userID_entry = ttk.Entry(self.remove_userID_container)
@@ -610,36 +737,34 @@ class Admin():
                 date_issued_string = date_issued.strftime('%Y-%m-%d')
                 fetch_issued_books_past_week = c.execute("SELECT bookID FROM MyBooks WHERE date_issued=?",(date_issued,))
                 issued_books_past_week = [x[0] for x in fetch_issued_books_past_week]
-                print(week_ago, date_issued_string)
-                print(type(week_ago), type(date_issued_string))
 
                 if date_issued_string == week_ago.strftime("%Y-%m-%d"):
                     number_books_issued_7days_ago = len(issued_books_past_week)
-                    print("1.")
+                    
 
                 elif date_issued_string == (week_ago + timedelta(days=1)).strftime("%Y-%m-%d"):
                     number_books_issued_6days_ago = len(issued_books_past_week)
-                    print("2.")
+                    
 
                 elif date_issued_string == (week_ago + timedelta(days=2)).strftime("%Y-%m-%d"):
                     number_books_issued_5days_ago = len(issued_books_past_week)
-                    print("3.")
+                    
 
                 elif date_issued_string == (week_ago + timedelta(days=3)).strftime("%Y-%m-%d"):
                     number_books_issued_4days_ago = len(issued_books_past_week)
-                    print("4.")
+                    
 
                 elif date_issued_string == (week_ago + timedelta(days=4)).strftime("%Y-%m-%d"):
                     number_books_issued_3days_ago = len(issued_books_past_week)
-                    print("5.")
+                    
 
                 elif date_issued_string == (week_ago + timedelta(days=5)).strftime("%Y-%m-%d"):
                     number_books_issued_2days_ago = len(issued_books_past_week)
-                    print("6.")
+                    
 
                 elif date_issued_string == (week_ago + timedelta(days=6)).strftime("%Y-%m-%d"):
                     number_books_issued_1days_ago = len(issued_books_past_week)
-                    print("7.")
+                    
 
             mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago)/7
             #Tkinter display output here
@@ -649,14 +774,6 @@ class Admin():
 
 
 
-
-
-
-
-
-
-
-        
 
 
         #Analytical graphs will be created using numpy or something alike. This will be a great opportunity to use quicksort to sort a table of data values for the user.
@@ -674,38 +791,259 @@ class Admin():
         #   - Genre Popularity (numpy bar chart required).
 
     def add_account(self):
-        pass
+        add_email = self.email_var.get()
+        add_staff_mode = self.add_staff_mode_var.get()
+        add_admin_mode = self.add_admin_mode_var.get()
+
+        email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        if (re.search(email_regex, add_email)):
+            #Continue process
+            add_password = self.password_var.get()
+            add_confirm_password = self.confirm_password_var.get()
+
+            if add_password != add_confirm_password:
+                ms.showwarning('Warning','Your passwords do not match.')
+            elif add_password == '' or add_confirm_password == '':
+                ms.showwarning('Warning', 'You left the password fields empty!')
+            else:
+                #Encrypt+Salt PWs
+                hashable_pw = bytes(add_password, 'utf-8')
+                hashed_pw = bcrypt.hashpw(hashable_pw, bcrypt.gensalt())
+
+                #Convert into base64string
+                self.db_hashed_pw = hashed_pw.decode("utf-8")
+
+                #Send password to DB
+                with sqlite3.connect('LibrarySystem.db') as db:
+                    c = db.cursor()
+
+                find_user = ('SELECT * FROM Accounts WHERE email_address = ?')
+                c.execute(find_user,[(add_email)])
+
+                if c.fetchall():
+                    ms.showerror('Error!','Email is already registered to an Account.')
+                else:
+                    #1. TopLevel window and layout.
+                    self.accountVerification = tk.Toplevel()
+
+                    #configurations
+                    self.accountVerification.title("Account Verification")
+                    self.accountVerification.option_add('*Font', 'System 12')
+                    self.accountVerification.option_add('*Label.Font', 'System 12')
+                    self.accountVerification.geometry('500x500')
+                    self.accountVerification.resizable(False, False)
+
+
+                    main_frame = tk.Frame(self.accountVerification, relief=tk.FLAT)
+                    main_frame.pack(fill=tk.BOTH, side=tk.TOP)
+
+                    main_label = tk.Label(main_frame, text='Library System v1.0')
+                    main_label.pack(fill=tk.X, anchor=tk.N)
+
+                    header_frame = tk.Frame(self.accountVerification)
+                    header_frame.pack(fill=tk.X, side=tk.TOP)
+
+                    header = tk.Label(header_frame, text='Account Verification', font='System 30')
+                    header.pack(side=tk.TOP)
+
+                    header_description = tk.Label(header_frame, text='A 6 digit verification code has been sent to\n'+add_email+'\n Please enter the 6 digit code into the entry field below.', font='System 8')
+                    header_description.pack(side=tk.TOP)
+
+                    self.timer = tk.Label(header_frame, text='')
+                    self.timer.pack(side=tk.TOP)
+
+                    self.time_remaining = 0
+                    self.countdown(60)
+
+                    #Codes Full Container
+                    code_container = tk.Frame(self.accountVerification, bg=bg)
+                    code_container.pack(padx=padx, pady=pady)
+
+                    #Code Entry Field Container
+                    verification_code_container = tk.Frame(code_container, bg=bg)
+                    verification_code_container.pack(expand=True)
+
+                    verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=bg)
+                    verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+
+                    self.verification_code_reg = root.register(self.verification_code_validate)
+
+                    self.verification_code_var = tk.StringVar()
+                    self.verification_code_var.set('')
+                    self.verification_code_entry = ttk.Entry(verification_code_container, textvariable=self.verification_code_var,
+                                                            font='System 6', validate="key",
+                                                            validatecommand=(self.verification_code_reg, "%P"))
+                    self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+
+                    #Buttons Container
+                    button_container = tk.Frame(code_container, bg=bg)
+                    button_container.pack(expand=True)
+
+                    check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda:self.check_code(self.verification_code_var.get()))
+                    resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda:self.resend_code(self.verification_code_var.get()))
+
+                    check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+                    resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    
+
+                    self.verification_code_entry.bind("<Return>", self.check_code)
+
+
+                    #2.1. Randomly generate a 6 digit code to be sent by email
+                    self.email_verification_code = ''
+                    i=0
+                    while i<6:
+                        random_integer = random.SystemRandom().randint(0,9)
+                        i+=1
+                        self.email_verification_code += str(random_integer)
+
+
+                    #2.2. Send Email to user with the verification code.
+                    #Call the Email class
+                    e = Email()
+                    service = e.get_service()
+                    message = e.create_verification_message("from@gmail.com",add_email,"Books4All Re", self.email_verification_code)
+                    e.send_message(service,"from@gmail.com",message)
+        else:
+            ms.showerror('Error', 'Invalid Email Address')
+
+    def check_code(self, *args):
+        #3. Compare the email code with the input code
+        if self.verification_code_var.get() != self.email_verification_code:
+            ms.showerror('Error','The verification code does not match the code sent.')
+        else:
+            ms.showinfo('Success','The verification code matches the code we sent!')
+            self.accountVerification.destroy()
+
+            with sqlite3.connect('LibrarySystem.db') as db:
+                    c = db.cursor()
+
+            select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
+            highest_val = [x[0] for x in select_highest_val][0]
+
+            insert = 'INSERT INTO Accounts(email_address,password,user_id,staff_mode,admin_mode) VALUES(?,?,?,?,?)'
+            c.execute(insert,[(self.email_var.get()),(self.db_hashed_pw),(highest_val),(self.add_staff_mode_var.get()),(self.add_admin_mode_var.get())])
+            db.commit()
+
+            ms.showinfo('Success!','Account Created!')
+
+
+    def resend_code(self, *args):
+        if self.timer["text"] == "Ready to Resend Code!":
+            self.email_verification_code = ''
+            i=0
+            while i<6:
+                random_integer = random.SystemRandom().randint(0,9)
+                i+=1
+                self.email_verification_code += str(random_integer)
+
+            #2.2. Send Email to user with the verification code.
+            #Call the Email class
+            e = Email()
+            service = e.get_service()
+            message = e.create_verification_message("from@gmail.com", self.email_var.get(), "Books4All Verification Code", self.email_verification_code)
+            e.send_message(service, "from@gmail.com", message)
+
+            self.time_remaining = 0
+            self.countdown(60)
+        else:
+            ms.showwarning('Warning','Please wait another '+self.timer["text"]+'seconds to resend a code.')
+
+    def countdown(self, time_remaining = None):
+        if time_remaining is not None:
+            self.time_remaining = time_remaining
+
+        if self.time_remaining <= 0:
+            self.timer["text"]="Ready to Resend Code!"
+        else:
+            self.timer["text"]=("%d" % self.time_remaining)
+            self.time_remaining = self.time_remaining - 1
+            self.accountVerification.after(1000, self.countdown)
+        
+    def verification_code_validate(self, verification_code_inp):
+        if verification_code_inp.isdigit():
+            if len(verification_code_inp) > 6:
+                return False
+            else:
+                return True
+        elif verification_code_inp is "":
+            return True
+        else:
+            return False
+
+    def show_password(self, *args):
+        if self.password_entry["show"] == "*":
+            self.password_entry["show"]=''
+            self.confirm_pw_entry["show"]=''
+        else:
+            self.password_entry["show"]='*'
+            self.confirm_pw_entry["show"]='*'
 
     def update_account(self):
-        pass
+        user_id = int(self.update_userID_var.get())
+        update_email = self.update_email_var.get()
+        with sqlite3.connect('LibrarySystem.db') as db:
+            c = db.cursor()
+
+        if user_id == '':
+            if update_email != '':
+                email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+                if (re.search(email_regex, update_email)):
+
+                    update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
+                    c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
+                    db.commit()
+
+                    ms.showinfo('Success!','Account Updated!')
+                else:
+                    ms.showerror('Error', 'Invalid Email Address')
+            else:
+                ms.showerror('Error','Empty Email Field.')
+        else:
+            #Check if userID exists.
+            check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?",(user_id,)).fetchall()
+            if len(check_account_existance) == 0:
+                ms.showerror('Error','Invalid User ID.')
+            else:
+                update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
+                c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
+                db.commit()
+
+                ms.showinfo('Success','Account Updated!')
+
 
     def remove_account(self):
-        pass
-    # def password_strength(self, *args):
-    #     special_characters_regex = re.compile("""[!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]""")
-    #     password_input = self.user_password_var.get()
+        user_id = self.remove_userID_var.get()
+        remove_email = self.remove_email_var.get()
+        with sqlite3.connect('LibrarySystem.db') as db:
+            c = db.cursor()
 
-    #     if len(password_input) >= 8:
-    #         self.password_strength_container_1.pack_forget()
-    #         if special_characters_regex.search(password_input) != None :
-    #             self.password_strength_container_2.pack_forget()
-    #         else:
-    #             self.password_strength_container_2.pack(expand=True)
+        if user_id == '':
+            if remove_email != '':
+                email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+                if (re.search(email_regex, remove_email)):
 
-    #     elif len(password_input) < 8:
-    #         self.password_strength_container_1.pack(expand=True)
-    #         if special_characters_regex.search(password_input) != None :
-    #             self.password_strength_container_2.pack_forget()
-    #         else:
-    #             self.password_strength_container_2.pack(expand=True)
+                    remove = c.execute('DELETE FROM Accounts WHERE email_address=?',(remove_email,))
+                    db.commit()
 
-    # def show_password(self, *args):
-    #     if self.password_entry["show"] == "*":
-    #         self.password_entry["show"]=''
-    #         self.confirm_pw_entry["show"]=''
-    #     else:
-    #         self.password_entry["show"]='*'
-    #         self.confirm_pw_entry["show"]='*'
+                    ms.showinfo('Success!','Account Removed!')
+                else:
+                    ms.showerror('Error', 'Invalid Email Address')
+            else:
+                ms.showerror('Error','Empty Email Field.')
+        else:
+            if isinstance(user_id, int) == True:
+                #Check if userID exists.
+                check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?",(user_id,)).fetchall()
+                if len(check_account_existance) == 0:
+                    ms.showerror('Error','Invalid User ID.')
+                else:
+                    remove = c.execute('DELETE FROM Accounts WHERE user_id=?',(user_id,))
+                    db.commit()
+
+                    ms.showinfo('Success!','Account Removed!')
+            else:
+                ms.showerror('Error','Invalid User ID.')
 
 
 
@@ -1960,7 +2298,6 @@ class BookDatabase():
 
         for item_id in children:
             issued_text = self.tree.item(item_id)['values'][5]
-            print(issued_text)
 
             if query_issued in str(issued_text):
                 i_r += 1
@@ -4359,9 +4696,11 @@ class Login():
         button_container.pack(expand=True)
 
         login_button = ttk.Button(button_container, text='Login', command=lambda:self.login())
+        guest_button = ttk.Button(button_container, text='Guest Login', command=lambda:self.guest_login())
         exit_button = ttk.Button(button_container, text='Exit', command=lambda:self.system_exit())
 
         login_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        guest_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
         exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
         self.email_entry.bind("<Return>", self.login)
@@ -4396,6 +4735,13 @@ class Login():
             else:
                 ms.showerror('Error','Incorrect password/email')
 
+
+    def guest_login(self):
+        ms.showinfo('Success','Successfully logged in')
+        for child in self.parent.winfo_children():
+            child.destroy()
+
+            MainApplication(self.parent, 'guest')
 
     def system_exit(self):
         root.destroy()
@@ -4446,25 +4792,46 @@ class MainApplication():
 
         #Instantiate Classes (HP = Home Page, MBP = My Books Page, etc...)
         self.HP = Home(self.parent, self.main_notebook)
-        self.AP = Account(self.parent, self.main_notebook, self.email)
-        self.MBP = MyBooks(self.parent, self.main_notebook, self.email)
+        if email != 'guest':
+            self.AP = Account(self.parent, self.main_notebook, email)
+            self.MBP = MyBooks(self.parent, self.main_notebook, email)
         self.LP = Library(self.parent, self.main_notebook)
 
         # Needs 'Staff' powers to see this page, put behind an if statement.
         #check if the user has staff privileges
-        staff_mode_check = c.execute('SELECT staff_mode FROM Accounts WHERE email_address=?',(email,)).fetchall()
-        staff_mode = [x[0] for x in staff_mode_check][0]
+        try:
+            staff_mode_check = c.execute('SELECT staff_mode FROM Accounts WHERE email_address=?',(email,)).fetchall()
+            staff_mode = [x[0] for x in staff_mode_check][0]
 
-        if staff_mode == 1:
-            self.BDP = BookDatabase(self.parent, self.main_notebook, self.email)
+            if staff_mode == 1:
+                self.BDP = BookDatabase(self.parent, self.main_notebook, email)
+                self.SHP = StaffHelp(self.parent, self.main_notebook, email)
 
-        admin_mode_check = c.execute('SELECT admin_mode FROM Accounts WHERE email_address=?',(email,)).fetchall()
-        admin_mode = [x[0] for x in staff_mode_check][0]
+        except IndexError:
+            pass
 
-        if admin_mode == 1:
-            self.AP = Admin(self.parent, self.main_notebook, self.email)
+        try:
+            admin_mode_check = c.execute('SELECT admin_mode FROM Accounts WHERE email_address=?',(email,)).fetchall()
+            admin_mode = [x[0] for x in admin_mode_check][0]
+
+            if admin_mode == 1:
+                self.AP = Admin(self.parent, self.main_notebook, email)
+                self.AHP = AdminHelp(self.parent, self.main_notebook, email)
+
+        except IndexError:
+            pass
+
 
         self.OP = Options(self.parent, self.main_notebook)
+
+        if email == 'guest':
+            self.GHP = GuestHelp(self.parent, self.main_notebook)
+
+        if email != 'guest':
+            if admin_mode == 0 and staff_mode == 0:
+                self.UHP = UserHelp(self.parent, self.main_notebook, email)
+
+
 
     def logout(self):
         logout_confirmation = ms.askquestion('Logout', 'Are you sure you want to logout?', icon='warning')

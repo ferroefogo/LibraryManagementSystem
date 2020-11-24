@@ -4,6 +4,18 @@
 		"selected_items":
 		[
 			[
+				"add_staff",
+				"add_staff_mode_var"
+			],
+			[
+				"Succes",
+				"Successfully"
+			],
+			[
+				"staff_mode",
+				"staff_mode_container"
+			],
+			[
 				"today",
 				"today_formatted"
 			],
@@ -239,7 +251,7 @@
 			"file": "main.py",
 			"settings":
 			{
-				"buffer_size": 182349,
+				"buffer_size": 207659,
 				"encoding": "UTF-8",
 				"line_ending": "Windows",
 				"name": "#"
@@ -249,7 +261,7 @@
 			"file": "create_db.py",
 			"settings":
 			{
-				"buffer_size": 1255,
+				"buffer_size": 1703,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -429,6 +441,63 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"register",
+			"self.db_hashed_pw",
+			"db_hashed_pw",
+			"register",
+			"''",
+			"empty",
+			"empty#",
+			"empty",
+			"email_regex",
+			"add_staff_mode_var",
+			"staff",
+			"admin",
+			"Admin",
+			"admin",
+			"Admin",
+			"admin",
+			"Admin",
+			"admin",
+			"Admin",
+			"admin",
+			"UPDATE",
+			"7",
+			"datetime",
+			"admins",
+			"Admins",
+			"admins",
+			"LEFT",
+			"patrons",
+			"Patrons",
+			"patrons",
+			"Patrons",
+			"patrons",
+			"users",
+			"Users",
+			"users",
+			"MAX",
+			"add_staff_mode_container",
+			"MAX",
+			"add_staff_mode_container",
+			"add",
+			"update_account_container",
+			"staff",
+			"_acc",
+			"firstRun",
+			"author",
+			"width",
+			"pady=5",
+			"pady=6",
+			"Database",
+			"genre",
+			"issue_date",
+			"genre",
+			"bg",
+			"past_columns_searcher_title",
+			"search_bookID_tv",
+			"past_bookID_validate",
+			"MyBooks",
 			"my_books",
 			"my_booksID",
 			"my_",
@@ -499,64 +568,7 @@
 			"genre",
 			"Genre",
 			"genre",
-			"Genre",
-			"genre",
-			"Genre",
-			"genre",
-			"genre_menu",
-			"value",
-			"genre",
-			"Genre",
-			"genre",
-			"Genre",
-			"genre",
-			"Library()",
-			"'%d/%m/%Y'",
-			"all_",
-			"Library",
-			"MyBooks()",
-			"Library",
-			", anchor=tk.CENTER",
-			"tk.E",
-			"genre",
-			"search_genre_tv_BD",
-			"genre",
-			"_columns_searcher_genre_BD",
-			"_columns_searcher_location_BD",
-			"genres",
-			"genre",
-			"width",
-			"print",
-			"Book ID",
-			"my_booksID",
-			"OptionMenu",
-			"Library",
-			"OptionMenu",
-			"genre_choice_list",
-			"SignIn",
-			"Register",
-			"signIn",
-			"Register",
-			"signIn",
-			"SignIn",
-			"signIn",
-			"SignIn",
-			"add_genre_var",
-			"with",
-			"insert",
-			"VALUES",
-			"user_new_password_var",
-			"self.forgotPassword",
-			"register_container",
-			"bytes_current_pw",
-			"password_entry",
-			"user_password_var",
-			"password_label",
-			"password_container",
-			"verification_code",
-			"code_container",
-			"accountVerification",
-			"verification_code"
+			"Genre"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -583,15 +595,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 182349,
+						"buffer_size": 207659,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								70843,
-								70843
+								43641,
+								43641
 							]
 						],
 						"settings":
@@ -602,7 +614,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 19471.0,
+						"translation.y": 11580.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -614,15 +626,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1255,
+						"buffer_size": 1703,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1070,
-								1070
+								1703,
+								1703
 							]
 						],
 						"settings":
@@ -631,7 +643,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 273.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
