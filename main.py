@@ -166,16 +166,16 @@ Ideas Up for Debate:
 
 
 # - TODO: (24/11/20) 
-#       - Look into the Date Return functionality. Only allow it to be the current date. When returning, make sure the date of return that is entered by the staff is saved in the ACTUAL_RETURN_DATE column in the table.
-#       - Create admin treeview table with the information of all accounts in the system, (except for passwords).
+#       - Look into the Date Return functionality. Only allow it to be the current date. When returning, make sure the date of return that is entered by the staff is saved in the ACTUAL_RETURN_DATE column in the table. /DONE
+#       - Create admin treeview table with the information of all accounts in the system, (except for passwords). /DONE
 #       - Make all filters work together to find a final result. (each field will narrow the search down.) (MAYBE)
 #       - Add filters using tkCalendar to allow the staff on BookDatabase to search by return date or issue date. The same applies to the MyBooks page where the user can search the treeview based on a return/issue date using a filter.
 #       - Treeview sorting algorithm using quicksort (already works with what i have, but it isnt coursework. I want to apply it for more marks) /DONE (Needs tweaking so that when the filters are put on it can filter within that.)
 #
 #       LESS IMPORTANT CHANGES:
-#           - Add functionality to sending an email to the target address when a book is issued/returned.
+#           - Add functionality to sending an email to the target address when a book is issued/returned. /DONE
 #           - Update help pages to match the correct descriptions.
-#           - Send emails regarding return dates as they draw near. (Admin button to send out alerts that are nearing perhaps)
+#           - Send emails regarding return dates as they draw near. (Admin button to send out alerts that are nearing perhaps) /DONE
 #        
 #
 #       SYSTEM CHANGES:
@@ -184,6 +184,16 @@ Ideas Up for Debate:
 #           - Attempt to condense repetitive code.
 #           - Review code adherance to PEP8 Guidelines
 #           - Create requirements notepad. (like the one from last year)
+
+# - TODO: (09/12/20)
+#       - Make all filters work together to find a final result. (each field will narrow the search down.) (MAYBE)
+#       - Add filters using tkCalendar to allow the staff on BookDatabase to search by return date or issue date. The same applies to the MyBooks page where the user can search the treeview based on a return/issue date using a filter.
+#       - Fix quicksort algorithm so that it can sort the table within a specified filtered state.
+#       - Implement binary search algorithm instead of whatever we have now to get more marks for that algorithm's usage.
+#       - Update help pages to match the correct descriptions.
+#
+#
+#
 
 
 import tkinter as tk
@@ -195,6 +205,7 @@ import bcrypt
 import sqlite3
 from tkcalendar import DateEntry
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import base64
 import logging
 import mimetypes
@@ -578,7 +589,6 @@ class Admin():
 
 
 
-
         #Remove Account
         remove_account_container = tk.Frame(admin_page, bg=bg)
         remove_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
@@ -612,7 +622,6 @@ class Admin():
         self.remove_email_entry = ttk.Entry(self.remove_email_container, textvariable=self.remove_email_var)
         self.remove_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
-
         #Remove Account
         remove_account_button_container = tk.Frame(remove_account_container, bg=bg)
         remove_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
@@ -622,6 +631,25 @@ class Admin():
         remove_account_btn.config(text='    Remove Account    ', command=self.remove_account)
         remove_account_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=padx, pady=pady)
 
+
+        #Send Email Alert
+        #Allows an admin to send email alerts to those whose return date is nearby (within 3 days of return).
+        alert_container = tk.Frame(admin_page, bg=bg)
+        alert_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+
+        alert_header = tk.Label(alert_container, text='Returns Reminder Manual Email', font='System 18', bg=bg)
+        alert_header.pack(anchor=tk.W, padx=padx, pady=pady)
+
+        alert_desc = tk.Label(alert_container, text='Sends an email alert to all users whose book is\n within three days of needing to be returned.', font='System 10', bg=bg)
+        alert_desc.pack(anchor=tk.W, padx=padx, pady=pady)
+
+        #Send Email Alert Container
+        alert_email_button_container = tk.Frame(alert_container, bg=bg)
+        alert_email_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
+
+        alert_btn = ttk.Button(alert_email_button_container)
+        alert_btn.config(text='    Alert    ', command=self.send_alert)
+        alert_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=padx, pady=pady)
 
 
         #Analytical Information
@@ -639,7 +667,7 @@ class Admin():
         number_users_frame = tk.Frame(analytics_container)
         number_users_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
 
-        number_users_label = tk.Label(number_users_frame, text='Number of Users:%d' % number_users)
+        number_users_label = tk.Label(number_users_frame, text='Total of All Users:%d' % number_users)
         number_users_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
@@ -772,6 +800,84 @@ class Admin():
             ms.showwarning('Graph Warning','Not enough data to populate graph.')
 
 
+        self.tree_ids = []
+        # Library TreeView Book Database Frame
+        tree_container = tk.Frame(admin_page, bg=bg)
+        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=padx, pady=pady)
+
+        tree_header = tk.Label(tree_container, text='Database', font='System 18', bg=bg)
+        tree_header.pack(padx=padx, pady=pady)
+
+        #Set up TreeView table
+        self.columns = ('User ID','Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
+        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
+        self.tree.heading("User ID", text='User ID')
+        self.tree.heading("Email Address", text='Email Address')
+        self.tree.heading("Staff Mode", text='Staff Mode')
+        self.tree.heading("Admin Mode", text='Admin Mode')
+        self.tree.heading("Issued BookIDs", text='Issued BookIDs')
+        self.tree.heading("Earliest Return Date", text='Earliest Return Date')
+
+        self.tree.column("User ID", width=50, anchor=tk.CENTER)
+        self.tree.column("Email Address", width=width, anchor=tk.CENTER)
+        self.tree.column("Staff Mode", width=80, anchor=tk.CENTER)
+        self.tree.column("Admin Mode", width=80, anchor=tk.CENTER)
+        self.tree.column("Issued BookIDs", width=width, anchor=tk.CENTER)
+        self.tree.column("Earliest Return Date", width=width, anchor=tk.CENTER)
+
+        #User IDs
+        c.execute("SELECT user_id FROM Accounts")
+        userIDs_fetch = c.fetchall()
+        userID_list = [x[0] for x in userIDs_fetch]
+
+        #Email addresses
+        c.execute("SELECT email_address FROM Accounts")
+        email_fetch = c.fetchall()
+        email_list = [x[0] for x in email_fetch]
+
+        #staff mode
+        c.execute("SELECT staff_mode FROM Accounts")
+        staff_fetch = c.fetchall()
+        staff_list = [x[0] for x in staff_fetch]
+
+        #admin mode
+        c.execute("SELECT admin_mode FROM Accounts")
+        admin_fetch = c.fetchall()
+        admin_list = [x[0] for x in admin_fetch]
+
+
+        for k in self.tree.get_children():
+            self.tree.delete(k)
+
+        for i in range(len(userID_list)):
+            #issued_bookIDs
+            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            issued_bookIDs_fetch = c.fetchall()
+            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+            for x in range(len(issued_bookIDs_list)):
+                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+            #earliest return date
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            return_date_fetch = c.fetchall()
+            return_date_list = [x[0] for x in return_date_fetch]
+
+            #convert the return_date_list from a list of strins to a list of dates
+            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+            try:
+                earliest_date = str(min(dates_list))
+            except ValueError:
+                pass
+            if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+            else:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+        self.tree.pack()
+
+
+
 
 
 
@@ -789,6 +895,91 @@ class Admin():
         #   - Average number of days before return
         #   - Average number of books issued out on a single day over the past week
         #   - Genre Popularity (numpy bar chart required).
+
+    def send_alert(self):
+        # Fetch all the accounts that are within 3 days of needing to return their book
+        with sqlite3.connect('LibrarySystem.db') as db:
+            c = db.cursor()
+
+        db_return_fetch = c.execute("SELECT user_id, bookID, return_date FROM MyBooks").fetchall()
+
+        #Convert the return dates returned into datetime objects
+        for parameter in db_return_fetch:
+            date = parameter[2]
+            datetime_conversion = datetime.strptime(date, '%Y-%m-%d').date()
+
+            within_three_days = (datetime.today() + timedelta(days=3)).date()
+
+            if within_three_days > datetime_conversion:
+                #If we're within three days of the return
+
+                #Identify the bookID behind the return date
+                target_bookID = parameter[1]
+                target_userID = parameter[0]
+
+                #Fetchall of that books information.
+                db_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
+                db_title = [x[0] for x in db_title_fetch][0]
+
+                db_author_fetch = c.execute("SELECT author FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
+                db_author = [x[0] for x in db_author_fetch][0]
+
+                db_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
+                db_genre = [x[0] for x in db_genre_fetch][0]
+
+                db_issue_date_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(target_bookID,)).fetchall()
+                db_issue_date = [x[0] for x in db_issue_date_fetch][0]
+
+                db_expected_return_date_fetch = c.execute("SELECT return_date FROM MyBooks WHERE bookID=?",(target_bookID,)).fetchall()
+                db_expected_return_date = [x[0] for x in db_expected_return_date_fetch][0]
+
+                db_target_email_address = c.execute("SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)",(target_bookID,)).fetchall()
+                db_target_email_address = [x[0] for x in db_target_email_address][0]
+
+
+                #Email user
+                e = Email()
+                service = e.get_service()
+                message = e.create_reminder_message("from@gmail.com", db_target_email_address, "Books4All Return Reminder", db_title, db_author, db_genre, db_issue_date, db_expected_return_date)
+                e.send_message(service, "from@gmail.com", message)
+
+                
+            elif within_three_days == datetime_conversion:
+                #We are dead on three days of the return
+
+                #Identify the bookID behind the return date
+                target_bookID = parameter[1]
+                target_userID = parameter[0]
+
+                #Fetchall of that books information.
+                db_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
+                db_title = [x[0] for x in db_title_fetch][0]
+
+                db_author_fetch = c.execute("SELECT author FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
+                db_author = [x[0] for x in db_author_fetch][0]
+
+                db_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
+                db_genre = [x[0] for x in db_genre_fetch][0]
+
+                db_issue_date_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(target_bookID,)).fetchall()
+                db_issue_date = [x[0] for x in db_issue_date_fetch][0]
+
+                db_expected_return_date_fetch = c.execute("SELECT return_date FROM MyBooks WHERE bookID=?",(target_bookID,)).fetchall()
+                db_expected_return_date = [x[0] for x in db_expected_return_date_fetch][0]
+
+                db_target_email_address = c.execute("SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)",(target_bookID,)).fetchall()
+                db_target_email_address = [x[0] for x in db_target_email_address][0]
+
+
+                #Email user
+                e = Email()
+                service = e.get_service()
+                message = e.create_reminder_message("from@gmail.com", db_target_email_address, "Books4All Return Reminder", db_title, db_author, db_genre, db_issue_date, db_expected_return_date)
+                e.send_message(service, "from@gmail.com", message)
+            else:
+                #Return date is not within allocated time to be emailed.
+                ms.showwarning('Warning','No books within reminder limit!')
+        
 
     def add_account(self):
         add_email = self.email_var.get()
@@ -897,7 +1088,6 @@ class Admin():
                         i+=1
                         self.email_verification_code += str(random_integer)
 
-
                     #2.2. Send Email to user with the verification code.
                     #Call the Email class
                     e = Email()
@@ -924,6 +1114,58 @@ class Admin():
             insert = 'INSERT INTO Accounts(email_address,password,user_id,staff_mode,admin_mode) VALUES(?,?,?,?,?)'
             c.execute(insert,[(self.email_var.get()),(self.db_hashed_pw),(highest_val),(self.add_staff_mode_var.get()),(self.add_admin_mode_var.get())])
             db.commit()
+
+            #User IDs
+            c.execute("SELECT user_id FROM Accounts")
+            userIDs_fetch = c.fetchall()
+            userID_list = [x[0] for x in userIDs_fetch]
+
+            #Email addresses
+            c.execute("SELECT email_address FROM Accounts")
+            email_fetch = c.fetchall()
+            email_list = [x[0] for x in email_fetch]
+
+            #staff mode
+            c.execute("SELECT staff_mode FROM Accounts")
+            staff_fetch = c.fetchall()
+            staff_list = [x[0] for x in staff_fetch]
+
+            #admin mode
+            c.execute("SELECT admin_mode FROM Accounts")
+            admin_fetch = c.fetchall()
+            admin_list = [x[0] for x in admin_fetch]
+
+
+            for k in self.tree.get_children():
+                self.tree.delete(k)
+
+            for i in range(len(userID_list)):
+                #issued_bookIDs
+                c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+                issued_bookIDs_fetch = c.fetchall()
+                issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+                for x in range(len(issued_bookIDs_list)):
+                    issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
+
+                #earliest return date
+                c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+                return_date_fetch = c.fetchall()
+                return_date_list = [x[0] for x in return_date_fetch]
+
+                #convert the return_date_list from a list of strins to a list of dates
+                dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+                try:
+                    earliest_date = str(min(dates_list))
+                except ValueError:
+                    pass
+
+                if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                    self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+                else:
+                    self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+            self.tree.pack()
 
             ms.showinfo('Success!','Account Created!')
 
@@ -1009,6 +1251,58 @@ class Admin():
                 c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
                 db.commit()
 
+                #User IDs
+                c.execute("SELECT user_id FROM Accounts")
+                userIDs_fetch = c.fetchall()
+                userID_list = [x[0] for x in userIDs_fetch]
+
+                #Email addresses
+                c.execute("SELECT email_address FROM Accounts")
+                email_fetch = c.fetchall()
+                email_list = [x[0] for x in email_fetch]
+
+                #staff mode
+                c.execute("SELECT staff_mode FROM Accounts")
+                staff_fetch = c.fetchall()
+                staff_list = [x[0] for x in staff_fetch]
+
+                #admin mode
+                c.execute("SELECT admin_mode FROM Accounts")
+                admin_fetch = c.fetchall()
+                admin_list = [x[0] for x in admin_fetch]
+
+
+                for k in self.tree.get_children():
+                    self.tree.delete(k)
+
+                for i in range(len(userID_list)):
+                    #issued_bookIDs
+                    c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+                    issued_bookIDs_fetch = c.fetchall()
+                    issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+                    for x in range(len(issued_bookIDs_list)):
+                        issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+                    #earliest return date
+                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+                    return_date_fetch = c.fetchall()
+                    return_date_list = [x[0] for x in return_date_fetch]
+
+                    #convert the return_date_list from a list of strins to a list of dates
+                    dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+                    try:
+                        earliest_date = str(min(dates_list))
+                    except ValueError:
+                        pass
+
+                    if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+                    else:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+                    self.tree.pack()
+
                 ms.showinfo('Success','Account Updated!')
 
 
@@ -1040,6 +1334,59 @@ class Admin():
                 else:
                     remove = c.execute('DELETE FROM Accounts WHERE user_id=?',(user_id,))
                     db.commit()
+
+                    #User IDs
+                    c.execute("SELECT user_id FROM Accounts")
+                    userIDs_fetch = c.fetchall()
+                    userID_list = [x[0] for x in userIDs_fetch]
+
+                    #Email addresses
+                    c.execute("SELECT email_address FROM Accounts")
+                    email_fetch = c.fetchall()
+                    email_list = [x[0] for x in email_fetch]
+
+                    #staff mode
+                    c.execute("SELECT staff_mode FROM Accounts")
+                    staff_fetch = c.fetchall()
+                    staff_list = [x[0] for x in staff_fetch]
+
+                    #admin mode
+                    c.execute("SELECT admin_mode FROM Accounts")
+                    admin_fetch = c.fetchall()
+                    admin_list = [x[0] for x in admin_fetch]
+
+
+                    for k in self.tree.get_children():
+                        self.tree.delete(k)
+
+                    for i in range(len(userID_list)):
+                        #issued_bookIDs
+                        c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+                        issued_bookIDs_fetch = c.fetchall()
+                        issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+                        for x in range(len(issued_bookIDs_list)):
+                            issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+                        #earliest return date
+                        c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+                        return_date_fetch = c.fetchall()
+                        return_date_list = [x[0] for x in return_date_fetch]
+
+                        #convert the return_date_list from a list of strins to a list of dates
+                        dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+                        try:
+                            earliest_date = str(min(dates_list))
+                        except ValueError:
+                            pass
+
+
+                        if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                            self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+                        else:
+                            self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+                        self.tree.pack()
 
                     ms.showinfo('Success!','Account Removed!')
             else:
@@ -1308,15 +1655,15 @@ class BookDatabase():
 
 
         #Date entry frame
-        date_container = tk.Frame(filter_container, bg=bg)
-        date_container.pack(anchor=tk.W, fill=tk.X, expand=True)
+        issue_date_container = tk.Frame(filter_container, bg=bg)
+        issue_date_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
-        recipient_label = tk.Label(date_container, text='Date of Issuing: ', bg=bg)
+        recipient_label = tk.Label(issue_date_container, text='Date of Issuing: ', bg=bg)
         recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
-        self.date_entry = DateEntry(date_container, width=12, background='darkblue',
+        self.issue_date_entry = DateEntry(issue_date_container, width=12, background='darkblue',
                     foreground='white', borderwidth=2, mindate=datetime.now(), maxdate=datetime.now(), locale='en_UK')
-        self.date_entry.pack(padx=padx, pady=pady)
+        self.issue_date_entry.pack(padx=padx, pady=pady)
 
 
 
@@ -1324,17 +1671,15 @@ class BookDatabase():
         return_date_container = tk.Frame(filter_container, bg=bg)
         return_date_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
-        return_date_label = tk.Label(return_date_container, text='Last Valid Return Date: ', bg=bg)
+        return_date_label = tk.Label(return_date_container, text='Expected Return Date: ', bg=bg)
         return_date_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
-        return_date_calc = str(self.date_entry.get_date() + timedelta(days=14))
-        return_date_value = str(datetime.strptime(return_date_calc, "%Y-%m-%d").strftime('%Y-%m-%d'))
+        three_months_from_now = relativedelta(months=3)
+        return_date_calc = self.issue_date_entry.get_date() + three_months_from_now
 
-        self.return_date_var = tk.StringVar()
-        self.return_date_var.set(return_date_value)
-
-        return_date_entry = ttk.Entry(return_date_container, state=tk.DISABLED, textvariable=self.return_date_var)
-        return_date_entry.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        self.actual_return_date_entry = DateEntry(return_date_container, width=12, background='darkblue',
+                    foreground='white', borderwidth=2, mindate=datetime.now(), maxdate=return_date_calc, locale='en_UK')
+        self.actual_return_date_entry.pack(padx=padx, pady=pady)
 
 
         #Issue Book Button Frame
@@ -1433,9 +1778,8 @@ class BookDatabase():
         ret_recipient_label = tk.Label(ret_date_container, text='Date of Return: ', bg=bg)
         ret_recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
-
         self.ret_date_entry = DateEntry(ret_date_container, width=12, background='darkblue',
-                    foreground='white', borderwidth=2, locale='en_UK')
+                    foreground='white', borderwidth=2, mindate=datetime.now(), locale='en_UK')
         self.ret_date_entry.pack(padx=padx, pady=pady)
 
 
@@ -1938,12 +2282,12 @@ class BookDatabase():
         title_var = self.title_var.get()
         author_var = self.author_var.get()
         recipient_email = self.recipient_var.get()
-        date_issued = self.date_entry.get_date()
+        date_issued = self.issue_date_entry.get_date()
 
         date_issued_string = str(date_issued.strftime('%d-%m-%Y'))
 
         if str(date_issued_string) == str(datetime.today().strftime('%d-%m-%Y')):
-            date_return = self.return_date_var.get()
+            expected_return_date = self.actual_return_date_entry.get_date()
 
             book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ',(title_var, author_var)).fetchall()
             book_id = [x[0] for x in book_id_search][0]
@@ -1951,7 +2295,7 @@ class BookDatabase():
             # Send info to db
             account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(recipient_email,)).fetchall()
             if len(account_info_fetch) != 0:
-                account_mybooks_check = [x[0] for x in account_info_fetch][0]
+                accounts_userid_check = [x[0] for x in account_info_fetch][0]
 
                 #Check if book is already issued out
                 book_already_issued_fetch = c.execute('SELECT issued FROM Books WHERE bookID=?',(bookID_var,)).fetchall()
@@ -1959,7 +2303,7 @@ class BookDatabase():
 
                 if book_already_issued == 0:
                     insert_my_bookID = 'INSERT INTO MyBooks(user_id,bookID) VALUES(?,?)'
-                    c.execute(insert_my_bookID,[(account_mybooks_check),(book_id)])
+                    c.execute(insert_my_bookID,[(accounts_userid_check),(book_id)])
                     conn.commit()
 
                     update_issued_val = c.execute('UPDATE Books SET issued=1 WHERE bookID=?',(book_id,))
@@ -1967,13 +2311,31 @@ class BookDatabase():
 
                     update_date_issued_val = c.execute("""UPDATE MyBooks
                         SET date_issued=?
-                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(date_issued, recipient_email))
+                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
+                        AND bookID=?""",(date_issued, recipient_email, bookID_var))
                     conn.commit()
 
                     update_return_date_val = c.execute("""UPDATE MyBooks
                         SET return_date=?
-                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(date_return, recipient_email))
+                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
+                        AND bookID=?""",(expected_return_date, recipient_email, bookID_var))
                     conn.commit()
+
+                    #Fetch Location
+                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?",(bookID_var,)).fetchall()
+                    book_location = [x[0] for x in book_location_fetch][0]
+
+                    #Fetch genre
+                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(bookID_var,)).fetchall()
+                    book_genre = [x[0] for x in book_genre_fetch][0]
+
+
+                    e = Email()
+                    service = e.get_service()
+                    message = e.create_issuing_message("from@gmail.com",recipient_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date)
+                    e.send_message(service,"from@gmail.com",message)
+
+                    ms.showinfo('Success', 'Book issued out successfully\nAn email has been sent to\n'+recipient_email+'\nregarding the issuing information.')
                 else:
                     ms.showerror('Error','This book has already been issued.')
 
@@ -2042,7 +2404,6 @@ class BookDatabase():
                     self.tree.heading(self.col, text=self.col,
                                           command=lambda c=self.col: self.sort_upon_press(c))
 
-                ms.showinfo('Success', 'Book issued out successfully')
             else:
                 ms.showerror('Error', 'Email was not found.', icon='error')
         else:
@@ -2058,7 +2419,7 @@ class BookDatabase():
         title_var = self.ret_title_var.get()
         author_var = self.ret_author_var.get()
         return_email = self.return_email_var.get()
-        date_return = self.return_date_var.get()
+        actual_return_date = self.ret_date_entry.get_date()
 
         book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ',(title_var, author_var)).fetchall()
         book_id = [x[0] for x in book_id_search][0]
@@ -2067,19 +2428,109 @@ class BookDatabase():
         #could be shortened a bit.
         account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(return_email,)).fetchall()
         if len(account_info_fetch) != 0:
-            ms.showerror('Error', 'Email was not found.', icon='error')
+            accounts_userid_check = [x[0] for x in account_info_fetch][0]
 
-            account_mybooks_check = [x[4] for x in account_info_fetch][0]
-
-
-            #Remove user_id from the ownership of the user and onto the public library.
-
-            remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-            c.execute(remove_user_id,[(book_id)])
+            update_issued_val = c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID=?',(actual_return_date, book_id,))
             conn.commit()
 
-            update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
-            conn.commit()
+            #Check if the user has returned on time
+            accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE user_id=?',(accounts_userid_check,)).fetchall()
+            accounts_return_date_check = [x[0] for x in accounts_return_date_fetch][0]
+
+            accounts_return_date_check_time = datetime.strptime(accounts_return_date_check, '%Y-%m-%d').date()
+
+            if accounts_return_date_check_time < actual_return_date:
+                #Handed late
+                #Find the number of days the book is late by.
+                days_since_return_date = (accounts_return_date_check_time - actual_return_date)
+                #Format the output to be just an integer days to fetch just the integer
+                days_since_return_date_formatted = str(days_since_return_date).split("d")[0]
+                #Fetch the number in string and convert it into an absolute value integer.
+                days_since_return_date_formatted_integer = int(re.search(r'\d+', days_since_return_date_formatted).group())
+                result = ms.askyesno('Warning','This user has returned the book late by %s days\nDo you wish to Continue?' % days_since_return_date_formatted_integer)
+
+                if result == True:
+                    remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+                    c.execute(remove_user_id,[(book_id)])
+                    conn.commit()
+
+                    update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+                    conn.commit()
+
+                    #Set entryfields to empty after return
+                    self.ret_bookID_var.set('')
+                    self.ret_title_var.set('')
+                    self.ret_author_var.set('')
+                    self.return_email_var.set('')
+
+                    ms.showinfo('Success', 'Book returned successfully')
+
+                else:
+                    ms.showerror('Cancelled','Book return cancelled')
+
+            elif accounts_return_date_check_time > actual_return_date:
+                #Handed on time
+
+                #Fetch Location
+                book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?",(book_id,)).fetchall()
+                book_location = [x[0] for x in book_location_fetch][0]
+
+                #Fetch genre
+                book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(book_id,)).fetchall()
+                book_genre = [x[0] for x in book_genre_fetch][0]
+
+                #Fetch date issued
+                book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(book_id,)).fetchall()
+                date_issued = [x[0] for x in book_date_issued_fetch][0]
+
+                expected_return_date = accounts_return_date_check_time
+                e = Email()
+                service = e.get_service()
+                message = e.create_return_message("from@gmail.com",return_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
+                e.send_message(service,"from@gmail.com",message)
+
+                #Remove user_id from the ownership of the user and onto the public library.
+                remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+                c.execute(remove_user_id,[(book_id)])
+                conn.commit()
+
+                update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+                conn.commit()
+
+                ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
+
+            elif accounts_return_date_check_time == actual_return_date:
+                #Handed on time
+
+                #Fetch Location
+                book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?",(book_id,)).fetchall()
+                book_location = [x[0] for x in book_location_fetch][0]
+
+                #Fetch genre
+                book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(book_id,)).fetchall()
+                book_genre = [x[0] for x in book_genre_fetch][0]
+
+                #Fetch date issued
+                book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(book_id,)).fetchall()
+                date_issued = [x[0] for x in book_date_issued_fetch][0]
+
+                expected_return_date = accounts_return_date_check_time
+                e = Email()
+                service = e.get_service()
+                message = e.create_return_message("from@gmail.com",return_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
+                e.send_message(service,"from@gmail.com",message)
+
+                #Remove user_id from the ownership of the user and onto the public library.
+                remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+                c.execute(remove_user_id,[(book_id)])
+                conn.commit()
+
+                update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+                conn.commit()
+
+                ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
+
+
 
             #Set entryfields to empty after return
             self.ret_bookID_var.set('')
@@ -2090,6 +2541,7 @@ class BookDatabase():
             #Update Treeview table in BookDatabase Page
             #Maybe pack into a function?
             #Book IDs
+            #compress
             c.execute("SELECT bookID FROM Books")
             bookIDs_fetch = c.fetchall()
             bookID_list = [x[0] for x in bookIDs_fetch]
@@ -2145,7 +2597,6 @@ class BookDatabase():
                     self.tree.heading(self.col, text=self.col,
                                           command=lambda c=self.col: self.sort_upon_press(c))
 
-            ms.showinfo('Success', 'Book returned successfully')
         else:
             ms.showerror('Error', 'Email was not found.', icon='error')
 
@@ -4578,6 +5029,60 @@ class Email():
             logging.error('An HTTP error occurred: %s', error)
 
     @staticmethod
+    def create_reminder_message(sender, to, subject, *args):
+        """Create a reminder message.
+
+        Returns:
+            An object containing a base64url encoded message.
+        """
+
+        title_var = args[0]
+        author_var = args[1]
+        book_genre = args[2]
+        date_issued = args[3]
+        book_expected_return_date = args[4]
+
+        CURRENT_DATE = (datetime.today().date()).strftime('%Y-%m-%d')
+
+        string_book_title = "Title: "+title_var
+        string_book_author = "Author: "+author_var
+        string_book_genre = "Genre: "+book_genre
+        string_book_date_issued = "Issue Date: "+str(date_issued)
+        string_book_expected_return_date = "Expected Date of Return: "+str(book_expected_return_date)
+
+        html = open("reminder_email.html")
+
+        soup = BeautifulSoup(html, features="lxml")
+        html.close()
+
+        id_list = ['book_title','book_author','book_genre','book_issue_date','book_expected_return_date', 'current_date']
+        field_list = [string_book_title,string_book_author,string_book_genre,string_book_date_issued,string_book_expected_return_date, CURRENT_DATE]
+
+        for field in range(len(id_list)):
+            current_id = id_list[field]
+            target = soup.find(id=current_id)
+            target_result = soup.find(id=current_id).find_all(text=True, recursive=False)
+            target_text = str(target_result[0])
+            current_field = field_list[field]
+
+            for v in target:
+                v.replace_with(v.replace(target_text, current_field))
+
+            with open("reminder_email.html", "w") as file:
+                file.write(str(soup))
+
+        updated_html = open("reminder_email.html")
+
+        message = MIMEText(updated_html.read(), 'html')
+
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        s = message.as_string()
+        b = base64.urlsafe_b64encode(s.encode('utf-8'))
+        return {'raw': b.decode('utf-8')}
+
+    @staticmethod
     def create_verification_message(sender, to, subject, verification_code):
         """Create a verification message.
 
@@ -4615,7 +5120,7 @@ class Email():
     def create_forgot_password_message(sender, to, subject, gen_random_password):
         """Create a forgot password message for an email.
         Returns:
-          An object containing a base64url encoded email object.
+          An object containing a base64url encoded email.
         """
         html = open("forgot_password_email.html")
 
@@ -4632,6 +5137,112 @@ class Email():
             file.write(str(soup))
 
         updated_html = open("forgot_password_email.html")
+
+        message = MIMEText(updated_html.read(), 'html')
+
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        s = message.as_string()
+        b = base64.urlsafe_b64encode(s.encode('utf-8'))
+        return {'raw': b.decode('utf-8')}
+
+    @staticmethod
+    def create_issuing_message(sender, to, subject, *args):
+        """Create an issuing message for an email
+        Returns:
+            An object containing a base64url encoded email.
+        """
+        title_var = args[0]
+        author_var = args[1]
+        book_genre = args[2]
+        book_location = args[3]
+        date_issued = args[4]
+        book_expected_return_date = args[5]
+
+        string_book_title = "Title: "+title_var
+        string_book_author = "Author: "+author_var
+        string_book_genre = "Genre: "+book_genre
+        string_book_location = "Location: "+book_location
+        string_book_date_issued = "Issue Date: "+str(date_issued)
+        string_book_expected_return_date = "Expected Date of Return: "+str(book_expected_return_date)
+
+        html = open("issuing_email.html")
+
+        soup = BeautifulSoup(html, features="lxml")
+        html.close()
+
+        id_list = ['book_title','book_author','book_genre','book_location','book_issue_date','book_expected_return_date']
+        field_list = [string_book_title,string_book_author,string_book_genre,string_book_location,string_book_date_issued,string_book_expected_return_date]
+
+        for field in range(len(id_list)):
+            current_id = id_list[field]
+            target = soup.find(id=current_id)
+            target_result = soup.find(id=current_id).find_all(text=True, recursive=False)
+            target_text = str(target_result[0])
+            current_field = field_list[field]
+
+            for v in target:
+                v.replace_with(v.replace(target_text, current_field))
+
+            with open("issuing_email.html", "w") as file:
+                file.write(str(soup))
+
+        updated_html = open("issuing_email.html")
+
+        message = MIMEText(updated_html.read(), 'html')
+
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        s = message.as_string()
+        b = base64.urlsafe_b64encode(s.encode('utf-8'))
+        return {'raw': b.decode('utf-8')}
+
+    @staticmethod
+    def create_return_message(sender, to, subject, *args):
+        """Create an return message for an email
+        Returns:
+            An object containing a base64url encoded email.
+        """
+        title_var = args[0]
+        author_var = args[1]
+        book_genre = args[2]
+        book_location = args[3]
+        date_issued = args[4]
+        book_expected_return_date = args[5]
+        book_actual_return_date = args[6]
+
+        string_book_title = "Title: "+title_var
+        string_book_author = "Author: "+author_var
+        string_book_genre = "Genre: "+book_genre
+        string_book_location = "Location: "+book_location
+        string_book_date_issued = "Issue Date: "+str(date_issued)
+        string_book_expected_return_date = "Expected Date of Return: "+str(book_expected_return_date)
+        string_book_actual_return_date = "Actual Date of Return: "+str(book_actual_return_date)
+
+        html = open("return_email.html")
+
+        soup = BeautifulSoup(html, features="lxml")
+        html.close()
+
+        id_list = ['book_title','book_author','book_genre','book_location','book_issue_date','book_expected_return_date','book_actual_return_date']
+        field_list = [string_book_title,string_book_author,string_book_genre,string_book_location,string_book_date_issued,string_book_expected_return_date,string_book_actual_return_date]
+
+        for field in range(len(id_list)):
+            current_id = id_list[field]
+            target = soup.find(id=current_id)
+            target_result = soup.find(id=current_id).find_all(text=True, recursive=False)
+            target_text = str(target_result[0])
+            current_field = field_list[field]
+
+            for v in target:
+                v.replace_with(v.replace(target_text, current_field))
+
+            with open("return_email.html", "w") as file:
+                file.write(str(soup))
+
+        updated_html = open("return_email.html")
 
         message = MIMEText(updated_html.read(), 'html')
 

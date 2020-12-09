@@ -275,45 +275,10 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "main.py",
-			"settings":
-			{
-				"buffer_size": 230246,
-				"encoding": "UTF-8",
-				"line_ending": "Windows",
-				"name": "#"
-			}
-		},
-		{
-			"file": "create_db.py",
-			"settings":
-			{
-				"buffer_size": 1703,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
 	[
-		[
-			[
-				[
-					"Packages/Python/Python.sublime-build",
-					""
-				],
-				[
-					"Packages/Python/Python.sublime-build",
-					"Syntax Check"
-				]
-			],
-			[
-				"Packages/Python/Python.sublime-build",
-				""
-			]
-		]
 	],
 	"build_varint": "",
 	"command_palette":
@@ -365,15 +330,12 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
-	"expanded_folders":
-	[
-		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project"
-	],
 	"file_history":
 	[
+		"/D/Desktop/Programming/Heat Exchanger Avg Cost/main revamped/.git/COMMIT_EDITMSG",
+		"/C/Users/marco/AppData/Local/Programs/Python/Python37-32/lib/tkinter/__init__.py",
 		"/C/Users/marco/Desktop/Programming/Heat Exchanger Avg Cost/main revamped/ORCCalculator.py",
 		"/C/Users/marco/AppData/Local/Programs/Python/Python37-32/lib/_strptime.py",
-		"/C/Users/marco/AppData/Local/Programs/Python/Python37-32/lib/tkinter/__init__.py",
 		"/C/Users/marco/Desktop/Programming/Heat Exchanger Avg Cost/main/.git/COMMIT_EDITMSG",
 		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/.git/COMMIT_EDITMSG",
 		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/create_db.py",
@@ -468,134 +430,6 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"get_service",
-			"book_database_page",
-			"location",
-			"genre",
-			"author",
-			"title",
-			"bookID",
-			"bookIDs",
-			"issue_book",
-			"genre",
-			"book_location",
-			"return",
-			"create_issuing_message",
-			"location",
-			"create_issuing_message",
-			"issue_date_entry",
-			"create_issuing_message",
-			"issue_book(",
-			"issue_book",
-			"create_issuing_message",
-			"create_forgot_password_message(",
-			"Email()",
-			"create_forgot_password_message",
-			"issue",
-			"return",
-			"date_entry",
-			"print",
-			"width",
-			"timedelta(days",
-			"timedelta",
-			"%s",
-			"{}",
-			"Date of Return",
-			"return_date_var",
-			"accounts_userid_check",
-			"date_return",
-			"account_mybooks_check",
-			"return_book",
-			"update_admin_mode_var",
-			"update_staff_mode_var",
-			"staff_mode",
-			"print",
-			"UPDATE Accounts SET",
-			"update_userID_var",
-			"update_email",
-			"SET(",
-			"UPDATE",
-			"update_userID_var",
-			"add_email_var",
-			"add_account",
-			"add_email",
-			"register",
-			"show=",
-			"show=''",
-			"show",
-			"register",
-			"self.db_hashed_pw",
-			"db_hashed_pw",
-			"register",
-			"''",
-			"empty",
-			"empty#",
-			"empty",
-			"email_regex",
-			"add_staff_mode_var",
-			"staff",
-			"admin",
-			"Admin",
-			"admin",
-			"Admin",
-			"admin",
-			"Admin",
-			"admin",
-			"Admin",
-			"admin",
-			"UPDATE",
-			"7",
-			"datetime",
-			"admins",
-			"Admins",
-			"admins",
-			"LEFT",
-			"patrons",
-			"Patrons",
-			"patrons",
-			"Patrons",
-			"patrons",
-			"users",
-			"Users",
-			"users",
-			"MAX",
-			"add_staff_mode_container",
-			"MAX",
-			"add_staff_mode_container",
-			"add",
-			"update_account_container",
-			"staff",
-			"_acc",
-			"firstRun",
-			"author",
-			"width",
-			"pady=5",
-			"pady=6",
-			"Database",
-			"genre",
-			"issue_date",
-			"genre",
-			"bg",
-			"past_columns_searcher_title",
-			"search_bookID_tv",
-			"past_bookID_validate",
-			"MyBooks",
-			"my_books",
-			"my_booksID",
-			"my_",
-			"my_booksID",
-			"analytics",
-			"power_validate",
-			"self.page1",
-			"page1",
-			"validate",
-			"ttk",
-			"AutoCompleteEntryBD_ReturnBookID",
-			"quickSort",
-			"query_issued",
-			"search_issued_tv_BD",
-			"db_search_issued_var",
-			"query_issued"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -613,70 +447,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "main.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 230246,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								230246,
-								230246
-							]
-						],
-						"settings":
-						{
-							"auto_name": "#",
-							"spell_check": false,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 68238.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "create_db.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1703,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1482,
-								1482
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -711,16 +483,12 @@
 		]
 	},
 	"menu_visible": true,
-	"output.exec":
-	{
-		"height": 126.0
-	},
 	"output.find_results":
 	{
 		"height": 0.0
 	},
 	"pinned_build_system": "Packages/Python/Python.sublime-build",
-	"project": "LMS.sublime-project",
+	"project": "main.sublime-project",
 	"replace":
 	{
 		"height": 40.0
@@ -743,7 +511,7 @@
 		[
 			[
 				"",
-				"C:\\Users\\marco\\Desktop\\Programming\\Heat Exchanger Avg Cost\\main revamped\\ORCCalculator.sublime-workspace"
+				"D:\\Desktop\\Collyer's Folder\\Computer Science\\Y2 Project\\Library Management System\\LMS.sublime-project"
 			]
 		],
 		"width": 380.0

@@ -37,17 +37,6 @@ c.execute("""CREATE TABLE MyBooks (
 			)""")
 conn.commit()
 
-c.execute("""CREATE TABLE UserBookHistory (
-			user_id INTEGER NOT NULL DEFAULT '',
-			bookID INTEGER NOT NULL DEFAULT '',
-			date_issued TIMESTAMP NOT NULL DEFAULT '',
-			return_date TIMESTAMP NOT NULL DEFAULT '',
-			actual_return_date TIMESTAMP NOT NULL DEFAULT '',
-			FOREIGN KEY(bookID) REFERENCES Books(bookID),
-			FOREIGN KEY(user_id) REFERENCES Accounts(user_id)
-			)""")
-conn.commit()
-
 c.execute("""CREATE TABLE Genres (
 			genre VARCHAR(100) NOT NULL DEFAULT '-EMPTY-'
 			)""")
