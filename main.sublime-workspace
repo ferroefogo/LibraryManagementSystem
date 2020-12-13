@@ -1,0 +1,610 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"sender",
+				"sender"
+			],
+			[
+				"from",
+				"from"
+			],
+			[
+				"issued_bookIDs",
+				"issued_bookIDs_list"
+			],
+			[
+				"userID",
+				"userID_list"
+			],
+			[
+				"book_",
+				"book_location"
+			],
+			[
+				"create_",
+				"create_issuing_message"
+			],
+			[
+				"accounts_actual",
+				"accounts_actual_return_date_check"
+			],
+			[
+				"remove_email",
+				"remove_email_var"
+			],
+			[
+				"remove_user",
+				"remove_userID_var"
+			],
+			[
+				"add_staff",
+				"add_staff_mode_var"
+			],
+			[
+				"Succes",
+				"Successfully"
+			],
+			[
+				"staff_mode",
+				"staff_mode_container"
+			],
+			[
+				"today",
+				"today_formatted"
+			],
+			[
+				"arr",
+				"arr_values"
+			],
+			[
+				"arr_all",
+				"arr_all"
+			],
+			[
+				"tree_values",
+				"tree_values_tuple"
+			],
+			[
+				"date_issed",
+				"date_issued_list"
+			],
+			[
+				"date_issued",
+				"date_issued_list"
+			],
+			[
+				"Main",
+				"MainApplication"
+			],
+			[
+				"email_add",
+				"email_address_list"
+			],
+			[
+				"email_address",
+				"email_address_fetch"
+			],
+			[
+				"time",
+				"time_remaining"
+			],
+			[
+				"empty",
+				"empty_list"
+			],
+			[
+				"password_str",
+				"password_strength_container_1"
+			],
+			[
+				"password_sten",
+				"password_strength_label_2"
+			],
+			[
+				"global",
+				"global_frame"
+			],
+			[
+				"sign",
+				"sign_in_notebook"
+			],
+			[
+				"change_pass",
+				"change_password_button_container"
+			],
+			[
+				"change_password",
+				"change_password_container"
+			],
+			[
+				"show",
+				"showinfo"
+			],
+			[
+				"ret_search",
+				"ret_search_container_canvas"
+			],
+			[
+				"email_",
+				"email_input"
+			],
+			[
+				"boo",
+				"book_owner\tlist ⟠"
+			],
+			[
+				"right",
+				"RIGHT"
+			],
+			[
+				"ret_",
+				"ret_title_var"
+			],
+			[
+				"book",
+				"book_id_search\t⟠"
+			],
+			[
+				"tab",
+				"notebook_tab_change"
+			],
+			[
+				"libr",
+				"Library"
+			],
+			[
+				"aCCOUNT",
+				"Accounts"
+			],
+			[
+				"my",
+				"mybooks_tv"
+			],
+			[
+				"Update",
+				"UpdateLibraryTV"
+			],
+			[
+				"user_em",
+				"current_user_email"
+			],
+			[
+				"account",
+				"account_mybooks_check"
+			],
+			[
+				"fro",
+				"FROM"
+			],
+			[
+				"text",
+				"textvariable"
+			],
+			[
+				"variable",
+				"variable_declaration"
+			],
+			[
+				"get",
+				"get_date"
+			],
+			[
+				"set",
+				"set_date"
+			],
+			[
+				"search",
+				"search_container"
+			],
+			[
+				"Librar",
+				"LibrarySystem"
+			],
+			[
+				"signin",
+				"sign_in_notebook"
+			],
+			[
+				"sign_in",
+				"sign_in_notebook"
+			],
+			[
+				"Register",
+				"RegisterLogin"
+			],
+			[
+				"login",
+				"login_page"
+			],
+			[
+				"selection",
+				"selection_set(…)\tfunction ⟠"
+			],
+			[
+				"dumm",
+				"dummy_data_temp_2\tlist ⟠"
+			],
+			[
+				"d",
+				"dummy_data_temp_2\tlist ⟠"
+			],
+			[
+				"top",
+				"TOP\tstr ⟠"
+			],
+			[
+				"account_container",
+				"account_container_header\tLabel ⟠"
+			],
+			[
+				"grid_",
+				"grid_columnconfigure(…)\tfunction ⟠"
+			],
+			[
+				"notebook",
+				"main_notebook"
+			],
+			[
+				"Req",
+				"RequestResetForm"
+			],
+			[
+				"Regist",
+				"RegistrationForm"
+			],
+			[
+				"Pass",
+				"PasswordField"
+			],
+			[
+				"R",
+				"RequestResetForm\ttype ⟠"
+			],
+			[
+				"Text",
+				"TextAreaField\ttype ⟠"
+			],
+			[
+				"datetime",
+				"datetime\ttype ⟠"
+			],
+			[
+				"Email",
+				"email_validator\t⟠"
+			],
+			[
+				"password",
+				"password"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "main",
+			"settings":
+			{
+				"buffer_size": 540,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/Python/Python.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"Package ResourceViewer",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"Packalge Control: Install Package",
+				"Package Control: Install Package"
+			],
+			[
+				"Install Package Control",
+				"Package Control: Install Package"
+			],
+			[
+				"prv",
+				"Permute Lines: Reverse"
+			],
+			[
+				"python",
+				"Build With: Python"
+			],
+			[
+				"Install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/D/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/Compartmentalisation Attempt/LMS.sublime-workspace",
+		"/C/Users/marco/AppData/Local/Programs/Python/Python37-32/lib/tkinter/__init__.py",
+		"/D/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/isolated_treeview.py",
+		"/D/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/.git/COMMIT_EDITMSG",
+		"/C/Users/marco/Desktop/Programming/Heat Exchanger Avg Cost/main revamped/ORCCalculator.py",
+		"/C/Users/marco/AppData/Local/Programs/Python/Python37-32/lib/_strptime.py",
+		"/C/Users/marco/Desktop/Programming/Heat Exchanger Avg Cost/main/.git/COMMIT_EDITMSG",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/.git/COMMIT_EDITMSG",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/create_db.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/insert_book_values.py",
+		"/C/Users/marco/Desktop/Programming/MERCEDESBENZ.py",
+		"/C/Users/marco/Desktop/Programming/Mandelbrot fractaql/fractal.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/test.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/modes.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/testing different modes.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/join statement tests.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/autocomplete.py",
+		"/C/Users/marco/Desktop/Programming/TEST_DB.py",
+		"/C/Users/marco/Desktop/Programming/hash issue db.py",
+		"/C/Users/marco/AppData/Roaming/Sublime Text 3/Packages/Default/exec.py",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Y2 Project/create_db.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/run.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/users/utils.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/users/routes.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/users/forms.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/posts/routes.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/main/routes.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/models.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/__init__.py",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/env/Scripts/Activate.ps1",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/env/Scripts/activate.bat",
+		"/C/Users/marco/Desktop/Programming/Library Management System Flask/LMSf/env/Scripts/activate",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/users/forms.py",
+		"/C/Users/marco/Desktop/Programming/Flask/Procfile",
+		"/C/Users/marco/Desktop/Programming/Flask/requirements.txt",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/__init__.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/errors/500.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/errors/403.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/errors/404.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/errors/handlers.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/errors/__init__.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/models.py",
+		"/C/Users/marco/Desktop/Programming/Flask/run.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/users/utils.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/config.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/user_posts.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/register.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/post.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/login.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/layout.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/home.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/users/routes.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/posts/routes.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/main/routes.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/env/Lib/site-packages/flask/helpers.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/env/Lib/site-packages/flask_login/utils.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/posts/forms.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/routes.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/forms.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/account.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/create_post.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/reset_token.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/templates/reset_request.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/main/__init__.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/posts/__init__.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/users/__init__.py",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/reset_token.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial/static/posts.json",
+		"/C/Users/marco/Desktop/Programming/Flask/static/main.css",
+		"/C/Users/marco/Desktop/Programming/Flask/templates/layout.html",
+		"/C/Users/marco/Desktop/Programming/Flask/templates/about.html",
+		"/C/Users/marco/Desktop/Programming/Flask/templates/home.html",
+		"/C/Users/marco/Desktop/Programming/Flask/forms.py",
+		"/C/Users/marco/Desktop/Programming/Flask/templates/login.html",
+		"/C/Users/marco/Desktop/Programming/Flask/templates/register.html",
+		"/C/Users/marco/Desktop/Programming/Flask/flask_tutorial.py",
+		"/C/Users/marco/Desktop/Programming/Flask/models.py",
+		"/C/Users/marco/AppData/Local/Temp/kite_tutorial.py",
+		"/C/Users/marco/AppData/Roaming/Sublime Text 3/Packages/User/python3.sublime-build",
+		"/C/Users/marco/AppData/Roaming/Sublime Text 3/Packages/KiteSublime/KiteSublime.sublime-settings",
+		"/C/Users/marco/Desktop/Programming/Flask/flask tutorial.sublime-project",
+		"/C/Users/marco/Desktop/Programming/Graveyard/emailsdcz",
+		"/C/Users/marco/Desktop/Collyer's Folder/Computer Science/Transfer Project/testers/eTicket email Receipt Invoices Tests/Invoice Testing.py"
+	],
+	"find":
+	{
+		"height": 39.0
+	},
+	"find_in_files":
+	{
+		"height": 619.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "main",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 540,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								288,
+								288
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 22.0
+	},
+	"input":
+	{
+		"height": 209.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 96.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Packages/Python/Python.sublime-build",
+	"project": "main.sublime-project",
+	"replace":
+	{
+		"height": 40.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"C:\\Users\\marco\\Desktop\\Programming\\Heat Exchanger Avg Cost\\main revamped\\ORCCalculator.sublime-workspace"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 202.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
