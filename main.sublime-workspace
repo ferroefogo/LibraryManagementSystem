@@ -283,14 +283,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "main",
-			"settings":
-			{
-				"buffer_size": 540,
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "Packages/Python/Python.sublime-build",
 	"build_system_choices":
@@ -364,6 +356,7 @@
 	},
 	"file_history":
 	[
+		"/D/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/Compartmentalisation Attempt/main",
 		"/D/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/Compartmentalisation Attempt/LMS.sublime-workspace",
 		"/C/Users/marco/AppData/Local/Programs/Python/Python37-32/lib/tkinter/__init__.py",
 		"/D/Desktop/Collyer's Folder/Computer Science/Y2 Project/Library Management System/isolated_treeview.py",
@@ -481,39 +474,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "main",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 540,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								288,
-								288
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -580,7 +542,7 @@
 		[
 			[
 				"",
-				"C:\\Users\\marco\\Desktop\\Programming\\Heat Exchanger Avg Cost\\main revamped\\ORCCalculator.sublime-workspace"
+				"D:\\Desktop\\Collyer's Folder\\Computer Science\\Y2 Project\\Library Management System\\LMS.sublime-project"
 			]
 		],
 		"width": 380.0
