@@ -5,7 +5,7 @@ import sqlite3
 from tkinter import messagebox as ms
 import string
 
-
+#ISSUE REGARDING ISSUE DATE AND RETURN DATE NOT BEING UPDATED IN THE MYBOOKS PAGE AFTER A BOOK HAS BEEN ASSIGNED TO THE USER.
 
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()

@@ -432,7 +432,7 @@ class BookDatabase():
         ret_recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
         self.ret_date_entry = DateEntry(ret_date_container, width=12, background='darkblue',
-                    foreground='white', borderwidth=2, mindate=datetime.now(), locale='en_UK')
+                    foreground='white', borderwidth=2, mindate=datetime.now(), maxdate=datetime.now(), locale='en_UK')
         self.ret_date_entry.pack(padx=padx, pady=pady)
 
 
@@ -556,7 +556,7 @@ class BookDatabase():
 
         self.add_bookID_var.set(highest_val)
 
-        self.add_bookID_entry = ttk.Entry(self.add_container_bookID, textvariable=self.add_bookID_var)
+        self.add_bookID_entry = ttk.Entry(self.add_container_bookID, textvariable=self.add_bookID_var, state=tk.DISABLED)
         self.add_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
 
@@ -1080,29 +1080,79 @@ class BookDatabase():
         # Send info to db
         #could be shortened a bit.
         account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(return_email,)).fetchall()
-        if len(account_info_fetch) != 0:
-            accounts_userid_check = [x[0] for x in account_info_fetch][0]
 
-            update_issued_val = c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID=?',(actual_return_date, book_id,))
-            conn.commit()
+        #Check if email matches the owner of the loaned book.
+        book_owner_email_fetch = c.execute('SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)',(book_id,)).fetchall()
+        book_owner_email = [x[0] for x in book_owner_email_fetch][0]
 
-            #Check if the user has returned on time
-            accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE user_id=?',(accounts_userid_check,)).fetchall()
-            accounts_return_date_check = [x[0] for x in accounts_return_date_fetch][0]
+        print(return_email, book_owner_email)
+        if return_email != book_owner_email:
+            ms.showerror('Error','Email address does not match its rightful owner.')
+        else:
+            if len(account_info_fetch) != 0:
+                accounts_userid_check = [x[0] for x in account_info_fetch][0]
 
-            accounts_return_date_check_time = datetime.strptime(accounts_return_date_check, '%Y-%m-%d').date()
+                update_issued_val = c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID=?',(actual_return_date, book_id,))
+                conn.commit()
 
-            if accounts_return_date_check_time < actual_return_date:
-                #Handed late
-                #Find the number of days the book is late by.
-                days_since_return_date = (accounts_return_date_check_time - actual_return_date)
-                #Format the output to be just an integer days to fetch just the integer
-                days_since_return_date_formatted = str(days_since_return_date).split("d")[0]
-                #Fetch the number in string and convert it into an absolute value integer.
-                days_since_return_date_formatted_integer = int(re.search(r'\d+', days_since_return_date_formatted).group())
-                result = ms.askyesno('Warning','This user has returned the book late by %s days\nDo you wish to Continue?' % days_since_return_date_formatted_integer)
+                #Check if the user has returned on time
+                accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE user_id=?',(accounts_userid_check,)).fetchall()
+                accounts_return_date_check = [x[0] for x in accounts_return_date_fetch][0]
 
-                if result == True:
+                accounts_return_date_check_time = datetime.strptime(accounts_return_date_check, '%Y-%m-%d').date()
+
+                if accounts_return_date_check_time > actual_return_date:
+                    #Handed late
+                    #Find the number of days the book is late by.
+                    days_since_return_date = (accounts_return_date_check_time - actual_return_date)
+                    #Format the output to be just an integer days to fetch just the integer
+                    days_since_return_date_formatted = str(days_since_return_date).split("d")[0]
+                    #Fetch the number in string and convert it into an absolute value integer.
+                    days_since_return_date_formatted_integer = int(re.search(r'\d+', days_since_return_date_formatted).group())
+                    result = ms.askyesno('Warning','This user has returned the book late by %s days\nDo you wish to Continue?' % days_since_return_date_formatted_integer)
+
+                    if result == True:
+                        remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+                        c.execute(remove_user_id,[(book_id)])
+                        conn.commit()
+
+                        update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+                        conn.commit()
+
+                        #Set entryfields to empty after return
+                        self.ret_bookID_var.set('')
+                        self.ret_title_var.set('')
+                        self.ret_author_var.set('')
+                        self.return_email_var.set('')
+
+                        ms.showinfo('Success', 'Book returned successfully')
+
+                    else:
+                        ms.showerror('Cancelled','Book return cancelled')
+
+                elif accounts_return_date_check_time <= actual_return_date:
+                    #Handed on time
+
+                    #Fetch Location
+                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?",(book_id,)).fetchall()
+                    book_location = [x[0] for x in book_location_fetch][0]
+
+                    #Fetch genre
+                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(book_id,)).fetchall()
+                    book_genre = [x[0] for x in book_genre_fetch][0]
+
+                    #Fetch date issued
+                    book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(book_id,)).fetchall()
+                    date_issued = [x[0] for x in book_date_issued_fetch][0]
+
+                    expected_return_date = accounts_return_date_check_time
+
+                    e = Email()
+                    service = e.get_service()
+                    message = e.create_return_message("from@gmail.com",return_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
+                    e.send_message(service,"from@gmail.com",message)
+
+                    #Remove user_id from the ownership of the user and onto the public library.
                     remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
                     c.execute(remove_user_id,[(book_id)])
                     conn.commit()
@@ -1110,148 +1160,78 @@ class BookDatabase():
                     update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
                     conn.commit()
 
-                    #Set entryfields to empty after return
-                    self.ret_bookID_var.set('')
-                    self.ret_title_var.set('')
-                    self.ret_author_var.set('')
-                    self.return_email_var.set('')
-
-                    ms.showinfo('Success', 'Book returned successfully')
-
-                else:
-                    ms.showerror('Cancelled','Book return cancelled')
-
-            elif accounts_return_date_check_time > actual_return_date:
-                #Handed on time
-
-                #Fetch Location
-                book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?",(book_id,)).fetchall()
-                book_location = [x[0] for x in book_location_fetch][0]
-
-                #Fetch genre
-                book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(book_id,)).fetchall()
-                book_genre = [x[0] for x in book_genre_fetch][0]
-
-                #Fetch date issued
-                book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(book_id,)).fetchall()
-                date_issued = [x[0] for x in book_date_issued_fetch][0]
-
-                expected_return_date = accounts_return_date_check_time
-                e = Email()
-                service = e.get_service()
-                message = e.create_return_message("from@gmail.com",return_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
-                e.send_message(service,"from@gmail.com",message)
-
-                #Remove user_id from the ownership of the user and onto the public library.
-                remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-                c.execute(remove_user_id,[(book_id)])
-                conn.commit()
-
-                update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
-                conn.commit()
-
-                ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
-
-            elif accounts_return_date_check_time == actual_return_date:
-                #Handed on time
-
-                #Fetch Location
-                book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?",(book_id,)).fetchall()
-                book_location = [x[0] for x in book_location_fetch][0]
-
-                #Fetch genre
-                book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(book_id,)).fetchall()
-                book_genre = [x[0] for x in book_genre_fetch][0]
-
-                #Fetch date issued
-                book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(book_id,)).fetchall()
-                date_issued = [x[0] for x in book_date_issued_fetch][0]
-
-                expected_return_date = accounts_return_date_check_time
-                e = Email()
-                service = e.get_service()
-                message = e.create_return_message("from@gmail.com",return_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
-                e.send_message(service,"from@gmail.com",message)
-
-                #Remove user_id from the ownership of the user and onto the public library.
-                remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-                c.execute(remove_user_id,[(book_id)])
-                conn.commit()
-
-                update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
-                conn.commit()
-
-                ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
+                    ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
 
 
 
-            #Set entryfields to empty after return
-            self.ret_bookID_var.set('')
-            self.ret_title_var.set('')
-            self.ret_author_var.set('')
-            self.return_email_var.set('')
+                #Set entryfields to empty after return
+                self.ret_bookID_var.set('')
+                self.ret_title_var.set('')
+                self.ret_author_var.set('')
+                self.return_email_var.set('')
 
-            #Update Treeview table in BookDatabase Page
-            #Maybe pack into a function?
-            #Book IDs
-            #compress
-            c.execute("SELECT bookID FROM Books")
-            bookIDs_fetch = c.fetchall()
-            bookID_list = [x[0] for x in bookIDs_fetch]
+                #Update Treeview table in BookDatabase Page
+                #Maybe pack into a function?
+                #Book IDs
+                #compress
+                c.execute("SELECT bookID FROM Books")
+                bookIDs_fetch = c.fetchall()
+                bookID_list = [x[0] for x in bookIDs_fetch]
 
-            #Titles
-            c.execute("SELECT title FROM Books")
-            title_fetch = c.fetchall()
-            title_list = [x[0] for x in title_fetch]
+                #Titles
+                c.execute("SELECT title FROM Books")
+                title_fetch = c.fetchall()
+                title_list = [x[0] for x in title_fetch]
 
-            #Authors
-            c.execute("SELECT author FROM Books")
-            author_fetch = c.fetchall()
-            author_list = [x[0] for x in author_fetch]
+                #Authors
+                c.execute("SELECT author FROM Books")
+                author_fetch = c.fetchall()
+                author_list = [x[0] for x in author_fetch]
 
-            #Genres
-            c.execute("SELECT genre FROM Books")
-            genre_fetch = c.fetchall()
-            genre_list = [x[0] for x in genre_fetch]
+                #Genres
+                c.execute("SELECT genre FROM Books")
+                genre_fetch = c.fetchall()
+                genre_list = [x[0] for x in genre_fetch]
 
-            #location
-            c.execute("SELECT location FROM Books")
-            location_fetch = c.fetchall()
-            location_list = [x[0] for x in location_fetch]
+                #location
+                c.execute("SELECT location FROM Books")
+                location_fetch = c.fetchall()
+                location_list = [x[0] for x in location_fetch]
 
-            #Issued/Not Issued
-            c.execute("SELECT issued FROM Books")
-            issued_fetch = c.fetchall()
-            issued_list = [x[0] for x in issued_fetch]
+                #Issued/Not Issued
+                c.execute("SELECT issued FROM Books")
+                issued_fetch = c.fetchall()
+                issued_list = [x[0] for x in issued_fetch]
 
-            for k in self.tree.get_children():
-                self.tree.delete(k)
+                for k in self.tree.get_children():
+                    self.tree.delete(k)
 
-            for i in range(len(bookID_list)):
-                #Issue Date
-                c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
-                date_issued_fetch = c.fetchall()
-                date_issued_list = [x[0] for x in date_issued_fetch]
+                for i in range(len(bookID_list)):
+                    #Issue Date
+                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                    date_issued_fetch = c.fetchall()
+                    date_issued_list = [x[0] for x in date_issued_fetch]
 
-                #Return Date
-                c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
-                return_date_fetch = c.fetchall()
-                return_date_list = [x[0] for x in return_date_fetch]
+                    #Return Date
+                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                    return_date_fetch = c.fetchall()
+                    return_date_list = [x[0] for x in return_date_fetch]
 
-                #creates an entry in the tree for each element of the list
-                #then stores the id of the tree in the self.ids list
-                if len(date_issued_list)==0 or len(return_date_list)==0:
-                    self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
-                else:
-                    self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
-            self.tree.pack()
+                    #creates an entry in the tree for each element of the list
+                    #then stores the id of the tree in the self.ids list
+                    if len(date_issued_list)==0 or len(return_date_list)==0:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                    else:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                self.tree.pack()
 
-            for self.col in self.columns:
-                    self.tree.heading(self.col, text=self.col,
-                                          command=lambda c=self.col: self.sort_upon_press(c))
+                for self.col in self.columns:
+                        self.tree.heading(self.col, text=self.col,
+                                              command=lambda c=self.col: self.sort_upon_press(c))
 
-        else:
-            ms.showerror('Error', 'Email was not found.', icon='error')
+
+            else:
+                ms.showerror('Error', 'Email was not found.', icon='error')
 
     def bookID_validate(self, bookID_input):
         if bookID_input.isdigit():
@@ -1414,8 +1394,12 @@ class BookDatabase():
                 self._detached.add(item_id)
                 self.tree.detach(item_id)
 
+
     def sort_upon_press(self, c):
-        self.arr = [(self.tree.set(k, c), k) for k in self.tree.get_children('')]
+        try:
+            self.arr = [(int(self.tree.set(k, c)), k) for k in self.tree.get_children('')]
+        except ValueError:
+            self.arr = [(self.tree.set(k, c), k) for k in self.tree.get_children('')]
         self.n = len(self.arr)
         self.quickSort(self.tree, c, self.arr, 0, self.n-1, False)
 
@@ -1429,8 +1413,8 @@ class BookDatabase():
                 arr[i], arr[j] = arr[j], arr[i]
      
         arr[i+1], arr[high] = arr[high], arr[i+1]
+
         return (i+1)
-     
      
     def quickSort(self, tv, col, arr, low, high, reverse):
         #Need to update arr if a new value is added to the treeview

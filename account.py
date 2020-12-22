@@ -5,6 +5,7 @@ from tkinter import ttk
 import sqlite3
 from tkinter import messagebox as ms
 import bcrypt
+import sys
 
 from email_sys import Email
 
@@ -26,7 +27,7 @@ class Account():
     #USER ACCESS
     #Display logged in user information.
     def __init__(self, root, notebook, current_user_email):
-        user_email= current_user_email
+        self.user_email= current_user_email
 
         account_page = tk.Frame(notebook)
         notebook.add(account_page, text='Account')
@@ -50,19 +51,6 @@ class Account():
         self.change_password_container = tk.Frame(account_page, bg=bg)
         self.container_change_password_header = tk.Label(self.change_password_container, text='Change Password', font='System 18', bg=bg)
         
-
-
-
-        #Change password email entry
-        self.change_pw_email_container = tk.Frame(self.change_password_container, bg=bg)
-        self.change_pw_email_label = tk.Label(self.change_pw_email_container, text='Email:',bg=bg)
-        
-
-        self.change_pw_email_var = tk.StringVar()
-        self.change_pw_email_entry = ttk.Entry(self.change_pw_email_container, textvariable=self.change_pw_email_var)
-        
-
-
 
         #Current password entry
         self.current_pw_container = tk.Frame(self.change_password_container, bg=bg)
@@ -105,18 +93,6 @@ class Account():
         #Delete Account Container
         self.delete_account_container = tk.Frame(account_page, bg=bg)
         self.container_delete_account_header = tk.Label(self.delete_account_container, text='Delete Account', font='System 18', bg=bg)
-        
-
-
-        # Email Container
-        self.delete_acc_email_container = tk.Frame(self.delete_account_container, bg=bg)
-        self.delete_acc_email_label = tk.Label(self.delete_acc_email_container, text='Email:',bg=bg)
-        
-
-        self.delete_acc_pw_email_var = tk.StringVar()
-        self.delete_acc_pw_email_entry = ttk.Entry(self.delete_acc_email_container, textvariable=self.delete_acc_pw_email_var)
-        
-
 
 
         #Password entry
@@ -125,10 +101,8 @@ class Account():
         
 
         self.pw_var = tk.StringVar()
-        self.pw_entry = ttk.Entry(self.pw_container, textvariable=self.pw_var)
+        self.pw_entry = ttk.Entry(self.pw_container, textvariable=self.pw_var, show='*')
         
-
-
 
         #New password entry
         self.confirm_pw_container = tk.Frame(self.delete_account_container, bg=bg)
@@ -153,7 +127,7 @@ class Account():
         email_container = tk.Frame(details_container, bg=bg)
         email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        email_label = tk.Label(email_container, text='   Email:   {}'.format(user_email), padx=padx, pady=pady)
+        email_label = tk.Label(email_container, text='   Email:   {}'.format(self.user_email), padx=padx, pady=pady)
         email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
         change_password_label = tk.Label(details_container, text='Change Password?', cursor="hand2",
@@ -173,12 +147,11 @@ class Account():
 
             current_pw = self.current_pw_var.get()
             new_pw = self.new_pw_var.get()
-            email_address = self.change_pw_email_var.get()
 
             #Check if the current password entered matches the one stored in the database
 
             #Hash the password to check against the database one
-            db_current_pw_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (email_address,))
+            db_current_pw_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (self.user_email,))
             db_current_pw = c.fetchone()[0]
 
             #Password stored in database
@@ -205,7 +178,16 @@ class Account():
         account_deletion_confirmation = ms.askquestion('Account Deletion', 'Are you sure you want to delete your account?\n\nYou will not be able to recover any information saved on this account.\nAll personal information associated to this account will be deleted permanently.')
         if account_deletion_confirmation == 'yes':
             #logic for deleting account goes here
-            pass
+            with sqlite3.connect('LibrarySystem.db') as db:
+                c = db.cursor()
+            delete_account = c.execute("DELETE FROM Accounts WHERE email_address = ?",(self.user_email,))
+            db.commit()
+            ms.showinfo('Success','Account Deleted')
+
+            #exit system upon account deletion
+            ms.showinfo('Deletion Notice','The system will now shutdown upon deletion')
+            sys.exit()
+
 
     def change_password_container_func(self, *args):
         #If the user has pressed the button after the widgets were already packed, unpack them.
@@ -213,9 +195,6 @@ class Account():
             #May be able to just use a for loop that iterates over child widget using winfo_children().
             self.change_password_container.pack_forget()
             self.container_change_password_header.pack_forget()
-            self.change_pw_email_container.pack_forget()
-            self.change_pw_email_label.pack_forget()
-            self.change_pw_email_entry.pack_forget()
             self.current_pw_container.pack_forget()
             self.current_pw_label.pack_forget()
             self.current_pw_entry.pack_forget()
@@ -231,9 +210,6 @@ class Account():
             #Pack all the widgets upon the user pressing the button.
             self.change_password_container.pack(side=tk.LEFT, anchor=tk.N)
             self.container_change_password_header.pack(anchor=tk.W, padx=padx, pady=pady)
-            self.change_pw_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.change_pw_email_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.change_pw_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
             self.current_pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
             self.current_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
             self.current_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
@@ -253,7 +229,6 @@ class Account():
             self.container_delete_account_header.pack_forget()
             self.delete_acc_email_container.pack_forget()
             self.delete_acc_email_label.pack_forget()
-            self.delete_acc_pw_email_entry.pack_forget()
             self.pw_container.pack_forget()
             self.pw_label.pack_forget()
             self.pw_entry.pack_forget()
@@ -266,9 +241,6 @@ class Account():
             #Pack all the widgets to show the panel upon pressing the delete_account box in account details
             self.delete_account_container.pack(side=tk.LEFT, anchor=tk.N)
             self.container_delete_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
-            self.delete_acc_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.delete_acc_email_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.delete_acc_pw_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
             self.pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
             self.pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
             self.pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)

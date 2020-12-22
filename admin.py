@@ -22,10 +22,6 @@ font='System 18'
 
 
 
-
-
-
-
 class Admin():
     #ADMIN ACCESS ONLY (NO STAFF OR REGULAR USERS ALLOWED)
     #Allows library admin(s) to create accounts for the staff.
@@ -352,66 +348,15 @@ class Admin():
         number_non_issued_books_label = tk.Label(number_non_issued_books_frame, text='Number of non-issued books:%d' % number_non_issued_books)
         number_non_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
-
-
-        # #Average Number of days before return
-        # fetch_issue_dates = c.execute("SELECT date_issued FROM MyBooks").fetchall()
-        # issue_dates_list = [x[0] for x in fetch_issue_dates]
-
-        # fetch_actual_return_dates = c.execute("SELECT actual_return_date FROM MyBooks").fetchall()
-        # actual_dates_list = [x[0] for x in fetch_actual_return_dates]
-
-        # day_difference_list = []
-
-        # print(issue_dates_list)
-        # for i in len(issue_dates_list):
-        #     if actual_dates_list[i] != '':
-        #         day_difference_list.append(actual_dates_list[i] - issue_dates_list[i])
-
-
-
        
         #Average number of books issued out on a single day over the past week
-        week_ago = (datetime.today() - timedelta(days=7)).date()
-        try:
-            for j in range(7):
-                date_issued = week_ago + timedelta(days=j)
-                date_issued_string = date_issued.strftime('%Y-%m-%d')
-                fetch_issued_books_past_week = c.execute("SELECT bookID FROM MyBooks WHERE date_issued=?",(date_issued,))
-                issued_books_past_week = [x[0] for x in fetch_issued_books_past_week]
+        #Tkinter display output here
+        mean_avg_container = tk.Frame(analytics_container)
+        mean_avg_container.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
 
-                if date_issued_string == week_ago.strftime("%Y-%m-%d"):
-                    number_books_issued_7days_ago = len(issued_books_past_week)
-                    
-
-                elif date_issued_string == (week_ago + timedelta(days=1)).strftime("%Y-%m-%d"):
-                    number_books_issued_6days_ago = len(issued_books_past_week)
-                    
-
-                elif date_issued_string == (week_ago + timedelta(days=2)).strftime("%Y-%m-%d"):
-                    number_books_issued_5days_ago = len(issued_books_past_week)
-                    
-
-                elif date_issued_string == (week_ago + timedelta(days=3)).strftime("%Y-%m-%d"):
-                    number_books_issued_4days_ago = len(issued_books_past_week)
-                    
-
-                elif date_issued_string == (week_ago + timedelta(days=4)).strftime("%Y-%m-%d"):
-                    number_books_issued_3days_ago = len(issued_books_past_week)
-                    
-
-                elif date_issued_string == (week_ago + timedelta(days=5)).strftime("%Y-%m-%d"):
-                    number_books_issued_2days_ago = len(issued_books_past_week)
-                    
-
-                elif date_issued_string == (week_ago + timedelta(days=6)).strftime("%Y-%m-%d"):
-                    number_books_issued_1days_ago = len(issued_books_past_week)
-                    
-
-            mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago)/7
-            #Tkinter display output here
-        except Exception:
-            ms.showwarning('Graph Warning','Not enough data to populate graph.')
+        self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued out on a day:')
+        self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
+        notebook.bind("<F5>", self.mean_avg_check)
 
 
         self.tree_ids = []
@@ -490,25 +435,112 @@ class Admin():
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
         self.tree.pack()
 
-
-
-
-
-
-
         #Analytical graphs will be created using numpy or something alike. This will be a great opportunity to use quicksort to sort a table of data values for the user.
         #There will be buttons that open TopLevels that show the information regarding its topic accordingly.
 
         #Types of data we could include here:
-        #   - Number of user accounts
-        #   - Number of staff accounts
-        #   - Number of admin accounts
-        #   - Total book tally
-        #   - Total issued book tally
-        #   - Total Non-Issued book tally
+        #   - Number of user accounts /DONE
+        #   - Number of staff accounts /DONE
+        #   - Number of admin accounts /DONE
+        #   - Total book tally /DONE
+        #   - Total issued book tally /DONE
+        #   - Total Non-Issued book tally /DONE
         #   - Average number of days before return
-        #   - Average number of books issued out on a single day over the past week
+        #   - Average number of books issued out on a single day over the past week /DONE
         #   - Genre Popularity (numpy bar chart required).
+
+        #Button to access genre popularity graph
+        genre_popularity_btn = ttk.Button(analytics_container, text='Genre Popularity', command=lambda:self.genre_popularity())
+        genre_popularity_btn.pack(side=tk.RIGHT, padx=10, pady=10)
+
+    def genre_popularity(self):
+        # Genre Popularity is based on the number of books currently issued and how many have the specific genre.
+        # x-axis plots the different genres
+        # y-axis plots the number of currently issued books with that genre.
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from collections import Counter
+
+
+        #Fetch genre of all currently issued books
+        issued_genres_fetch = c.execute('SELECT genre FROM Books WHERE issued=1').fetchall()
+        issued_genres = [x[0] for x in issued_genres_fetch]
+
+        try:
+            plt.clf()
+            labels, values = zip(*Counter(issued_genres).items())
+            indexes = np.arange(len(labels))
+            width = 0.5
+
+            plt.bar(indexes, values, width)
+            plt.xticks(indexes + width * 0, labels)
+            plt.title('Genre Popularity')
+            plt.ylabel('Number of Books Currently Issued')
+            plt.xlabel('Genres')
+            plt.figure('Genre Popularity')
+            plt.show()
+        except ValueError:
+            ms.showerror('Error','???')
+            
+
+
+    def mean_avg_check(self, *args):
+        #If a staff member returns a book, the mean average will change. ISSUE
+
+        week_ago = (datetime.today() - timedelta(days=7)).date()
+        for j in range(8):
+            date_issued = week_ago + timedelta(days=j)
+            date_issued_string = date_issued.strftime('%Y-%m-%d')
+            fetch_issued_books_past_week = c.execute("SELECT bookID FROM MyBooks WHERE date_issued=?",(date_issued,))
+            issued_books_past_week = [x[0] for x in fetch_issued_books_past_week]
+
+            #Write the values to a text file to read from and add upon.
+            file = open("mean_avg_storage.txt","w")
+
+            if date_issued_string == week_ago.strftime("%Y-%m-%d"):
+                number_books_issued_7days_ago = len(issued_books_past_week)
+                file.write("7 DAYS AGO:%d"%number_books_issued_7days_ago)
+            
+            elif date_issued_string == (week_ago + timedelta(days=1)).strftime("%Y-%m-%d"):
+                number_books_issued_6days_ago = len(issued_books_past_week)
+                file.write("6 DAYS AGO:%d"%number_books_issued_6days_ago)
+            
+            elif date_issued_string == (week_ago + timedelta(days=2)).strftime("%Y-%m-%d"):
+                number_books_issued_5days_ago = len(issued_books_past_week)
+                file.write("5 DAYS AGO:%d"%number_books_issued_5days_ago)
+
+            elif date_issued_string == (week_ago + timedelta(days=3)).strftime("%Y-%m-%d"):
+                number_books_issued_4days_ago = len(issued_books_past_week)
+                file.write("4 DAYS AGO:%d"%number_books_issued_4days_ago)
+
+            elif date_issued_string == (week_ago + timedelta(days=4)).strftime("%Y-%m-%d"):
+                number_books_issued_3days_ago = len(issued_books_past_week)
+                file.write("3 DAYS AGO:%d"%number_books_issued_3days_ago)
+
+            elif date_issued_string == (week_ago + timedelta(days=5)).strftime("%Y-%m-%d"):
+                number_books_issued_2days_ago = len(issued_books_past_week)
+                file.write("2 DAYS AGO:%d"%number_books_issued_2days_ago)
+
+            elif date_issued_string == (week_ago + timedelta(days=6)).strftime("%Y-%m-%d"):
+                number_books_issued_1days_ago = len(issued_books_past_week)
+                file.write("1 DAYS AGO:%d"%number_books_issued_1days_ago)
+
+            elif date_issued_string == (week_ago + timedelta(days=7)).strftime("%Y-%m-%d"):
+                number_books_issued_today = len(issued_books_past_week)
+                file.write("0 DAYS AGO:%d"%number_books_issued_today)
+
+            
+            
+            
+            
+            
+        
+                
+
+        mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago + number_books_issued_today)/7
+        self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days: {:.2f}'.format(mean_avg)
+        self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
+
 
     def send_alert(self):
         # Fetch all the accounts that are within 3 days of needing to return their book

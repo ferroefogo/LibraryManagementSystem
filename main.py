@@ -6,12 +6,15 @@ from tkinter import messagebox as ms
 import bcrypt
 import re
 import sys
+import secrets
+import random
 
 from email_sys import Email
 from home import Home
 from library import Library
 from options import Options
 from guesthp import GuestHelp
+from userhp import UserHelp
 from email_sys import Email
 from account import Account
 from mybooks import MyBooks
@@ -19,8 +22,7 @@ from bookdatabase import BookDatabase
 from staffhp import StaffHelp
 from admin import Admin
 from adminhp import AdminHelp
-
-
+from forgotpw import ForgotPW
 
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
@@ -33,9 +35,6 @@ geometry = '1500x1500'
 bg='gray90'
 font='System 18'
 
-
-
-
 class SignIn():
     def __init__(self, parent):
         self.parent = parent
@@ -44,7 +43,7 @@ class SignIn():
 
         login = Login(parent, sign_in_notebook)
         register = Register(parent, sign_in_notebook)
-        #forgot_pw = ForgotPW(parent, sign_in_notebook)
+        forgot_pw = ForgotPW(parent, sign_in_notebook)
 
 
 
@@ -120,14 +119,13 @@ class Login():
         if login_password == '' and login_email  == '':
              ms.showwarning('Warning','Enter your email address and password')
         else:
-
+            
             pass_hashed_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (login_email,))
             pass_hashed = c.fetchone()[0]
 
             pass_hashed_encode = pass_hashed.encode('utf-8')
 
             bytes_login_password = bytes(login_password, 'utf-8')
-            
 
             if bcrypt.checkpw(bytes_login_password, pass_hashed_encode):
                 ms.showinfo('Success', 'Successfully Logged in!')
@@ -140,6 +138,7 @@ class Login():
                 self.user_password_var.set('')
             else:
                 ms.showerror('Error','Incorrect password/email')
+            
 
 
     def guest_login(self):
@@ -808,7 +807,6 @@ class MainApplication():
         try:
             staff_mode_check = c.execute('SELECT staff_mode FROM Accounts WHERE email_address=?',(email,)).fetchall()
             staff_mode = [x[0] for x in staff_mode_check][0]
-
             if staff_mode == 1:
                 self.BDP = BookDatabase(self.parent, self.main_notebook, email)
                 self.SHP = StaffHelp(self.parent, self.main_notebook, email)
@@ -825,7 +823,7 @@ class MainApplication():
                 self.AHP = AdminHelp(self.parent, self.main_notebook, email)
 
         except IndexError:
-            pass
+           pass
 
 
         self.OP = Options(self.parent, self.main_notebook)
