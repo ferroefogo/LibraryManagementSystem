@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import re
 
+
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
@@ -38,6 +39,85 @@ class Admin():
 
         header = tk.Label(header_frame, text="Admin", font='System 30')
         header.pack(side=tk.TOP)
+
+
+        self.tree_ids = []
+        # Library TreeView Book Database Frame
+        tree_container = tk.Frame(admin_page, bg=bg)
+        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=padx, pady=pady)
+
+        tree_header = tk.Label(tree_container, text='Database', font='System 18', bg=bg)
+        tree_header.pack(padx=padx, pady=pady)
+
+        #Set up TreeView table
+        self.columns = ('User ID','Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
+        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
+        self.tree.heading("User ID", text='User ID')
+        self.tree.heading("Email Address", text='Email Address')
+        self.tree.heading("Staff Mode", text='Staff Mode')
+        self.tree.heading("Admin Mode", text='Admin Mode')
+        self.tree.heading("Issued BookIDs", text='Issued BookIDs')
+        self.tree.heading("Earliest Return Date", text='Earliest Return Date')
+
+        self.tree.column("User ID", width=50, anchor=tk.CENTER)
+        self.tree.column("Email Address", width=width, anchor=tk.CENTER)
+        self.tree.column("Staff Mode", width=80, anchor=tk.CENTER)
+        self.tree.column("Admin Mode", width=80, anchor=tk.CENTER)
+        self.tree.column("Issued BookIDs", width=width, anchor=tk.CENTER)
+        self.tree.column("Earliest Return Date", width=width, anchor=tk.CENTER)
+
+        #User IDs
+        c.execute("SELECT user_id FROM Accounts")
+        userIDs_fetch = c.fetchall()
+        userID_list = [x[0] for x in userIDs_fetch]
+
+        #Email addresses
+        c.execute("SELECT email_address FROM Accounts")
+        email_fetch = c.fetchall()
+        email_list = [x[0] for x in email_fetch]
+
+        #staff mode
+        c.execute("SELECT staff_mode FROM Accounts")
+        staff_fetch = c.fetchall()
+        staff_list = [x[0] for x in staff_fetch]
+
+        #admin mode
+        c.execute("SELECT admin_mode FROM Accounts")
+        admin_fetch = c.fetchall()
+        admin_list = [x[0] for x in admin_fetch]
+
+
+        for k in self.tree.get_children():
+            self.tree.delete(k)
+
+        for i in range(len(userID_list)):
+            #issued_bookIDs
+            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            issued_bookIDs_fetch = c.fetchall()
+            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+            for x in range(len(issued_bookIDs_list)):
+                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+            #earliest return date
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            return_date_fetch = c.fetchall()
+            return_date_list = [x[0] for x in return_date_fetch]
+
+            #convert the return_date_list from a list of strins to a list of dates
+            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+            try:
+                earliest_date = str(min(dates_list))
+            except ValueError:
+                pass
+            if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+            else:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+        self.tree.pack()
+
+
 
         #Add Staff Account
         add_account_container = tk.Frame(admin_page, bg=bg)
@@ -356,84 +436,8 @@ class Admin():
 
         self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued out on a day:')
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
-        notebook.bind("<F5>", self.mean_avg_check)
+        
 
-
-        self.tree_ids = []
-        # Library TreeView Book Database Frame
-        tree_container = tk.Frame(admin_page, bg=bg)
-        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=padx, pady=pady)
-
-        tree_header = tk.Label(tree_container, text='Database', font='System 18', bg=bg)
-        tree_header.pack(padx=padx, pady=pady)
-
-        #Set up TreeView table
-        self.columns = ('User ID','Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
-        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
-        self.tree.heading("User ID", text='User ID')
-        self.tree.heading("Email Address", text='Email Address')
-        self.tree.heading("Staff Mode", text='Staff Mode')
-        self.tree.heading("Admin Mode", text='Admin Mode')
-        self.tree.heading("Issued BookIDs", text='Issued BookIDs')
-        self.tree.heading("Earliest Return Date", text='Earliest Return Date')
-
-        self.tree.column("User ID", width=50, anchor=tk.CENTER)
-        self.tree.column("Email Address", width=width, anchor=tk.CENTER)
-        self.tree.column("Staff Mode", width=80, anchor=tk.CENTER)
-        self.tree.column("Admin Mode", width=80, anchor=tk.CENTER)
-        self.tree.column("Issued BookIDs", width=width, anchor=tk.CENTER)
-        self.tree.column("Earliest Return Date", width=width, anchor=tk.CENTER)
-
-        #User IDs
-        c.execute("SELECT user_id FROM Accounts")
-        userIDs_fetch = c.fetchall()
-        userID_list = [x[0] for x in userIDs_fetch]
-
-        #Email addresses
-        c.execute("SELECT email_address FROM Accounts")
-        email_fetch = c.fetchall()
-        email_list = [x[0] for x in email_fetch]
-
-        #staff mode
-        c.execute("SELECT staff_mode FROM Accounts")
-        staff_fetch = c.fetchall()
-        staff_list = [x[0] for x in staff_fetch]
-
-        #admin mode
-        c.execute("SELECT admin_mode FROM Accounts")
-        admin_fetch = c.fetchall()
-        admin_list = [x[0] for x in admin_fetch]
-
-
-        for k in self.tree.get_children():
-            self.tree.delete(k)
-
-        for i in range(len(userID_list)):
-            #issued_bookIDs
-            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
-            issued_bookIDs_fetch = c.fetchall()
-            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
-
-            for x in range(len(issued_bookIDs_list)):
-                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
-
-            #earliest return date
-            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
-            return_date_fetch = c.fetchall()
-            return_date_list = [x[0] for x in return_date_fetch]
-
-            #convert the return_date_list from a list of strins to a list of dates
-            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
-
-            try:
-                earliest_date = str(min(dates_list))
-            except ValueError:
-                pass
-            if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
-                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
-            else:
-                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
-        self.tree.pack()
 
         #Analytical graphs will be created using numpy or something alike. This will be a great opportunity to use quicksort to sort a table of data values for the user.
         #There will be buttons that open TopLevels that show the information regarding its topic accordingly.
@@ -453,6 +457,12 @@ class Admin():
         genre_popularity_btn = ttk.Button(analytics_container, text='Genre Popularity', command=lambda:self.genre_popularity())
         genre_popularity_btn.pack(side=tk.RIGHT, padx=10, pady=10)
 
+        update_values_btn = ttk.Button(analytics_container, text='Update Values', command=lambda:self.update_values())
+        update_values_btn.pack(side=tk.RIGHT, padx=10, pady=10)
+
+        notebook.bind("<F5>", self.update_values)
+
+
     def genre_popularity(self):
         # Genre Popularity is based on the number of books currently issued and how many have the specific genre.
         # x-axis plots the different genres
@@ -466,25 +476,33 @@ class Admin():
         issued_genres_fetch = c.execute('SELECT genre FROM Books WHERE issued=1').fetchall()
         issued_genres = [x[0] for x in issued_genres_fetch]
 
-        try:
-            plt.clf()
-            labels, values = zip(*Counter(issued_genres).items())
-            indexes = np.arange(len(labels))
-            width = 0.5
+        #Create dictionary with the keys: genre titles, linked to the values: number of books with that genre title. 
+        labels, values = zip(*Counter(issued_genres).items())
 
-            plt.bar(indexes, values, width)
-            plt.xticks(indexes + width * 0, labels)
-            plt.title('Genre Popularity')
-            plt.ylabel('Number of Books Currently Issued')
-            plt.xlabel('Genres')
-            plt.figure('Genre Popularity')
-            plt.show()
-        except ValueError:
-            ms.showerror('Error','???')
+        #indexes is the number of bars the graph will have, therefore the number of slices the x axis will need for each bar.
+        indexes = np.arange(len(labels))
+
+        width = 0.5
+
+        #Clear any previous plots if the button is pressed many times.
+        plt.clf()
+
+        #How each bar will look on the graph.   
+        #indexes (how many titles along the x axis)
+        #values (the value corresponding to that genre)
+        #width (the width of the bar)
+
+        plt.bar(indexes, values, width)
+        plt.xticks(indexes + width * 0, labels)
+
+        plt.title('Genre Popularity')
+        plt.ylabel('Number of Books Currently Issued')
+        plt.xlabel('Genres')
+        plt.show()
             
 
 
-    def mean_avg_check(self, *args):
+    def update_values(self, *args):
         #If a staff member returns a book, the mean average will change. ISSUE
 
         week_ago = (datetime.today() - timedelta(days=7)).date()
@@ -528,18 +546,19 @@ class Admin():
             elif date_issued_string == (week_ago + timedelta(days=7)).strftime("%Y-%m-%d"):
                 number_books_issued_today = len(issued_books_past_week)
                 file.write("0 DAYS AGO:%d"%number_books_issued_today)
-
-            
-            
-            
-            
-            
-        
                 
 
         mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago + number_books_issued_today)/7
         self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days: {:.2f}'.format(mean_avg)
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
+
+        #Database fetch for the accounts information will go here
+        #Database fetch for the book information to go on the analytics part will go here. Based on any changes made to the database, the labels will be changed in here too using self.example_label["text"]
+
+
+
+
+
 
 
     def send_alert(self):

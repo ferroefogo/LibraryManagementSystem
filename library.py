@@ -1,5 +1,4 @@
 #Library Page
-#Treeview not showing, because <<NotebookTabChanged>> is not being called on when i log inm though it works when i use a guest login
 
 import tkinter as tk
 from tkinter import ttk
@@ -58,7 +57,6 @@ class Library():
         notebook.add(library_page, text='Library')
 
         notebook.bind("<<NotebookTabChanged>>", self.notebook_tab_change)
-        root.bind("<F5>", self.refresh_page)
 
         header_frame = tk.Frame(library_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
@@ -75,7 +73,7 @@ class Library():
 
         #Set up TreeView table
         self.columns = ('Book ID','Title', 'Author', 'Genre','Location')
-        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
+        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings')
         self.tree.heading("Book ID", text='Book ID')
         self.tree.heading("Title", text='Title')
         self.tree.heading("Author", text='Author')
@@ -123,7 +121,6 @@ class Library():
         title_label = tk.Label(search_container_title, text='Title: ', bg=bg)
         title_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
 
-        self._detached = set()
         self.title_var = tk.StringVar() #create stringvar for entry widget
         self.title_var.trace("w", self._columns_searcher) #callback if stringvar is updated
 
@@ -155,9 +152,9 @@ class Library():
 
         self.genre_var = tk.StringVar()
         self.genre_var.set("-EMPTY-")
-        #self.genre_var.trace("w", self._columns_searcher_genre)
 
-        self.genre_menu = ttk.OptionMenu(search_genre_container, self.genre_var,genre_choice_list[0], *genre_choice_list)
+        from functools import partial
+        self.genre_menu = ttk.OptionMenu(search_genre_container, self.genre_var,genre_choice_list[0], *genre_choice_list, command=partial(self._columns_searcher))
         self.genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
 
         #location Filter
@@ -169,10 +166,14 @@ class Library():
 
         self.location_var = tk.StringVar()
         self.location_var.set("-EMPTY-")
-        #self.location_var.trace("w", self._columns_searcher_location)
+        self.location_var.trace("w", self._columns_searcher)
 
         self.location_menu = ttk.OptionMenu(search_location_container, self.location_var,location_choice_list[0], *location_choice_list)
         self.location_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+
+        for self.col in self.columns:
+                    self.tree.heading(self.col, text=self.col,
+                                          command=lambda c=self.col: self.sort_upon_press(c))
 
 
 
@@ -204,6 +205,12 @@ class Library():
         non_issued_location_fetch = c.fetchall()
         non_issued_location_list = [x[0] for x in non_issued_location_fetch]
 
+        #Set all fields to be -EMPTY-
+        self.bookID_var.set('')
+        self.title_var.set('')
+        self.author_var.set('')
+        self.genre_var.set('-EMPTY-')
+        self.location_var.set('-EMPTY-')
 
         for k in self.tree.get_children():
             self.tree.delete(k)
@@ -214,51 +221,9 @@ class Library():
             self.tree_ids.append(self.tree.insert("", "end", values=(non_issued_bookID_list[i], non_issued_title_list[i], non_issued_author_list[i], non_issued_genre_list[i], non_issued_location_list[i])))
         self.tree.pack()
 
-        #Update Genre List for OptionMenu
-        # c.execute("SELECT genre FROM Genres")
-        # genres_list_fetch = c.fetchall()
-        # genre_choice_list = [x[0] for x in genres_list_fetch]
-
-        # genre_menu = self.genre_menu["menu"]
-        # genre_menu.delete(0, tk.END)
-        # for string in genre_choice_list:
-        #     genre_menu.add_command(label=string,
-        #                      command=lambda value=string: self.genre_var.set(value))
-
-    def refresh_page(self, *args):
-        #BookIDs
-        c.execute("SELECT bookID FROM Books WHERE issued=0")
-        non_issued_bookIDs_fetch = c.fetchall()
-        non_issued_bookID_list = [x[0] for x in non_issued_bookIDs_fetch]
-
-        c.execute("SELECT title FROM Books WHERE issued=0")
-        non_issued_title_fetch = c.fetchall()
-        non_issued_title_list = [x[0] for x in non_issued_title_fetch]
-
-        #Authors
-        c.execute("SELECT author FROM Books WHERE issued=0")
-        non_issued_author_fetch = c.fetchall()
-        non_issued_author_list = [x[0] for x in non_issued_author_fetch]
-
-        #Genres
-        c.execute("SELECT genre FROM Books WHERE issued=0")
-        non_issued_genre_fetch = c.fetchall()
-        non_issued_genre_list = [x[0] for x in non_issued_genre_fetch]
-
-        #Locations
-        c.execute('SELECT location FROM Books WHERE issued=0')
-        non_issued_location_fetch = c.fetchall()
-        non_issued_location_list = [x[0] for x in non_issued_location_fetch]
-
-
-        for k in self.tree.get_children():
-            self.tree.delete(k)
-
-        for i in range(len(non_issued_bookID_list)):
-            #creates an entry in the tree for each element of the list
-            #then stores the id of the tree in the self.ids list
-            self.tree_ids.append(self.tree.insert("", "end", values=(non_issued_bookID_list[i], non_issued_title_list[i], non_issued_author_list[i], non_issued_genre_list[i], non_issued_location_list[i])))
-        self.tree.pack()
+        for self.col in self.columns:
+                    self.tree.heading(self.col, text=self.col,
+                                          command=lambda c=self.col: self.sort_upon_press(c))
 
     def bookID_validate(self, bookID_input):
         if bookID_input.isdigit():
@@ -271,7 +236,7 @@ class Library():
 
 
 
-    def _columns_searcher(self,*args):
+    def _columns_searcher(self, *args):
         children = list(self._detached) + list(self.tree.get_children())
         self._detached = set()
         query_bookID = str(self.bookID_var.get())
@@ -339,7 +304,10 @@ class Library():
                 self.tree.reattach(item_id, '', i_r)
 
     def sort_upon_press(self, c):
-        self.arr = [(self.tree.set(k, c), k) for k in self.tree.get_children('')]
+        try:
+            self.arr = [(int(self.tree.set(k, c)), k) for k in self.tree.get_children('')]
+        except ValueError:
+            self.arr = [(self.tree.set(k, c), k) for k in self.tree.get_children('')]
         self.n = len(self.arr)
         self.quickSort(self.tree, c, self.arr, 0, self.n-1, False)
 
@@ -353,8 +321,8 @@ class Library():
                 arr[i], arr[j] = arr[j], arr[i]
      
         arr[i+1], arr[high] = arr[high], arr[i+1]
+
         return (i+1)
-     
      
     def quickSort(self, tv, col, arr, low, high, reverse):
         #Need to update arr if a new value is added to the treeview
