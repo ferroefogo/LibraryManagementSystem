@@ -2,8 +2,10 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as ms
+import re
+import linecache
 
-
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 class StaffHelp():
     def __init__(self, root, notebook, user_email):
         self.root = root
@@ -15,7 +17,7 @@ class StaffHelp():
         header_frame = tk.Frame(staff_help_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text="Staff Help Page", font='System 30')
+        header = tk.Label(header_frame, text="Staff Help Page", font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
         large_frame = tk.Frame(staff_help_page)

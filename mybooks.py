@@ -4,19 +4,20 @@ from tkinter import ttk
 import sqlite3
 from tkinter import messagebox as ms
 import string
+import re
+import linecache
 
 #ISSUE REGARDING ISSUE DATE AND RETURN DATE NOT BEING UPDATED IN THE MYBOOKS PAGE AFTER A BOOK HAS BEEN ASSIGNED TO THE USER.
 
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
-width=225
-padx=8
-pady=5
-
-geometry = '1500x1500'
-bg='gray90'
-font='System 18'
+WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt',1))
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
+BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
+FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 #List of genres
 c.execute("SELECT genre FROM Genres")
@@ -41,18 +42,12 @@ class MyBooks():
         header_frame = tk.Frame(my_books_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='My Books', font='System 30')
+        header = tk.Label(header_frame, text='My Books', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
-        current_books_header = ttk.Label(header_frame, text='Current Books', font='System 25')
-        current_books_header.pack(side=tk.TOP)
-
-        current_books_frame = tk.Frame(my_books_page)
-        current_books_frame.pack(side=tk.TOP, anchor=tk.N)
-
         # Library TreeView Book Database Frame
-        tree_container = tk.Frame(current_books_frame)
-        tree_container.pack(side=tk.RIGHT, anchor=tk.N, padx=padx)
+        tree_container = tk.Frame(my_books_page)
+        tree_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX)
 
         #Set up TreeView table
         self.columns = ('Book ID','Title', 'Author', 'Genre','Location','Issue Date','Return Date')
@@ -65,13 +60,13 @@ class MyBooks():
         self.tree.heading("Issue Date", text='Issue Date')
         self.tree.heading("Return Date", text="Return Date")
 
-        self.tree.column("Book ID", width=width, anchor=tk.CENTER)
-        self.tree.column("Title", width=width, anchor=tk.CENTER)
-        self.tree.column("Author", width=width, anchor=tk.CENTER)
-        self.tree.column("Genre", width=width, anchor=tk.CENTER)
-        self.tree.column("Location", width=width, anchor=tk.CENTER)
-        self.tree.column("Issue Date", width=width, anchor=tk.CENTER)
-        self.tree.column("Return Date", width=width, anchor=tk.CENTER)
+        self.tree.column("Book ID", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Title", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Author", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Genre", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Location", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Issue Date", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Return Date", width=WIDTH, anchor=tk.CENTER)
 
         #BookIDs
         c.execute("""SELECT Books.bookID
@@ -154,19 +149,19 @@ class MyBooks():
         self.tree.pack()
 
         #Search Books UI
-        filter_container = tk.Frame(current_books_frame, bg=bg)
-        filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        filter_container = tk.Frame(my_books_page, bg=BG)
+        filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        filter_header = tk.Label(filter_container, text='Filters', font='System 18', bg=bg)
-        filter_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        filter_header = tk.Label(filter_container, text='Filters', font=FONT, bg=BG)
+        filter_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
 
         #BookIDs Filter
-        search_container_bookID = tk.Frame(filter_container, bg=bg)
+        search_container_bookID = tk.Frame(filter_container, bg=BG)
         search_container_bookID.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        bookID_label = tk.Label(search_container_bookID, text='Book ID: ', bg=bg)
-        bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        bookID_label = tk.Label(search_container_bookID, text='Book ID: ', bg=BG)
+        bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.bookID_reg = root.register(self.bookID_validate)
 
@@ -177,75 +172,75 @@ class MyBooks():
         self.bookID_entry = ttk.Entry(search_container_bookID)
         self.bookID_entry.config(textvariable=self.bookID_var, validate="key",
                             validatecommand=(self.bookID_reg, "%P"))
-        self.bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Titles Filter
-        search_container_title = tk.Frame(filter_container, bg=bg)
+        search_container_title = tk.Frame(filter_container, bg=BG)
         search_container_title.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        title_label = tk.Label(search_container_title, text='Title: ', bg=bg)
-        title_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        title_label = tk.Label(search_container_title, text='Title: ', bg=BG)
+        title_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.title_var = tk.StringVar() #create stringvar for entry widget
         self.title_var.trace("w", self._columns_searcher) #callback if stringvar is updated
 
         self.title_entry = ttk.Entry(search_container_title, textvariable=self.title_var)
-        self.title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Author Filter
-        search_container_author = tk.Frame(filter_container, bg=bg)
+        search_container_author = tk.Frame(filter_container, bg=BG)
         search_container_author.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        author_label = tk.Label(search_container_author, text='Author: ', bg=bg)
-        author_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        author_label = tk.Label(search_container_author, text='Author: ', bg=BG)
+        author_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.author_var = tk.StringVar() #create stringvar for entry widget
         self.author_var.trace("w", self._columns_searcher) #callback if stringvar is updated
 
         self.author_entry = ttk.Entry(search_container_author, textvariable=self.author_var)
-        self.author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Genre Filter
-        search_container_genre = tk.Frame(filter_container, bg=bg)
+        search_container_genre = tk.Frame(filter_container, bg=BG)
         search_container_genre.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        genre_label = tk.Label(search_container_genre, text='Genre:', bg=bg)
-        genre_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        genre_label = tk.Label(search_container_genre, text='Genre:', bg=BG)
+        genre_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.genre_var = tk.StringVar()
         self.genre_var.set("-EMPTY-")
 
         from functools import partial
         self.genre_menu = ttk.OptionMenu(search_container_genre, self.genre_var,genre_choice_list[0], *genre_choice_list, command=partial(self._columns_searcher))
-        self.genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Location Filter
-        search_container_location = tk.Frame(filter_container, bg=bg)
+        search_container_location = tk.Frame(filter_container, bg=BG)
         search_container_location.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        location_label = tk.Label(search_container_location, text='Location:', bg=bg)
-        location_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        location_label = tk.Label(search_container_location, text='Location:', bg=BG)
+        location_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.location_var = tk.StringVar()
         self.location_var.set("-EMPTY-")
         self.location_var.trace("w", self._columns_searcher)
 
         self.location_menu = ttk.OptionMenu(search_container_location, self.location_var,location_choice_list[0], *location_choice_list)
-        self.location_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.location_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
 
-        refresh_container = tk.Frame(filter_container, bg=bg)
+        refresh_container = tk.Frame(filter_container, bg=BG)
         refresh_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        refresh_label = tk.Label(refresh_container, text='Update Page Values: ', bg=bg)
-        refresh_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        refresh_label = tk.Label(refresh_container, text='Update Page Values: ', bg=BG)
+        refresh_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         refresh_button = ttk.Button(refresh_container, text='Refresh', command=self.refresh_page)
-        refresh_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        refresh_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         for self.col in self.columns:
                     self.tree.heading(self.col, text=self.col,
@@ -316,10 +311,25 @@ class MyBooks():
         user_books_location_fetch = c.fetchall()
         user_book_location_list = [x[0] for x in user_books_location_fetch]
 
+        #Issue Date
+        c.execute("""SELECT date_issued
+            FROM MyBooks
+            WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
+        user_books_issue_date_fetch = c.fetchall()
+        user_book_issue_date_list = [x[0] for x in user_books_issue_date_fetch]
+
+
+        #Return Date
+        c.execute("""SELECT return_date
+            FROM MyBooks
+            WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)""",(self.user_email,))
+        user_books_return_date_fetch = c.fetchall()
+        user_book_return_date_list = [x[0] for x in user_books_return_date_fetch]
+
         for i in range(len(user_book_bookID_list)):
             #creates an entry in the tree for each element of the list
             #then stores the id of the tree in the self.ids list
-            self.tree_ids.append(self.tree.insert("", "end", values=(user_book_bookID_list[i], user_book_title_list[i], user_book_author_list[i], user_book_genre_list[i], user_book_location_list[i])))
+            self.tree_ids.append(self.tree.insert("", "end", values=(user_book_bookID_list[i], user_book_title_list[i], user_book_author_list[i], user_book_genre_list[i], user_book_location_list[i], user_book_issue_date_list[i], user_book_return_date_list[i])))
         self.tree.pack()
 
         #Update Genre List for OptionMenu
@@ -520,7 +530,7 @@ class AutoCompleteEntryMB():
                     self.lb = tk.Listbox(self.search_container_title)
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+                    self.lb.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
                     self.lb_up = True
                 
                 self.lb.delete(0, tk.END)

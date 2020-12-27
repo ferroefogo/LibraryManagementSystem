@@ -6,6 +6,8 @@ import sqlite3
 from tkinter import messagebox as ms
 import bcrypt
 import sys
+import re
+import linecache
 
 from email_sys import Email
 
@@ -15,13 +17,13 @@ from email_sys import Email
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
-width=225
-padx=8
-pady=5
-
-geometry = '1500x1500'
-bg='gray90'
-font='System 18'
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
+BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
+DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt',7)).strip()
+LINK_FG = re.sub('^.*?=', '', linecache.getline('config.txt',8)).strip()
+FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 class Account():
     #USER ACCESS
@@ -35,26 +37,26 @@ class Account():
         header_frame = tk.Frame(account_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='Account', font='System 30')
+        header = tk.Label(header_frame, text='Account', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
         # Account Details Frame
-        details_container = tk.Frame(account_page, bg=bg)
+        details_container = tk.Frame(account_page, bg=BG)
         details_container.pack(side=tk.LEFT, anchor=tk.N)
 
-        container_header = tk.Label(details_container, text='Account Details', font='System 18', bg=bg)
-        container_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        container_header = tk.Label(details_container, text='Account Details', font=FONT, bg=BG)
+        container_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
 
         
         #Change password Container
-        self.change_password_container = tk.Frame(account_page, bg=bg)
-        self.container_change_password_header = tk.Label(self.change_password_container, text='Change Password', font='System 18', bg=bg)
+        self.change_password_container = tk.Frame(account_page, bg=BG)
+        self.container_change_password_header = tk.Label(self.change_password_container, text='Change Password', font=FONT, bg=BG)
         
 
         #Current password entry
-        self.current_pw_container = tk.Frame(self.change_password_container, bg=bg)
-        self.current_pw_label = tk.Label(self.current_pw_container, text='Current Password:',bg=bg)
+        self.current_pw_container = tk.Frame(self.change_password_container, bg=BG)
+        self.current_pw_label = tk.Label(self.current_pw_container, text='Current Password:',bg=BG)
         
 
         self.current_pw_var = tk.StringVar()
@@ -64,8 +66,8 @@ class Account():
 
 
         #New password entry
-        self.new_pw_container = tk.Frame(self.change_password_container, bg=bg)
-        self.new_pw_label = tk.Label(self.new_pw_container, text='New Password:',bg=bg)
+        self.new_pw_container = tk.Frame(self.change_password_container, bg=BG)
+        self.new_pw_label = tk.Label(self.new_pw_container, text='New Password:',bg=BG)
         
 
         self.new_pw_var = tk.StringVar()
@@ -75,8 +77,8 @@ class Account():
 
 
         #New password confirmation entry
-        self.new_pw_confirm_container = tk.Frame(self.change_password_container, bg=bg)
-        self.new_pw_confirm_label = tk.Label(self.new_pw_confirm_container, text='Confirm New Password:',bg=bg)
+        self.new_pw_confirm_container = tk.Frame(self.change_password_container, bg=BG)
+        self.new_pw_confirm_label = tk.Label(self.new_pw_confirm_container, text='Confirm New Password:',bg=BG)
         
 
         self.new_pw_confirm_var = tk.StringVar()
@@ -84,20 +86,20 @@ class Account():
         
 
         #Change password button
-        self.change_password_button_container = tk.Frame(self.change_password_container, bg=bg)
+        self.change_password_button_container = tk.Frame(self.change_password_container, bg=BG)
         self.change_password_button = ttk.Button(self.change_password_button_container, text='Change Password', command=lambda:self.change_password())
 
 
 
 
         #Delete Account Container
-        self.delete_account_container = tk.Frame(account_page, bg=bg)
-        self.container_delete_account_header = tk.Label(self.delete_account_container, text='Delete Account', font='System 18', bg=bg)
+        self.delete_account_container = tk.Frame(account_page, bg=BG)
+        self.container_delete_account_header = tk.Label(self.delete_account_container, text='Delete Account', font=FONT, bg=BG)
 
 
         #Password entry
-        self.pw_container = tk.Frame(self.delete_account_container, bg=bg)
-        self.pw_label = tk.Label(self.pw_container, text='Password:',bg=bg)
+        self.pw_container = tk.Frame(self.delete_account_container, bg=BG)
+        self.pw_label = tk.Label(self.pw_container, text='Password:',bg=BG)
         
 
         self.pw_var = tk.StringVar()
@@ -105,8 +107,8 @@ class Account():
         
 
         #New password entry
-        self.confirm_pw_container = tk.Frame(self.delete_account_container, bg=bg)
-        self.confirm_pw_label = tk.Label(self.confirm_pw_container, text='Confirm Password:',bg=bg)
+        self.confirm_pw_container = tk.Frame(self.delete_account_container, bg=BG)
+        self.confirm_pw_label = tk.Label(self.confirm_pw_container, text='Confirm Password:',bg=BG)
         
 
         self.confirm_pw_var = tk.StringVar()
@@ -114,7 +116,7 @@ class Account():
 
 
         #Delete account button
-        self.delete_account_button_container = tk.Frame(self.delete_account_container, bg=bg)
+        self.delete_account_button_container = tk.Frame(self.delete_account_container, bg=BG)
         self.delete_account_button = ttk.Button(self.delete_account_button_container, text='Delete Account', command=lambda:self.deletion_confirmation())
 
 
@@ -124,20 +126,20 @@ class Account():
 
 
 
-        email_container = tk.Frame(details_container, bg=bg)
+        email_container = tk.Frame(details_container, bg=BG)
         email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        email_label = tk.Label(email_container, text='   Email:   {}'.format(self.user_email), padx=padx, pady=pady)
-        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        email_label = tk.Label(email_container, text='   Email:   {}'.format(self.user_email), padx=PADX, pady=PADY)
+        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         change_password_label = tk.Label(details_container, text='Change Password?', cursor="hand2",
-                                                bg=bg, fg='blue')
-        change_password_label.pack(anchor=tk.W, padx=padx, pady=pady)
+                                                bg=BG, fg=LINK_FG)
+        change_password_label.pack(anchor=tk.W, padx=PADX, pady=PADY)
         change_password_label.bind("<Button-1>", lambda e: self.change_password_container_func())
 
         delete_account_label = tk.Label(details_container, text='Delete Account?', cursor="hand2",
-                                                bg=bg, fg='orange red')
-        delete_account_label.pack(anchor=tk.W, padx=padx, pady=pady)
+                                                bg=BG, fg=DANGER_FG)
+        delete_account_label.pack(anchor=tk.W, padx=PADX, pady=PADY)
         delete_account_label.bind("<Button-1>", lambda e: self.delete_account_container_func())
 
     def change_password(self, *args):
@@ -209,26 +211,24 @@ class Account():
         else:
             #Pack all the widgets upon the user pressing the button.
             self.change_password_container.pack(side=tk.LEFT, anchor=tk.N)
-            self.container_change_password_header.pack(anchor=tk.W, padx=padx, pady=pady)
+            self.container_change_password_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
             self.current_pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.current_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.current_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.current_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=PADX, pady=PADY)
+            self.current_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
             self.new_pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.new_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.new_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.new_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=PADX, pady=PADY)
+            self.new_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
             self.new_pw_confirm_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.new_pw_confirm_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.new_pw_confirm_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.new_pw_confirm_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=PADX, pady=PADY)
+            self.new_pw_confirm_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
             self.change_password_button_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.change_password_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+            self.change_password_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
     def delete_account_container_func(self, *args):
         #If the user has pressed the button after the widgets were already packed, unpack them.
         if self.delete_account_container.winfo_ismapped() == True:
             self.delete_account_container.pack_forget()
             self.container_delete_account_header.pack_forget()
-            self.delete_acc_email_container.pack_forget()
-            self.delete_acc_email_label.pack_forget()
             self.pw_container.pack_forget()
             self.pw_label.pack_forget()
             self.pw_entry.pack_forget()
@@ -240,12 +240,12 @@ class Account():
         else:
             #Pack all the widgets to show the panel upon pressing the delete_account box in account details
             self.delete_account_container.pack(side=tk.LEFT, anchor=tk.N)
-            self.container_delete_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
+            self.container_delete_account_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
             self.pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=PADX, pady=PADY)
+            self.pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
             self.confirm_pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.confirm_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=padx, pady=pady)
-            self.confirm_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.confirm_pw_label.pack(side=tk.LEFT, anchor=tk.W, fill=tk.X, padx=PADX, pady=PADY)
+            self.confirm_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
             self.delete_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-            self.delete_account_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+            self.delete_account_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)

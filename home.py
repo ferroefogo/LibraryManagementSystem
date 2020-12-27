@@ -3,14 +3,10 @@ import tkinter as tk
 from tkinter import ttk
 import sqlite3
 from tkinter import messagebox as ms
+import re
+import linecache
 
-width=225
-padx=8
-pady=5
-
-geometry = '1500x1500'
-bg='gray90'
-font='System 18'
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 class Home():
     #USER ACCESS
@@ -19,7 +15,7 @@ class Home():
         home_page = tk.Frame(notebook)
         notebook.add(home_page, text='Home')
 
-        home_header = tk.Label(home_page, text='Welcome to the Library System!', font='System 30')
+        home_header = tk.Label(home_page, text='Welcome to the Library System!', font=HEADER_FONT)
         home_header.pack(fill=tk.X, expand=True, side=tk.TOP, anchor=tk.N)
 
 

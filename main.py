@@ -8,6 +8,7 @@ import re
 import sys
 import secrets
 import random
+import linecache
 
 from email_sys import Email
 from home import Home
@@ -27,13 +28,18 @@ from forgotpw import ForgotPW
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
-width=225
-padx=8
-pady=5
+#Fetch configurations of the widgets from the config file.
+#re.sub filters the title of the variable value in the config file. e.g. WIDTH=225 becomes 225
+#.strip() removes any potential whitespace that could cause issues.
 
-geometry = '1500x1500'
-bg='gray90'
-font='System 18'
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
+MAIN_GEOMETRY = re.sub('^.*?=', '', linecache.getline('config.txt',4)).strip()
+SMALL_GEOMETRY = re.sub('^.*?=','',linecache.getline('config.txt',5)).strip()
+BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
+DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt',7)).strip()
+MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt',9)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 class SignIn():
     def __init__(self, parent):
@@ -62,51 +68,51 @@ class Login():
         header_frame = tk.Frame(login_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='Login', font='System 30')
+        header = tk.Label(header_frame, text='Login', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
         #Login Container
-        login_container = tk.Frame(login_page, bg=bg)
-        login_container.pack(padx=padx, pady=pady)
+        login_container = tk.Frame(login_page, bg=BG)
+        login_container.pack(padx=PADX, pady=PADY)
 
         #Email Container
-        email_container = tk.Frame(login_container, bg=bg)
+        email_container = tk.Frame(login_container, bg=BG)
         email_container.pack(expand=True)
 
-        email_label = tk.Label(email_container, text='    Email:   ', bg=bg)
-        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        email_label = tk.Label(email_container, text='    Email:   ', bg=BG)
+        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.user_email_var = tk.StringVar()
         self.user_email_var.set('')
         self.email_entry = ttk.Entry(email_container, textvariable=self.user_email_var, font='System 6',)
-        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
         self.email_entry.focus()
 
 
         #Password Container
-        password_container = tk.Frame(login_container, bg=bg)
+        password_container = tk.Frame(login_container, bg=BG)
         password_container.pack(expand=True)
 
-        password_label = tk.Label(password_container, text=' Password:', bg=bg)
-        password_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        password_label = tk.Label(password_container, text=' Password:', bg=BG)
+        password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.user_password_var = tk.StringVar()
         self.user_password_var.set('')
         self.password_entry = ttk.Entry(password_container, textvariable=self.user_password_var,
                                                 font='System 6', show='*')
-        self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Login Button Container
-        button_container = tk.Frame(login_container, bg=bg)
+        button_container = tk.Frame(login_container, bg=BG)
         button_container.pack(expand=True)
 
         login_button = ttk.Button(button_container, text='Login', command=lambda:self.login())
         guest_button = ttk.Button(button_container, text='Guest Login', command=lambda:self.guest_login())
         exit_button = ttk.Button(button_container, text='Exit', command=lambda:self.system_exit())
 
-        login_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-        guest_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-        exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        login_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+        guest_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+        exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         self.email_entry.bind("<Return>", self.login)
         self.password_entry.bind("<Return>", self.login)
@@ -119,26 +125,27 @@ class Login():
         if login_password == '' and login_email  == '':
              ms.showwarning('Warning','Enter your email address and password')
         else:
-            
-            pass_hashed_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (login_email,))
-            pass_hashed = c.fetchone()[0]
+            try:
+                pass_hashed_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (login_email,))
+                pass_hashed = c.fetchone()[0]
 
-            pass_hashed_encode = pass_hashed.encode('utf-8')
+                pass_hashed_encode = pass_hashed.encode('utf-8')
 
-            bytes_login_password = bytes(login_password, 'utf-8')
+                bytes_login_password = bytes(login_password, 'utf-8')
 
-            if bcrypt.checkpw(bytes_login_password, pass_hashed_encode):
-                ms.showinfo('Success', 'Successfully Logged in!')
-                for child in self.parent.winfo_children():
-                    child.destroy()
+                if bcrypt.checkpw(bytes_login_password, pass_hashed_encode):
+                    ms.showinfo('Success', 'Successfully Logged in!')
+                    for child in self.parent.winfo_children():
+                        child.destroy()
 
-                MainApplication(self.parent, login_email)
+                    MainApplication(self.parent, login_email)
 
-                self.user_email_var.set('')
-                self.user_password_var.set('')
-            else:
-                ms.showerror('Error','Incorrect password/email')
-            
+                    self.user_email_var.set('')
+                    self.user_password_var.set('')
+                else:
+                    ms.showerror('Error','Incorrect password/email')
+            except TypeError:
+                ms.showerror('Error','Incorrect password/email')            
 
 
     def guest_login(self):
@@ -169,32 +176,32 @@ class Register():
         header_frame = tk.Frame(register_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='Register', font='System 30')
+        header = tk.Label(header_frame, text='Register', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
         #Register Container
-        register_container = tk.Frame(register_page, bg=bg)
-        register_container.pack(padx=padx, pady=pady)
+        register_container = tk.Frame(register_page, bg=BG)
+        register_container.pack(padx=PADX, pady=PADY)
 
         #Email Container
-        email_container = tk.Frame(register_container, bg=bg)
+        email_container = tk.Frame(register_container, bg=BG)
         email_container.pack(expand=True)
 
-        email_label = tk.Label(email_container, text='    Email:   ', bg=bg)
-        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        email_label = tk.Label(email_container, text='    Email:   ', bg=BG)
+        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.user_email_var = tk.StringVar()
         self.user_email_var.set('')
         self.email_entry = ttk.Entry(email_container, textvariable=self.user_email_var,
                                                 font='System 6')
-        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Password Container
-        password_container = tk.Frame(register_container, bg=bg)
+        password_container = tk.Frame(register_container, bg=BG)
         password_container.pack(expand=True)
 
-        password_label = tk.Label(password_container, text=' Password:', bg=bg)
-        password_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        password_label = tk.Label(password_container, text=' Password:', bg=BG)
+        password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.user_password_var = tk.StringVar()
         self.user_password_var.set('')
@@ -202,62 +209,62 @@ class Register():
 
         self.password_entry = ttk.Entry(password_container, textvariable=self.user_password_var,
                                                 font='System 6', show='*')
-        self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
 
         #Confirm Password Container
-        confirm_pw_container = tk.Frame(register_container, bg=bg)
+        confirm_pw_container = tk.Frame(register_container, bg=BG)
         confirm_pw_container.pack(expand=True)
 
-        confirm_pw_label = tk.Label(confirm_pw_container, text='Confirm\n Password:', bg=bg)
-        confirm_pw_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        confirm_pw_label = tk.Label(confirm_pw_container, text='Confirm\n Password:', bg=BG)
+        confirm_pw_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.confirm_pw_var = tk.StringVar()
         self.confirm_pw_var.set('')
         self.confirm_pw_entry = ttk.Entry(confirm_pw_container, textvariable=self.confirm_pw_var,
                                                 font='System 6', show='*')
-        self.confirm_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.confirm_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Register Button Container
-        button_container = tk.Frame(register_container, bg=bg)
+        button_container = tk.Frame(register_container, bg=BG)
         button_container.pack(expand=True)
 
         register_button = ttk.Button(button_container, text='Register', command=lambda:self.register())
         exit_button = ttk.Button(button_container, text='Exit', command=lambda:self.system_exit())
         show_password_button = ttk.Button(button_container, text='Show Password', command=lambda:self.show_password())
 
-        register_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-        exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
-        show_password_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        register_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+        exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+        show_password_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         self.email_entry.bind("<Return>", self.register)
         self.password_entry.bind("<Return>", self.register)
         self.confirm_pw_entry.bind("<Return>", self.register)
 
         #Password Strength measure container
-        self.password_strength_container_1 = tk.Frame(register_container, bg=bg)
+        self.password_strength_container_1 = tk.Frame(register_container, bg=BG)
         self.password_strength_container_1.pack(expand=True)
 
         self.password_strength_label_1 = tk.Label(self.password_strength_container_1, text='Password must be a minimum of 8 characters.',
-                                                bg=bg, fg='orange red')
-        self.password_strength_label_1.pack(anchor=tk.E, side=tk.RIGHT, padx=padx, pady=pady)
+                                                bg=BG, fg=DANGER_FG)
+        self.password_strength_label_1.pack(anchor=tk.E, side=tk.RIGHT, padx=PADX, pady=PADY)
 
 
-        self.password_strength_container_2 = tk.Frame(register_container, bg=bg)
+        self.password_strength_container_2 = tk.Frame(register_container, bg=BG)
         self.password_strength_container_2.pack(expand=True)
 
         self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol )([!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]""",
-                                                bg=bg, fg='orange red')
-        self.password_strength_label_2.pack(anchor=tk.E, side=tk.RIGHT, padx=padx, pady=pady)
+                                                bg=BG, fg=DANGER_FG)
+        self.password_strength_label_2.pack(anchor=tk.E, side=tk.RIGHT, padx=PADX, pady=PADY)
 
     def register(self, *args):
         # delete if statement and replace with database check for user's input credentials
         #validity checks for entry field + logic
         self.reg_email = self.user_email_var.get()
 
-        #Accepted email standard internarionally.
-        email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        #Accepted email standard.
+        email_regex = '^\S+@\S+$'
 
         if (re.search(email_regex, self.reg_email)):
             reg_pw = self.user_password_var.get()
@@ -302,7 +309,7 @@ class Register():
                     self.accountVerification.title("Account Verification")
                     self.accountVerification.option_add('*Font', 'System 12')
                     self.accountVerification.option_add('*Label.Font', 'System 12')
-                    self.accountVerification.geometry('500x500')
+                    self.accountVerification.geometry(SMALL_GEOMETRY)
                     self.accountVerification.resizable(False, False)
 
 
@@ -315,7 +322,7 @@ class Register():
                     header_frame = tk.Frame(self.accountVerification)
                     header_frame.pack(fill=tk.X, side=tk.TOP)
 
-                    header = tk.Label(header_frame, text='Account Verification', font='System 30')
+                    header = tk.Label(header_frame, text='Account Verification', font=HEADER_FONT)
                     header.pack(side=tk.TOP)
 
                     header_description = tk.Label(header_frame, text='A 6 digit verification code has been sent to\n'+self.reg_email+'\n Please enter the 6 digit code into the entry field below.', font='System 8')
@@ -328,15 +335,15 @@ class Register():
                     self.countdown(60)
 
                     #Codes Full Container
-                    code_container = tk.Frame(self.accountVerification, bg=bg)
-                    code_container.pack(padx=padx, pady=pady)
+                    code_container = tk.Frame(self.accountVerification, bg=BG)
+                    code_container.pack(padx=PADX, pady=PADY)
 
                     #Code Entry Field Container
-                    verification_code_container = tk.Frame(code_container, bg=bg)
+                    verification_code_container = tk.Frame(code_container, bg=BG)
                     verification_code_container.pack(expand=True)
 
-                    verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=bg)
-                    verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+                    verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=BG)
+                    verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
                     self.verification_code_reg = root.register(self.verification_code_validate)
 
@@ -345,17 +352,17 @@ class Register():
                     self.verification_code_entry = ttk.Entry(verification_code_container, textvariable=self.verification_code_var,
                                                             font='System 6', validate="key",
                                                             validatecommand=(self.verification_code_reg, "%P"))
-                    self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
                     #Buttons Container
-                    button_container = tk.Frame(code_container, bg=bg)
+                    button_container = tk.Frame(code_container, bg=BG)
                     button_container.pack(expand=True)
 
                     check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda:self.check_code(self.verification_code_var.get()))
                     resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda:self.resend_code(self.verification_code_var.get()))
 
-                    check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-                    resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+                    resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                     
 
                     self.verification_code_entry.bind("<Return>", self.check_code)
@@ -505,42 +512,42 @@ class ForgotPW():
         header_frame = tk.Frame(forgot_pw_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='Forgot Password?', font='System 30')
+        header = tk.Label(header_frame, text='Forgot Password?', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
         #Credentials Container
-        credentials_container = tk.Frame(forgot_pw_page, bg=bg)
-        credentials_container.pack(padx=padx, pady=pady)
+        credentials_container = tk.Frame(forgot_pw_page, bg=BG)
+        credentials_container.pack(padx=PADX, pady=PADY)
 
         #Email Container
-        email_container = tk.Frame(credentials_container, bg=bg)
+        email_container = tk.Frame(credentials_container, bg=BG)
         email_container.pack(expand=True)
 
-        email_label = tk.Label(email_container, text='    Email:   ', bg=bg)
-        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        email_label = tk.Label(email_container, text='    Email:   ', bg=BG)
+        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.user_email_var = tk.StringVar()
         self.user_email_var.set('')
         self.email_entry = ttk.Entry(email_container, textvariable=self.user_email_var,
                                                 font='System 6')
-        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Send Request Button Container
-        button_container = tk.Frame(credentials_container, bg=bg)
+        button_container = tk.Frame(credentials_container, bg=BG)
         button_container.pack(expand=True)
 
         send_request_button = ttk.Button(button_container, text='Send Request', command=lambda:self.send_request())
         exit_button = ttk.Button(button_container, text='Exit', command=lambda:self.system_exit())
 
-        send_request_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-        exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        send_request_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+        exit_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         self.email_entry.bind("<Return>", self.send_request)
 
     def send_request(self, *args):
         #Accepted email standard internarionally.
         input_email = self.user_email_var.get()
-        email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        email_regex = '^\S+@\S+$'
         #Check if the email address exists in the database
         email_address_fetch = c.execute("SELECT email_address FROM Accounts WHERE email_address=?",(self.user_email_var.get(),))
         email_address_list = email_address_fetch.fetchall()
@@ -556,7 +563,7 @@ class ForgotPW():
             self.forgotPassword.title("Account Verification")
             self.forgotPassword.option_add('*Font', 'System 12')
             self.forgotPassword.option_add('*Label.Font', 'System 12')
-            self.forgotPassword.geometry('500x500')
+            self.forgotPassword.geometry(SMALL_GEOMETRY)
             self.forgotPassword.resizable(False, False)
 
 
@@ -569,7 +576,7 @@ class ForgotPW():
             header_frame = tk.Frame(self.forgotPassword)
             header_frame.pack(fill=tk.X, side=tk.TOP)
 
-            header = tk.Label(header_frame, text='Forgot Password', font='System 30')
+            header = tk.Label(header_frame, text='Forgot Password', font=HEADER_FONT)
             header.pack(side=tk.TOP)
 
             header_description = tk.Label(header_frame, text='A randomly generated password has been send to \n'+input_email+'\n Please enter the password into the "Generated Password" entry field below.', font='System 8')
@@ -586,28 +593,28 @@ class ForgotPW():
 
 
             #Passwords Full Container
-            passwords_container = tk.Frame(self.forgotPassword, bg=bg)
-            passwords_container.pack(padx=padx, pady=pady)
+            passwords_container = tk.Frame(self.forgotPassword, bg=BG)
+            passwords_container.pack(padx=PADX, pady=PADY)
 
             #Generated Password Entry Field Container
-            generated_password_container = tk.Frame(passwords_container, bg=bg)
+            generated_password_container = tk.Frame(passwords_container, bg=BG)
             generated_password_container.pack(expand=True)
 
-            generated_password_label = tk.Label(generated_password_container, text='    Generated Password:   ', bg=bg)
-            generated_password_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+            generated_password_label = tk.Label(generated_password_container, text='    Generated Password:   ', bg=BG)
+            generated_password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
 
             self.generated_password_var = tk.StringVar()
             self.generated_password_var.set('')
             self.generated_password_entry = ttk.Entry(generated_password_container, textvariable=self.generated_password_var,font='System 6')
-            self.generated_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.generated_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
             #Password Container
-            new_password_container = tk.Frame(passwords_container, bg=bg)
+            new_password_container = tk.Frame(passwords_container, bg=BG)
             new_password_container.pack(expand=True)
 
-            new_password_label = tk.Label(new_password_container, text=' New Password:', bg=bg)
-            new_password_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+            new_password_label = tk.Label(new_password_container, text=' New Password:', bg=BG)
+            new_password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
             self.new_password_var = tk.StringVar()
             self.new_password_var.set('')
@@ -615,49 +622,49 @@ class ForgotPW():
 
             self.new_password_entry = ttk.Entry(new_password_container, textvariable=self.new_password_var,
                                                     font='System 6', show='*')
-            self.new_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.new_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
             #Confirm Password Container
-            confirm_pw_container = tk.Frame(passwords_container, bg=bg)
+            confirm_pw_container = tk.Frame(passwords_container, bg=BG)
             confirm_pw_container.pack(expand=True)
 
-            confirm_pw_label = tk.Label(confirm_pw_container, text='Confirm\n New Password:', bg=bg)
-            confirm_pw_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+            confirm_pw_label = tk.Label(confirm_pw_container, text='Confirm\n New Password:', bg=BG)
+            confirm_pw_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
             self.confirm_pw_var = tk.StringVar()
             self.confirm_pw_var.set('')
             self.confirm_pw_entry = ttk.Entry(confirm_pw_container, textvariable=self.confirm_pw_var,
                                                     font='System 6', show='*')
-            self.confirm_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            self.confirm_pw_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
             #Password Strength measure container
-            self.password_strength_container_1 = tk.Frame(passwords_container, bg=bg)
+            self.password_strength_container_1 = tk.Frame(passwords_container, bg=BG)
             self.password_strength_container_1.pack(expand=True)
 
             self.password_strength_label_1 = tk.Label(self.password_strength_container_1, text='Password must be a minimum of 8 characters.',
-                                                    bg=bg, fg='orange red')
-            self.password_strength_label_1.pack(anchor=tk.E, side=tk.RIGHT, padx=padx, pady=pady)
+                                                    bg=BG, fg=DANGER_FG)
+            self.password_strength_label_1.pack(anchor=tk.E, side=tk.RIGHT, padx=PADX, pady=PADY)
 
 
-            self.password_strength_container_2 = tk.Frame(passwords_container, bg=bg)
+            self.password_strength_container_2 = tk.Frame(passwords_container, bg=BG)
             self.password_strength_container_2.pack(expand=True)
 
             self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol shown below \n)([!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]""",
-                                                    bg=bg, fg='orange red')
-            self.password_strength_label_2.pack(anchor=tk.E, side=tk.RIGHT, padx=padx, pady=pady)
+                                                    bg=BG, fg=DANGER_FG)
+            self.password_strength_label_2.pack(anchor=tk.E, side=tk.RIGHT, padx=PADX, pady=PADY)
 
 
             #Buttons Container
-            button_container = tk.Frame(passwords_container, bg=bg)
+            button_container = tk.Frame(passwords_container, bg=BG)
             button_container.pack(expand=True)
 
             update_password_button = ttk.Button(button_container, text='Update Password', command=lambda:self.update_password())
             show_password_button = ttk.Button(button_container, text='Show Password', command=lambda:self.show_password())
             resend_password_button = ttk.Button(button_container, text='Resend Password', command=lambda:self.resend_password())
 
-            update_password_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-            show_password_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
-            resend_password_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+            update_password_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+            show_password_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+            resend_password_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
             self.generated_password_entry.bind("<Return>", self.update_password)
@@ -772,11 +779,11 @@ class MainApplication():
         self.email = email
 
 
-        parent.configure(bg='gray15')
+        parent.configure(bg=MAIN_APP_BG)
         parent.title("Library System v1.0")
         parent.option_add('*Font', 'System 12')
         parent.option_add('*Label.Font', 'System 12')
-        parent.geometry(geometry)
+        parent.geometry(MAIN_GEOMETRY)
 
 
         #Global Header

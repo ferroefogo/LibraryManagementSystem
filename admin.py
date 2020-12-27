@@ -8,20 +8,22 @@ import sys
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import re
+import linecache
+
+from email_sys import Email
 
 
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
-width=225
-padx=8
-pady=5
-
-geometry = '1500x1500'
-bg='gray90'
-font='System 18'
-
-
+WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt',1))
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
+SMALL_GEOMETRY = re.sub('^.*?=','',linecache.getline('config.txt',5)).strip()
+BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
+MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt',9)).strip()
+FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 class Admin():
     #ADMIN ACCESS ONLY (NO STAFF OR REGULAR USERS ALLOWED)
@@ -36,18 +38,17 @@ class Admin():
 
         header_frame = tk.Frame(admin_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
-
-        header = tk.Label(header_frame, text="Admin", font='System 30')
+        header = tk.Label(header_frame, text="Admin", font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
 
         self.tree_ids = []
         # Library TreeView Book Database Frame
-        tree_container = tk.Frame(admin_page, bg=bg)
-        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=padx, pady=pady)
+        tree_container = tk.Frame(admin_page, bg=BG)
+        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=PADX, pady=PADY)
 
-        tree_header = tk.Label(tree_container, text='Database', font='System 18', bg=bg)
-        tree_header.pack(padx=padx, pady=pady)
+        tree_header = tk.Label(tree_container, text='Database', font=FONT, bg=BG)
+        tree_header.pack(padx=PADX, pady=PADY)
 
         #Set up TreeView table
         self.columns = ('User ID','Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
@@ -60,11 +61,11 @@ class Admin():
         self.tree.heading("Earliest Return Date", text='Earliest Return Date')
 
         self.tree.column("User ID", width=50, anchor=tk.CENTER)
-        self.tree.column("Email Address", width=width, anchor=tk.CENTER)
+        self.tree.column("Email Address", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Staff Mode", width=80, anchor=tk.CENTER)
         self.tree.column("Admin Mode", width=80, anchor=tk.CENTER)
-        self.tree.column("Issued BookIDs", width=width, anchor=tk.CENTER)
-        self.tree.column("Earliest Return Date", width=width, anchor=tk.CENTER)
+        self.tree.column("Issued BookIDs", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Earliest Return Date", width=WIDTH, anchor=tk.CENTER)
 
         #User IDs
         c.execute("SELECT user_id FROM Accounts")
@@ -120,18 +121,18 @@ class Admin():
 
 
         #Add Staff Account
-        add_account_container = tk.Frame(admin_page, bg=bg)
-        add_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        add_account_container = tk.Frame(admin_page, bg=BG)
+        add_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        add_account_header = tk.Label(add_account_container, text='Add Account', font='System 18', bg=bg)
-        add_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        add_account_header = tk.Label(add_account_container, text='Add Account', font=FONT, bg=BG)
+        add_account_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #User ID Field
-        self.userID_container = tk.Frame(add_account_container, bg=bg)
+        self.userID_container = tk.Frame(add_account_container, bg=BG)
         self.userID_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        userID_label = tk.Label(self.userID_container, text='User ID: ', bg=bg)
-        userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        userID_label = tk.Label(self.userID_container, text='User ID: ', bg=BG)
+        userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.userID_var = tk.StringVar()
         select_highest_userID = c.execute("SELECT MAX(user_id)+1 FROM Accounts").fetchall()
@@ -140,214 +141,218 @@ class Admin():
 
         self.userID_entry = ttk.Entry(self.userID_container)
         self.userID_entry.config(textvariable=self.userID_var, state=tk.DISABLED)
-        self.userID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.userID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Email Address Entry Field
-        self.email_container = tk.Frame(add_account_container, bg=bg)
+        self.email_container = tk.Frame(add_account_container, bg=BG)
         self.email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        email_label = tk.Label(self.email_container, text='Email Address: ', bg=bg)
-        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        email_label = tk.Label(self.email_container, text='Email Address: ', bg=BG)
+        email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.email_var = tk.StringVar()
 
         self.email_entry = ttk.Entry(self.email_container, textvariable=self.email_var)
-        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Password Entry Field
-        self.password_container = tk.Frame(add_account_container, bg=bg)
+        self.password_container = tk.Frame(add_account_container, bg=BG)
         self.password_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        password_label = tk.Label(self.password_container, text='Password: ', bg=bg)
-        password_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        password_label = tk.Label(self.password_container, text='Password: ', bg=BG)
+        password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.password_var = tk.StringVar()
 
         self.password_entry = ttk.Entry(self.password_container, textvariable=self.password_var, show='*')
-        self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Confirm Password Entry Field
-        self.confirm_password_container = tk.Frame(add_account_container, bg=bg)
+        self.confirm_password_container = tk.Frame(add_account_container, bg=BG)
         self.confirm_password_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        confirm_password_label = tk.Label(self.confirm_password_container, text='Confirm Password: ', bg=bg)
-        confirm_password_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        confirm_password_label = tk.Label(self.confirm_password_container, text='Confirm Password: ', bg=BG)
+        confirm_password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.confirm_password_var = tk.StringVar()
 
         self.confirm_password_entry = ttk.Entry(self.confirm_password_container, textvariable=self.confirm_password_var, show='*')
-        self.confirm_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.confirm_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         
         #Staff Mode Box
-        add_mode_container = tk.Frame(add_account_container, bg=bg)
+        add_mode_container = tk.Frame(add_account_container, bg=BG)
         add_mode_container.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
-        add_mode_label = tk.Label(add_mode_container, text='Staff Mode: ', bg=bg)
-        add_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_mode_label = tk.Label(add_mode_container, text='Staff Mode: ', bg=BG)
+        add_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.add_staff_mode_var = tk.IntVar()
 
         add_staff_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_staff_mode_var)
-        add_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        add_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Admin Mode Box
-        add_admin_mode_label = tk.Label(add_mode_container, text='Admin Mode: ', bg=bg)
-        add_admin_mode_label.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        add_admin_mode_label = tk.Label(add_mode_container, text='Admin Mode: ', bg=BG)
+        add_admin_mode_label.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
         self.add_admin_mode_var = tk.IntVar()
 
         add_admin_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_admin_mode_var)
-        add_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        add_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Add Account
-        add_account_button_container = tk.Frame(add_account_container, bg=bg)
+        add_account_button_container = tk.Frame(add_account_container, bg=BG)
         add_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         add_account_btn = ttk.Button(add_account_button_container)
         add_account_btn.config(text='    Add Account    ', command=self.add_account)
-        add_account_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=padx, pady=pady)
+        add_account_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=PADX, pady=PADY)
 
 
 
         #Update Existing Account
         #Allows an admin to update the permissions of a staff/user account.
-        update_account_header = tk.Label(add_account_container, text='Update Account', font='System 18', bg=bg)
-        update_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        update_account_header = tk.Label(add_account_container, text='Update Account', font=FONT, bg=BG)
+        update_account_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #UserID Entry Field
-        self.update_account_userID_container = tk.Frame(add_account_container, bg=bg)
+        self.update_account_userID_container = tk.Frame(add_account_container, bg=BG)
         self.update_account_userID_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        update_userID_label = tk.Label(self.update_account_userID_container, text='User ID: ', bg=bg)
-        update_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        update_userID_label = tk.Label(self.update_account_userID_container, text='User ID: ', bg=BG)
+        update_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.update_userID_var = tk.IntVar()
 
         self.update_userID_var = ttk.Entry(self.update_account_userID_container)
         self.update_userID_var.config(textvariable=self.update_userID_var)
-        self.update_userID_var.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.update_userID_var.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Email Address Entry Field
-        self.update_account_email_container = tk.Frame(add_account_container, bg=bg)
+        self.update_account_email_container = tk.Frame(add_account_container, bg=BG)
         self.update_account_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        update_email_label = tk.Label(self.update_account_email_container, text='Email Address: ', bg=bg)
-        update_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        update_email_label = tk.Label(self.update_account_email_container, text='Email Address: ', bg=BG)
+        update_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.update_email_var = tk.StringVar()
 
         self.update_email_entry = ttk.Entry(self.update_account_email_container, textvariable=self.update_email_var)
-        self.update_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.update_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Update staff mode frame
-        update_mode_container = tk.Frame(add_account_container, bg=bg)
+        update_mode_container = tk.Frame(add_account_container, bg=BG)
         update_mode_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        update_staff_mode_label = tk.Label(update_mode_container, text='Staff Mode: ', bg=bg)
-        update_staff_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        update_staff_mode_label = tk.Label(update_mode_container, text='Staff Mode: ', bg=BG)
+        update_staff_mode_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.update_staff_mode_var = tk.IntVar()
 
         update_staff_mode_checkbtn = ttk.Checkbutton(update_mode_container, variable=self.update_staff_mode_var)
-        update_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        update_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Admin Mode Box
-        update_admin_mode_label = tk.Label(update_mode_container, text='Admin Mode: ', bg=bg)
-        update_admin_mode_label.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        update_admin_mode_label = tk.Label(update_mode_container, text='Admin Mode: ', bg=BG)
+        update_admin_mode_label.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
         self.update_admin_mode_var = tk.IntVar()
 
         update_admin_mode_checkbtn = ttk.Checkbutton(update_mode_container, variable=self.update_admin_mode_var)
-        update_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        update_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Update Account Button
-        update_account_button_container = tk.Frame(add_account_container, bg=bg)
+        update_account_button_container = tk.Frame(add_account_container, bg=BG)
         update_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
         update_account_btn = ttk.Button(update_account_button_container)
         update_account_btn.config(text='    Update Account    ', command=self.update_account)
-        update_account_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        update_account_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
 
 
         #Remove Account
-        remove_account_container = tk.Frame(admin_page, bg=bg)
-        remove_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        remove_account_container = tk.Frame(admin_page, bg=BG)
+        remove_account_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        remove_account_header = tk.Label(remove_account_container, text='Remove Account', font='System 18', bg=bg)
-        remove_account_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        remove_account_header = tk.Label(remove_account_container, text='Remove Account', font=FONT, bg=BG)
+        remove_account_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #User ID Field
-        self.remove_userID_container = tk.Frame(remove_account_container, bg=bg)
+        self.remove_userID_container = tk.Frame(remove_account_container, bg=BG)
         self.remove_userID_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        remove_userID_label = tk.Label(self.remove_userID_container, text='User ID: ', bg=bg)
-        remove_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_userID_label = tk.Label(self.remove_userID_container, text='User ID: ', bg=BG)
+        remove_userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.remove_userID_var = tk.IntVar()
         self.remove_userID_var.set('')
 
         self.remove_userID_entry = ttk.Entry(self.remove_userID_container)
         self.remove_userID_entry.config(textvariable=self.remove_userID_var)
-        self.remove_userID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.remove_userID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Email Address Entry Field
-        self.remove_email_container = tk.Frame(remove_account_container, bg=bg)
+        self.remove_email_container = tk.Frame(remove_account_container, bg=BG)
         self.remove_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        remove_email_label = tk.Label(self.remove_email_container, text='Email Address: ', bg=bg)
-        remove_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_email_label = tk.Label(self.remove_email_container, text='Email Address: ', bg=BG)
+        remove_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.remove_email_var = tk.StringVar()
 
         self.remove_email_entry = ttk.Entry(self.remove_email_container, textvariable=self.remove_email_var)
-        self.remove_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.remove_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Remove Account
-        remove_account_button_container = tk.Frame(remove_account_container, bg=bg)
+        remove_account_button_container = tk.Frame(remove_account_container, bg=BG)
         remove_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         remove_account_btn = ttk.Button(remove_account_button_container)
         remove_account_btn.config(text='    Remove Account    ', command=self.remove_account)
-        remove_account_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=padx, pady=pady)
+        remove_account_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=PADX, pady=PADY)
 
 
         #Send Email Alert
         #Allows an admin to send email alerts to those whose return date is nearby (within 3 days of return).
-        alert_container = tk.Frame(admin_page, bg=bg)
-        alert_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        alert_container = tk.Frame(admin_page, bg=BG)
+        alert_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        alert_header = tk.Label(alert_container, text='Returns Reminder Manual Email', font='System 18', bg=bg)
-        alert_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        alert_header = tk.Label(alert_container, text='Returns Reminder Manual Email', font=FONT, bg=BG)
+        alert_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
-        alert_desc = tk.Label(alert_container, text='Sends an email alert to all users whose book is\n within three days of needing to be returned.', font='System 10', bg=bg)
-        alert_desc.pack(anchor=tk.W, padx=padx, pady=pady)
+        alert_desc = tk.Label(alert_container, text='Sends an email alert to all users whose book is\n within three days of needing to be returned.', font='System 10', bg=BG)
+        alert_desc.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #Send Email Alert Container
-        alert_email_button_container = tk.Frame(alert_container, bg=bg)
+        alert_email_button_container = tk.Frame(alert_container, bg=BG)
         alert_email_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
         alert_btn = ttk.Button(alert_email_button_container)
         alert_btn.config(text='    Alert    ', command=self.send_alert)
-        alert_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=padx, pady=pady)
+        alert_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=PADX, pady=PADY)
+
+
+
+
 
 
         #Analytical Information
-        analytics_container = tk.Frame(admin_page, bg=bg)
-        analytics_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        analytics_container = tk.Frame(admin_page, bg=BG)
+        analytics_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        analytics_header = tk.Label(analytics_container, text='Analytics', font='System 18')
-        analytics_header.pack(anchor=tk.W, padx=padx, pady=pady, side=tk.TOP)
+        analytics_header = tk.Label(analytics_container, text='Analytics', font=FONT, bg=BG)
+        analytics_header.pack(anchor=tk.W, padx=PADX, pady=PADY, side=tk.TOP)
 
 
         #Number of total users
@@ -355,10 +360,10 @@ class Admin():
         number_users = len([x[0] for x in fetch_number_users])
 
         number_users_frame = tk.Frame(analytics_container)
-        number_users_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_users_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_users_label = tk.Label(number_users_frame, text='Total of All Users:%d' % number_users)
-        number_users_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_users_label = tk.Label(number_users_frame, text='Total of All Users:%d' % number_users)
+        self.number_users_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
         #Number of total patron accounts
@@ -366,10 +371,10 @@ class Admin():
         number_patrons = len([x[0] for x in fetch_number_patrons])
 
         number_patrons_frame = tk.Frame(analytics_container)
-        number_patrons_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_patrons_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_patrons_label = tk.Label(number_patrons_frame, text='Number of Patrons:%d' % number_patrons)
-        number_patrons_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_patrons_label = tk.Label(number_patrons_frame, text='Number of Patrons:%d' % number_patrons)
+        self.number_patrons_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
         #Number of total staff accounts
@@ -377,10 +382,10 @@ class Admin():
         number_staff = len([x[0] for x in fetch_number_staff])
 
         number_staff_frame = tk.Frame(analytics_container)
-        number_staff_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_staff_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_staff_label = tk.Label(number_staff_frame, text='Number of Staff:%d' % number_staff)
-        number_staff_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_staff_label = tk.Label(number_staff_frame, text='Number of Staff:%d' % number_staff)
+        self.number_staff_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
         #Number of total admin accounts
@@ -388,10 +393,10 @@ class Admin():
         number_admins = len([x[0] for x in fetch_number_admins])
 
         number_admins_frame = tk.Frame(analytics_container)
-        number_admins_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_admins_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_admins_label = tk.Label(number_admins_frame, text='Number of Admins:%d' % number_admins)
-        number_admins_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_admins_label = tk.Label(number_admins_frame, text='Number of Admins:%d' % number_admins)
+        self.number_admins_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
 
@@ -401,10 +406,10 @@ class Admin():
         number_books = len([x[0] for x in fetch_number_books])
 
         number_books_frame = tk.Frame(analytics_container)
-        number_books_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_books_label = tk.Label(number_books_frame, text='Number of books:%d' % number_books)
-        number_books_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_books_label = tk.Label(number_books_frame, text='Number of books:%d' % number_books)
+        self.number_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
         #Total issued book tally
@@ -412,10 +417,10 @@ class Admin():
         number_issued_books = len([x[0] for x in fetch_number_issued_books])
 
         number_issued_books_frame = tk.Frame(analytics_container)
-        number_issued_books_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_issued_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_issued_books_label = tk.Label(number_issued_books_frame, text='Number of issued books:%d' % number_issued_books)
-        number_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_issued_books_label = tk.Label(number_issued_books_frame, text='Number of issued books:%d' % number_issued_books)
+        self.number_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
 
         #Total non-issued book tally
@@ -423,16 +428,16 @@ class Admin():
         number_non_issued_books = len([x[0] for x in fetch_number_non_issued_books])
 
         number_non_issued_books_frame = tk.Frame(analytics_container)
-        number_non_issued_books_frame.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        number_non_issued_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        number_non_issued_books_label = tk.Label(number_non_issued_books_frame, text='Number of non-issued books:%d' % number_non_issued_books)
-        number_non_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
+        self.number_non_issued_books_label = tk.Label(number_non_issued_books_frame, text='Number of non-issued books:%d' % number_non_issued_books)
+        self.number_non_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
        
         #Average number of books issued out on a single day over the past week
         #Tkinter display output here
         mean_avg_container = tk.Frame(analytics_container)
-        mean_avg_container.pack(padx=padx, pady=pady, side=tk.TOP, anchor=tk.N)
+        mean_avg_container.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
         self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued out on a day:')
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
@@ -553,8 +558,93 @@ class Admin():
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
 
         #Database fetch for the accounts information will go here
-        #Database fetch for the book information to go on the analytics part will go here. Based on any changes made to the database, the labels will be changed in here too using self.example_label["text"]
+        #User IDs
+        c.execute("SELECT user_id FROM Accounts")
+        userIDs_fetch = c.fetchall()
+        userID_list = [x[0] for x in userIDs_fetch]
 
+        #Email addresses
+        c.execute("SELECT email_address FROM Accounts")
+        email_fetch = c.fetchall()
+        email_list = [x[0] for x in email_fetch]
+
+        #staff mode
+        c.execute("SELECT staff_mode FROM Accounts")
+        staff_fetch = c.fetchall()
+        staff_list = [x[0] for x in staff_fetch]
+
+        #admin mode
+        c.execute("SELECT admin_mode FROM Accounts")
+        admin_fetch = c.fetchall()
+        admin_list = [x[0] for x in admin_fetch]
+
+
+        for k in self.tree.get_children():
+            self.tree.delete(k)
+
+        for i in range(len(userID_list)):
+            #issued_bookIDs
+            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            issued_bookIDs_fetch = c.fetchall()
+            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+            for x in range(len(issued_bookIDs_list)):
+                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+            #earliest return date
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            return_date_fetch = c.fetchall()
+            return_date_list = [x[0] for x in return_date_fetch]
+
+            #convert the return_date_list from a list of strins to a list of dates
+            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+            try:
+                earliest_date = str(min(dates_list))
+            except ValueError:
+                pass
+            if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+            else:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+        self.tree.pack()
+
+
+
+        #Database fetch for the book information to go on the analytics part will go here. Based on any changes made to the database, the labels will be changed in here too using self.example_label["text"]
+        fetch_number_users = c.execute("SELECT * FROM Accounts").fetchall()
+        number_users = len([x[0] for x in fetch_number_users])
+        self.number_users_label["text"]='Total of All Users:%d' % number_users
+        
+        #Number of total patron accounts (not staff or admin)
+        fetch_number_patrons = c.execute("SELECT * FROM Accounts WHERE staff_mode=0 AND admin_mode=0").fetchall()
+        number_patrons = len([x[0] for x in fetch_number_patrons])
+        self.number_patrons_label["text"]='Number of Patrons:%d' % number_patrons
+        
+        #Number of purely staff accounts.
+        fetch_number_staff = c.execute("SELECT * FROM Accounts WHERE staff_mode=1 AND admin_mode=0").fetchall()
+        number_staff = len([x[0] for x in fetch_number_staff])
+        self.number_staff_label["text"]='Number of Staff:%d' % number_staff
+        
+        #Number of total admin accounts
+        fetch_number_admins = c.execute("SELECT * FROM Accounts WHERE (staff_mode=1 AND admin_mode=1) OR (staff_mode=0 AND admin_mode=1) ").fetchall()
+        number_admins = len([x[0] for x in fetch_number_admins])
+        self.number_admins_label["text"]='Number of Admins:%d' % number_admins
+        
+        #Total book tally
+        fetch_number_books = c.execute("SELECT * FROM Books").fetchall()
+        number_books = len([x[0] for x in fetch_number_books])
+        self.number_books_label["text"]='Number of Books:%d' % number_books
+        
+        #Total issued book tally
+        fetch_number_issued_books = c.execute("SELECT * FROM Books WHERE issued=1").fetchall()
+        number_issued_books = len([x[0] for x in fetch_number_issued_books])
+        self.number_issued_books_label["text"]='Number of Issued Books:%d' % number_issued_books
+        
+        #Total non-issued book tally
+        fetch_number_non_issued_books = c.execute("SELECT * FROM Books WHERE issued=0").fetchall()
+        number_non_issued_books = len([x[0] for x in fetch_number_non_issued_books])
+        self.number_non_issued_books_label["text"]='Number of Non-Issued Books:%d' % number_non_issued_books
 
 
 
@@ -651,7 +741,7 @@ class Admin():
         add_staff_mode = self.add_staff_mode_var.get()
         add_admin_mode = self.add_admin_mode_var.get()
 
-        email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        email_regex = '^\S+@\S+$'
         if (re.search(email_regex, add_email)):
             #Continue process
             add_password = self.password_var.get()
@@ -686,7 +776,7 @@ class Admin():
                     self.accountVerification.title("Account Verification")
                     self.accountVerification.option_add('*Font', 'System 12')
                     self.accountVerification.option_add('*Label.Font', 'System 12')
-                    self.accountVerification.geometry('500x500')
+                    self.accountVerification.geometry(SMALL_GEOMETRY)
                     self.accountVerification.resizable(False, False)
 
 
@@ -699,7 +789,7 @@ class Admin():
                     header_frame = tk.Frame(self.accountVerification)
                     header_frame.pack(fill=tk.X, side=tk.TOP)
 
-                    header = tk.Label(header_frame, text='Account Verification', font='System 30')
+                    header = tk.Label(header_frame, text='Account Verification', font=HEADER_FONT)
                     header.pack(side=tk.TOP)
 
                     header_description = tk.Label(header_frame, text='A 6 digit verification code has been sent to\n'+add_email+'\n Please enter the 6 digit code into the entry field below.', font='System 8')
@@ -712,15 +802,15 @@ class Admin():
                     self.countdown(60)
 
                     #Codes Full Container
-                    code_container = tk.Frame(self.accountVerification, bg=bg)
-                    code_container.pack(padx=padx, pady=pady)
+                    code_container = tk.Frame(self.accountVerification, bg=BG)
+                    code_container.pack(padx=PADX, pady=PADY)
 
                     #Code Entry Field Container
-                    verification_code_container = tk.Frame(code_container, bg=bg)
+                    verification_code_container = tk.Frame(code_container, bg=BG)
                     verification_code_container.pack(expand=True)
 
-                    verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=bg)
-                    verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+                    verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=BG)
+                    verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
                     self.verification_code_reg = root.register(self.verification_code_validate)
 
@@ -729,17 +819,17 @@ class Admin():
                     self.verification_code_entry = ttk.Entry(verification_code_container, textvariable=self.verification_code_var,
                                                             font='System 6', validate="key",
                                                             validatecommand=(self.verification_code_reg, "%P"))
-                    self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
                     #Buttons Container
-                    button_container = tk.Frame(code_container, bg=bg)
+                    button_container = tk.Frame(code_container, bg=BG)
                     button_container.pack(expand=True)
 
                     check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda:self.check_code(self.verification_code_var.get()))
                     resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda:self.resend_code(self.verification_code_var.get()))
 
-                    check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
-                    resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+                    resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                     
 
                     self.verification_code_entry.bind("<Return>", self.check_code)
@@ -894,7 +984,7 @@ class Admin():
 
         if user_id == '':
             if update_email != '':
-                email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+                email_regex = '^\S+@\S+$'
                 if (re.search(email_regex, update_email)):
 
                     update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
@@ -979,7 +1069,7 @@ class Admin():
 
         if user_id == '':
             if remove_email != '':
-                email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+                email_regex = '^\S+@\S+$'
                 if (re.search(email_regex, remove_email)):
 
                     remove = c.execute('DELETE FROM Accounts WHERE email_address=?',(remove_email,))

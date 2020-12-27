@@ -11,18 +11,20 @@ from tkcalendar import DateEntry
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import re
+import linecache
+
 
 from email_sys import Email
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
-width=225
-padx=8
-pady=5
-
-geometry = '1500x1500'
-bg='gray90'
-font='System 18'
+WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt',1))
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
+BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
+MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt',9)).strip()
+FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 #List of genres
 c.execute("SELECT genre FROM Genres")
@@ -67,15 +69,15 @@ class BookDatabase():
         header_frame = tk.Frame(book_database_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='Book Database', font='System 30')
+        header = tk.Label(header_frame, text='Book Database', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
         # Library TreeView Book Database Frame
-        tree_container = tk.Frame(book_database_page, bg=bg)
-        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=padx, pady=pady)
+        tree_container = tk.Frame(book_database_page, bg=BG)
+        tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=PADX, pady=PADY)
 
-        tree_header = tk.Label(tree_container, text='Database', font='System 18', bg=bg)
-        tree_header.pack(padx=padx, pady=pady)
+        tree_header = tk.Label(tree_container, text='Database', font=FONT, bg=BG)
+        tree_header.pack(padx=PADX, pady=PADY)
 
         #Set up TreeView table
         self.columns = ('Book ID','Title', 'Author', 'Genre','Location', 'Issued', 'Issue Date', 'Return Date')
@@ -89,14 +91,14 @@ class BookDatabase():
         self.tree.heading("Issue Date", text='Issued Date')
         self.tree.heading("Return Date", text='Return Date')
 
-        self.tree.column("Book ID", width=width, anchor=tk.CENTER)
-        self.tree.column("Title", width=width, anchor=tk.CENTER)
-        self.tree.column("Author", width=width, anchor=tk.CENTER)
-        self.tree.column("Genre", width=width, anchor=tk.CENTER)
-        self.tree.column("Location", width=width, anchor=tk.CENTER)
-        self.tree.column("Issued", width=width, anchor=tk.CENTER)
-        self.tree.column("Issue Date", width=width, anchor=tk.CENTER)
-        self.tree.column("Return Date", width=width, anchor=tk.CENTER)
+        self.tree.column("Book ID", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Title", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Author", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Genre", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Location", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Issued", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Issue Date", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Return Date", width=WIDTH, anchor=tk.CENTER)
 
         #Book IDs
         c.execute("SELECT bookID FROM Books")
@@ -152,48 +154,48 @@ class BookDatabase():
 
         #Search the Treeview Container
         self.db_search_container = tk.Frame(tree_container)
-        self.db_search_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=padx, pady=pady)
+        self.db_search_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=PADX, pady=PADY)
 
 
         #BookID Search DB
-        db_search_label_bookID = tk.Label(self.db_search_container, text='ID: ', bg=bg)
-        db_search_label_bookID.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        db_search_label_bookID = tk.Label(self.db_search_container, text='ID: ', bg=BG)
+        db_search_label_bookID.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self._detached = set()
         self.db_search_bookID_var = tk.StringVar()
         self.db_search_bookID_var.trace("w", self._columns_searcher_bookID_BD)
 
         self.db_search_bookID_entry = ttk.Entry(self.db_search_container, textvariable=self.db_search_bookID_var)
-        self.db_search_bookID_entry.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        self.db_search_bookID_entry.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Title Search DB
-        db_search_label_title = tk.Label(self.db_search_container, text='Title: ', bg=bg)
-        db_search_label_title.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        db_search_label_title = tk.Label(self.db_search_container, text='Title: ', bg=BG)
+        db_search_label_title.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self._detached = set()
         self.db_search_title_var = tk.StringVar()
         self.db_search_title_var.trace("w", self._columns_searcher_title_BD)
 
         self.db_search_title_entry = ttk.Entry(self.db_search_container, textvariable=self.db_search_title_var)
-        self.db_search_title_entry.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        self.db_search_title_entry.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Author Search DB
-        db_search_label_author = tk.Label(self.db_search_container, text='Author: ', bg=bg)
-        db_search_label_author.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        db_search_label_author = tk.Label(self.db_search_container, text='Author: ', bg=BG)
+        db_search_label_author.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self._detached = set()
         self.db_search_author_var = tk.StringVar()
         self.db_search_author_var.trace("w", self._columns_searcher_author_BD)
 
         self.db_search_author_entry = ttk.Entry(self.db_search_container, textvariable=self.db_search_author_var)
-        self.db_search_author_entry.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        self.db_search_author_entry.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Genre Search DB
-        db_search_label_genre = tk.Label(self.db_search_container, text='Genre: ', bg=bg)
-        db_search_label_genre.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        db_search_label_genre = tk.Label(self.db_search_container, text='Genre: ', bg=BG)
+        db_search_label_genre.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self._detached = set()
         self.db_search_genre_var = tk.StringVar()
@@ -202,13 +204,13 @@ class BookDatabase():
 
 
         self.db_search_genre_menu = ttk.OptionMenu(self.db_search_container, self.db_search_genre_var, genre_choice_list[0], *genre_choice_list)
-        self.db_search_genre_menu.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        self.db_search_genre_menu.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
 
         #Location Search DB
-        db_search_label_location = tk.Label(self.db_search_container, text='Location: ', bg=bg)
-        db_search_label_location.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        db_search_label_location = tk.Label(self.db_search_container, text='Location: ', bg=BG)
+        db_search_label_location.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self._detached = set()
         self.db_search_location_var = tk.StringVar()
@@ -217,12 +219,12 @@ class BookDatabase():
 
 
         self.db_search_location_menu = ttk.OptionMenu(self.db_search_container, self.db_search_location_var, location_choice_list[0], *location_choice_list)
-        self.db_search_location_menu.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        self.db_search_location_menu.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Issued Search DB
-        db_search_label_issued = tk.Label(self.db_search_container, text='Issued(1/0): ', bg=bg)
-        db_search_label_issued.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        db_search_label_issued = tk.Label(self.db_search_container, text='Issued(1/0): ', bg=BG)
+        db_search_label_issued.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self._detached = set()
         self.db_search_issued_var = tk.StringVar()
@@ -230,7 +232,7 @@ class BookDatabase():
         self.db_search_issued_var.trace("w", self._columns_searcher_issued_BD)
 
         self.db_search_issued_menu = ttk.OptionMenu(self.db_search_container, self.db_search_issued_var, issued_choice_list[0], *issued_choice_list)
-        self.db_search_issued_menu.pack(side=tk.LEFT, anchor=tk.E, padx=padx, pady=pady)
+        self.db_search_issued_menu.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         for self.col in self.columns:
@@ -239,18 +241,18 @@ class BookDatabase():
 
 
         #Issue/Return Books UI
-        filter_container = tk.Frame(book_database_page, bg=bg)
-        filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        filter_container = tk.Frame(book_database_page, bg=BG)
+        filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        filter_header = tk.Label(filter_container, text='Issue Book', font='System 18', bg=bg)
-        filter_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        filter_header = tk.Label(filter_container, text='Issue Book', font=FONT, bg=BG)
+        filter_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #BookID Entry Field
-        self.search_container_bookID = tk.Frame(filter_container, bg=bg)
+        self.search_container_bookID = tk.Frame(filter_container, bg=BG)
         self.search_container_bookID.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        bookID_label = tk.Label(self.search_container_bookID, text='ID: ', bg=bg)
-        bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        bookID_label = tk.Label(self.search_container_bookID, text='ID: ', bg=BG)
+        bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.bookID_reg = root.register(self.bookID_validate)
         self.bookID_var = tk.StringVar()
@@ -258,91 +260,91 @@ class BookDatabase():
         self.bookID_entry = ttk.Entry(self.search_container_bookID)
         self.bookID_entry.config(textvariable=self.bookID_var, validate="key",
                             validatecommand=(self.bookID_reg, "%P"))
-        self.bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         # Filler frame for the autocomplete function
-        self.search_container_canvas = tk.Canvas(filter_container, height=50, width=50, bg=bg)
+        self.search_container_canvas = tk.Canvas(filter_container, height=50, width=50, bg=BG)
         self.search_container_canvas.pack(fill=tk.X, expand=True)
 
-        self.search_container_autocomplete = tk.Frame(self.search_container_canvas, bg=bg)
+        self.search_container_autocomplete = tk.Frame(self.search_container_canvas, bg=BG)
         self.search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
 
         #Title Entry Field
-        self.search_container_title = tk.Frame(filter_container, bg=bg)
+        self.search_container_title = tk.Frame(filter_container, bg=BG)
         self.search_container_title.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        title_label = tk.Label(self.search_container_title, text='Title: ', bg=bg)
-        title_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        title_label = tk.Label(self.search_container_title, text='Title: ', bg=BG)
+        title_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.title_var = tk.StringVar()
 
         self.title_entry = ttk.Entry(self.search_container_title, textvariable=self.title_var, state=tk.DISABLED)
-        self.title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Author Entry Field
-        self.search_container_author = tk.Frame(filter_container, bg=bg)
+        self.search_container_author = tk.Frame(filter_container, bg=BG)
         self.search_container_author.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        author_label = tk.Label(self.search_container_author, text='Author: ', bg=bg)
-        author_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        author_label = tk.Label(self.search_container_author, text='Author: ', bg=BG)
+        author_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.author_var = tk.StringVar()
 
         self.author_entry = ttk.Entry(self.search_container_author, textvariable=self.author_var, state=tk.DISABLED)
-        self.author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Book recipient frame
-        recipient_container = tk.Frame(filter_container, bg=bg)
+        recipient_container = tk.Frame(filter_container, bg=BG)
         recipient_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        recipient_label = tk.Label(recipient_container, text='Recipient Email: ', bg=bg)
-        recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        recipient_label = tk.Label(recipient_container, text='Recipient Email: ', bg=BG)
+        recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.recipient_var = tk.StringVar()
 
         recipient_entry = ttk.Entry(recipient_container, textvariable=self.recipient_var)
-        recipient_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        recipient_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Date entry frame
-        issue_date_container = tk.Frame(filter_container, bg=bg)
+        issue_date_container = tk.Frame(filter_container, bg=BG)
         issue_date_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
-        recipient_label = tk.Label(issue_date_container, text='Date of Issuing: ', bg=bg)
-        recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        recipient_label = tk.Label(issue_date_container, text='Date of Issuing: ', bg=BG)
+        recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.issue_date_entry = DateEntry(issue_date_container, width=12, background='darkblue',
                     foreground='white', borderwidth=2, mindate=datetime.now(), maxdate=datetime.now(), locale='en_UK')
-        self.issue_date_entry.pack(padx=padx, pady=pady)
+        self.issue_date_entry.pack(padx=PADX, pady=PADY)
 
 
 
         #Return date frame
-        return_date_container = tk.Frame(filter_container, bg=bg)
+        return_date_container = tk.Frame(filter_container, bg=BG)
         return_date_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
-        return_date_label = tk.Label(return_date_container, text='Expected Return Date: ', bg=bg)
-        return_date_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        return_date_label = tk.Label(return_date_container, text='Expected Return Date: ', bg=BG)
+        return_date_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         three_months_from_now = relativedelta(months=3)
         return_date_calc = self.issue_date_entry.get_date() + three_months_from_now
 
         self.actual_return_date_entry = DateEntry(return_date_container, width=12, background='darkblue',
                     foreground='white', borderwidth=2, mindate=datetime.now(), maxdate=return_date_calc, locale='en_UK')
-        self.actual_return_date_entry.pack(padx=padx, pady=pady)
+        self.actual_return_date_entry.pack(padx=PADX, pady=PADY)
 
 
         #Issue Book Button Frame
-        issue_book_container = tk.Frame(filter_container, bg=bg)
+        issue_book_container = tk.Frame(filter_container, bg=BG)
         issue_book_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         issue_book_btn = ttk.Button(issue_book_container)
         issue_book_btn.config(text='    Issue Book    ', command=self.issue_book)
-        issue_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        issue_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         # Gather an updated list of books to be displayed correctly on the autocomplete box.
 
@@ -356,18 +358,18 @@ class BookDatabase():
 
         ### Book Return ('ret' following the variable name is short for 'return' to differentiate between the variables above and below)
         #Return Books UI
-        ret_filter_container = tk.Frame(book_database_page, bg=bg)
-        ret_filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=padx, pady=pady)
+        ret_filter_container = tk.Frame(book_database_page, bg=BG)
+        ret_filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        ret_filter_header = tk.Label(ret_filter_container, text='Return Book', font='System 18', bg=bg)
-        ret_filter_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        ret_filter_header = tk.Label(ret_filter_container, text='Return Book', font=FONT, bg=BG)
+        ret_filter_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #BookID Entry Field
-        self.ret_search_container_bookID = tk.Frame(ret_filter_container, bg=bg)
+        self.ret_search_container_bookID = tk.Frame(ret_filter_container, bg=BG)
         self.ret_search_container_bookID.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        ret_bookID_label = tk.Label(self.ret_search_container_bookID, text='ID: ', bg=bg)
-        ret_bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        ret_bookID_label = tk.Label(self.ret_search_container_bookID, text='ID: ', bg=BG)
+        ret_bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.ret_bookID_reg = root.register(self.ret_bookID_validate)
         self.ret_bookID_var = tk.StringVar()
@@ -375,76 +377,76 @@ class BookDatabase():
         self.ret_bookID_entry = ttk.Entry(self.ret_search_container_bookID)
         self.ret_bookID_entry.config(textvariable=self.ret_bookID_var, validate="key",
                             validatecommand=(self.ret_bookID_reg, "%P"))
-        self.ret_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.ret_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Filler frame for the autocomplete function
-        self.ret_search_container_canvas = tk.Canvas(ret_filter_container, height=50, width=50, bg=bg)
+        self.ret_search_container_canvas = tk.Canvas(ret_filter_container, height=50, width=50, bg=BG)
         self.ret_search_container_canvas.pack(fill=tk.X, expand=True)
 
-        self.ret_search_container_autocomplete = tk.Frame(self.ret_search_container_canvas, bg=bg)
+        self.ret_search_container_autocomplete = tk.Frame(self.ret_search_container_canvas, bg=BG)
         self.ret_search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
 
         #Title Entry Field
-        self.ret_search_container_title = tk.Frame(ret_filter_container, bg=bg)
+        self.ret_search_container_title = tk.Frame(ret_filter_container, bg=BG)
         self.ret_search_container_title.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        ret_title_label = tk.Label(self.ret_search_container_title, text='Title: ', bg=bg)
-        ret_title_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        ret_title_label = tk.Label(self.ret_search_container_title, text='Title: ', bg=BG)
+        ret_title_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.ret_title_var = tk.StringVar()
 
         self.ret_title_entry = ttk.Entry(self.ret_search_container_title, textvariable=self.ret_title_var, state=tk.DISABLED)
-        self.ret_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.ret_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Author Entry Field
-        self.ret_search_container_author = tk.Frame(ret_filter_container, bg=bg)
+        self.ret_search_container_author = tk.Frame(ret_filter_container, bg=BG)
         self.ret_search_container_author.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        ret_author_label = tk.Label(self.ret_search_container_author, text='Author: ', bg=bg)
-        ret_author_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        ret_author_label = tk.Label(self.ret_search_container_author, text='Author: ', bg=BG)
+        ret_author_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.ret_author_var = tk.StringVar()
 
         self.ret_author_entry = ttk.Entry(self.ret_search_container_author, textvariable=self.ret_author_var, state=tk.DISABLED)
-        self.ret_author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.ret_author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Book recipient frame
-        ret_recipient_container = tk.Frame(ret_filter_container, bg=bg)
+        ret_recipient_container = tk.Frame(ret_filter_container, bg=BG)
         ret_recipient_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        ret_recipient_label = tk.Label(ret_recipient_container, text='Return Email: ', bg=bg)
-        ret_recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        ret_recipient_label = tk.Label(ret_recipient_container, text='Return Email: ', bg=BG)
+        ret_recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.return_email_var = tk.StringVar()
 
         ret_recipient_entry = ttk.Entry(ret_recipient_container, textvariable=self.return_email_var)
-        ret_recipient_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        ret_recipient_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Date entry frame
-        ret_date_container = tk.Frame(ret_filter_container, bg=bg)
+        ret_date_container = tk.Frame(ret_filter_container, bg=BG)
         ret_date_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
-        ret_recipient_label = tk.Label(ret_date_container, text='Date of Return: ', bg=bg)
-        ret_recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        ret_recipient_label = tk.Label(ret_date_container, text='Date of Return: ', bg=BG)
+        ret_recipient_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.ret_date_entry = DateEntry(ret_date_container, width=12, background='darkblue',
                     foreground='white', borderwidth=2, mindate=datetime.now(), maxdate=datetime.now(), locale='en_UK')
-        self.ret_date_entry.pack(padx=padx, pady=pady)
+        self.ret_date_entry.pack(padx=PADX, pady=PADY)
 
 
 
         #Return Book Button Frame
-        return_book_container = tk.Frame(ret_filter_container, bg=bg)
+        return_book_container = tk.Frame(ret_filter_container, bg=BG)
         return_book_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         return_book_btn = ttk.Button(return_book_container)
         return_book_btn.config(text='    Return Book    ', command=self.return_book)
-        return_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        return_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
 
         autocomplete_return_bookID = AutoCompleteEntryBD_ReturnBookID(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
@@ -454,18 +456,18 @@ class BookDatabase():
 
 
         #Remove Books UI
-        remove_book_container = tk.Frame(book_database_page, bg=bg)
-        remove_book_container.pack(side=tk.RIGHT, anchor=tk.N, padx=padx, pady=pady)
+        remove_book_container = tk.Frame(book_database_page, bg=BG)
+        remove_book_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        remove_book_header = tk.Label(remove_book_container, text='Remove Book From System', font='System 18', bg=bg)
-        remove_book_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        remove_book_header = tk.Label(remove_book_container, text='Remove Book From System', font=FONT, bg=BG)
+        remove_book_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #BookID Entry Field
-        self.remove_container_bookID = tk.Frame(remove_book_container, bg=bg)
+        self.remove_container_bookID = tk.Frame(remove_book_container, bg=BG)
         self.remove_container_bookID.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        remove_bookID_label = tk.Label(self.remove_container_bookID, text='ID: ', bg=bg)
-        remove_bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_bookID_label = tk.Label(self.remove_container_bookID, text='ID: ', bg=BG)
+        remove_bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.remove_bookID_reg = root.register(self.remove_bookID_validate)
         self.remove_bookID_var = tk.StringVar()
@@ -473,81 +475,81 @@ class BookDatabase():
         self.remove_bookID_entry = ttk.Entry(self.remove_container_bookID)
         self.remove_bookID_entry.config(textvariable=self.remove_bookID_var, validate="key",
                             validatecommand=(self.remove_bookID_reg, "%P"))
-        self.remove_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.remove_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Filler frame for the autocomplete function
-        self.remove_container_canvas = tk.Canvas(remove_book_container, height=50, width=50, bg=bg)
+        self.remove_container_canvas = tk.Canvas(remove_book_container, height=50, width=50, bg=BG)
         self.remove_container_canvas.pack(fill=tk.X, expand=True)
 
-        self.remove_container_autocomplete = tk.Frame(self.remove_container_canvas, bg=bg)
+        self.remove_container_autocomplete = tk.Frame(self.remove_container_canvas, bg=BG)
         self.remove_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
 
         #Title Entry Field
-        self.remove_container_title = tk.Frame(remove_book_container, bg=bg)
+        self.remove_container_title = tk.Frame(remove_book_container, bg=BG)
         self.remove_container_title.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        remove_title_label = tk.Label(self.remove_container_title, text='Title: ', bg=bg)
-        remove_title_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_title_label = tk.Label(self.remove_container_title, text='Title: ', bg=BG)
+        remove_title_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.remove_title_var = tk.StringVar()
 
         self.remove_title_entry = ttk.Entry(self.remove_container_title, textvariable=self.remove_title_var, state=tk.DISABLED)
-        self.remove_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.remove_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Author Entry Field
-        self.remove_container_author = tk.Frame(remove_book_container, bg=bg)
+        self.remove_container_author = tk.Frame(remove_book_container, bg=BG)
         self.remove_container_author.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        remove_author_label = tk.Label(self.remove_container_author, text='Author: ', bg=bg)
-        remove_author_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_author_label = tk.Label(self.remove_container_author, text='Author: ', bg=BG)
+        remove_author_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.remove_author_var = tk.StringVar()
 
         self.remove_author_entry = ttk.Entry(self.remove_container_author, textvariable=self.remove_author_var, state=tk.DISABLED)
-        self.remove_author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.remove_author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Genre Entry Field
-        self.remove_container_genre = tk.Frame(remove_book_container, bg=bg)
+        self.remove_container_genre = tk.Frame(remove_book_container, bg=BG)
         self.remove_container_genre.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        remove_genre_label = tk.Label(self.remove_container_genre, text='Genre: ', bg=bg)
-        remove_genre_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_genre_label = tk.Label(self.remove_container_genre, text='Genre: ', bg=BG)
+        remove_genre_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.remove_genre_var = tk.StringVar()
         self.remove_genre_var.set("-EMPTY-")
 
         self.remove_genre_menu = ttk.OptionMenu(self.remove_container_genre, self.remove_genre_var,genre_choice_list[0], *genre_choice_list)
-        self.remove_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.remove_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Remove Book Button Frame
-        remove_book_container = tk.Frame(remove_book_container, bg=bg)
+        remove_book_container = tk.Frame(remove_book_container, bg=BG)
         remove_book_container.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         remove_book_btn = ttk.Button(remove_book_container)
         remove_book_btn.config(text='    Remove Book    ', command=self.remove_book)
-        remove_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         autocomplete_remove_bookID = AutoCompleteEntryBD_RemoveBookID(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
 
 
         #Add Books UI
-        add_book_container = tk.Frame(book_database_page, bg=bg)
-        add_book_container.pack(side=tk.RIGHT, anchor=tk.N, padx=padx, pady=pady)
+        add_book_container = tk.Frame(book_database_page, bg=BG)
+        add_book_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX, pady=PADY)
 
-        add_book_header = tk.Label(add_book_container, text='Add Book Into System', font='System 18', bg=bg)
-        add_book_header.pack(anchor=tk.W, padx=padx, pady=pady)
+        add_book_header = tk.Label(add_book_container, text='Add Book Into System', font=FONT, bg=BG)
+        add_book_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         #BookID Entry Field
-        self.add_container_bookID = tk.Frame(add_book_container, bg=bg)
+        self.add_container_bookID = tk.Frame(add_book_container, bg=BG)
         self.add_container_bookID.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        add_bookID_label = tk.Label(self.add_container_bookID, text='ID: ', bg=bg)
-        add_bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_bookID_label = tk.Label(self.add_container_bookID, text='ID: ', bg=BG)
+        add_bookID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.add_bookID_var = tk.StringVar()
 
@@ -557,87 +559,87 @@ class BookDatabase():
         self.add_bookID_var.set(highest_val)
 
         self.add_bookID_entry = ttk.Entry(self.add_container_bookID, textvariable=self.add_bookID_var, state=tk.DISABLED)
-        self.add_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.add_bookID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Title Entry Field
-        self.add_container_title = tk.Frame(add_book_container, bg=bg)
+        self.add_container_title = tk.Frame(add_book_container, bg=BG)
         self.add_container_title.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        add_title_label = tk.Label(self.add_container_title, text='Title: ', bg=bg)
-        add_title_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_title_label = tk.Label(self.add_container_title, text='Title: ', bg=BG)
+        add_title_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.add_title_var = tk.StringVar()
 
         self.add_title_entry = ttk.Entry(self.add_container_title, textvariable=self.add_title_var)
-        self.add_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.add_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Author Entry Field
-        self.add_container_author = tk.Frame(add_book_container, bg=bg)
+        self.add_container_author = tk.Frame(add_book_container, bg=BG)
         self.add_container_author.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        add_author_label = tk.Label(self.add_container_author, text='Author: ', bg=bg)
-        add_author_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_author_label = tk.Label(self.add_container_author, text='Author: ', bg=BG)
+        add_author_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.add_author_var = tk.StringVar()
 
         self.add_author_entry = ttk.Entry(self.add_container_author, textvariable=self.add_author_var)
-        self.add_author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.add_author_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
         #Genre Entry Field
-        self.add_container_genre = tk.Frame(add_book_container, bg=bg)
+        self.add_container_genre = tk.Frame(add_book_container, bg=BG)
         self.add_container_genre.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        add_genre_label = tk.Label(self.add_container_genre, text='Genre: ', bg=bg)
-        add_genre_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_genre_label = tk.Label(self.add_container_genre, text='Genre: ', bg=BG)
+        add_genre_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.add_genre_var = tk.StringVar()
         self.add_genre_var.set("-EMPTY-")
 
         self.add_genre_menu = ttk.OptionMenu(self.add_container_genre, self.add_genre_var,genre_choice_list[0], *genre_choice_list)
-        self.add_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.add_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Add Book Button Frame
-        add_book_container_button = tk.Frame(add_book_container, bg=bg)
+        add_book_container_button = tk.Frame(add_book_container, bg=BG)
         add_book_container_button.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         add_book_btn = ttk.Button(add_book_container_button)
         add_book_btn.config(text='    Add Book    ', command=self.add_book)
-        add_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
 
         #Add New Genre Entry Field
-        self.container_newgenre = tk.Frame(add_book_container, bg=bg)
+        self.container_newgenre = tk.Frame(add_book_container, bg=BG)
         self.container_newgenre.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
 
-        newgenre_main_label = tk.Label(self.container_newgenre, text='Add Genre Into the System', font='System 18', bg=bg)
-        newgenre_main_label.pack(anchor=tk.W, padx=padx, pady=pady)
+        newgenre_main_label = tk.Label(self.container_newgenre, text='Add Genre Into the System', font=FONT, bg=BG)
+        newgenre_main_label.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
 
-        newgenre_label = tk.Label(self.container_newgenre, text='Genre Name: ', bg=bg)
-        newgenre_label.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        newgenre_label = tk.Label(self.container_newgenre, text='Genre Name: ', bg=BG)
+        newgenre_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.newgenre_var = tk.StringVar()
 
         self.newgenre_entry = ttk.Entry(self.container_newgenre, textvariable=self.newgenre_var)
-        self.newgenre_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+        self.newgenre_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         #Add New Genre Button Frame
-        container_newgenre_button = tk.Frame(add_book_container, bg=bg)
+        container_newgenre_button = tk.Frame(add_book_container, bg=BG)
         container_newgenre_button.pack(anchor=tk.W, fill=tk.X, expand=True)
 
 
         add_newgenre_btn = ttk.Button(container_newgenre_button)
         add_newgenre_btn.config(text='    Add New Genre    ', command=self.add_newgenre)
-        add_newgenre_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        add_newgenre_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         remove_newgenre_btn = ttk.Button(container_newgenre_button)
         remove_newgenre_btn.config(text='    Remove Genre    ', command=self.remove_newgenre)
-        remove_newgenre_btn.pack(side=tk.LEFT, anchor=tk.W, padx=padx, pady=pady)
+        remove_newgenre_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
     def add_newgenre(self):
         #Requires input validation
@@ -1510,7 +1512,7 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
                     self.lb = tk.Listbox(self.ret_search_container_canvas, width=self["width"], height=self.listboxLength)
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                     self.lb_up = True
 
                 self.lb.delete(0, tk.END)
@@ -1654,7 +1656,7 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
                     self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                     self.lb_up = True
 
                 self.lb.delete(0, tk.END)
@@ -1792,7 +1794,7 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
                     self.lb = tk.Listbox(self.remove_container_canvas, width=self["width"], height=self.listboxLength)
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=padx, pady=pady)
+                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                     self.lb_up = True
 
                 self.lb.delete(0, tk.END)
