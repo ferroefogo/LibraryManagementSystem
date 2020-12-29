@@ -1,4 +1,6 @@
 #Admin Page
+
+#Imports
 import tkinter as tk
 from tkinter import ttk
 import sqlite3
@@ -9,13 +11,19 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import re
 import linecache
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import Counter
 
+#File Imports
 from email_sys import Email
 
 
-conn = sqlite3.connect('LibrarySystem.db')
-c = conn.cursor()
+#Connect to database
+with sqlite3.connect('LibrarySystem.db') as db:
+    c = db.cursor()
 
+#File Configurations
 WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt',1))
 PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
 PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
@@ -26,24 +34,31 @@ FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 class Admin():
-    #ADMIN ACCESS ONLY (NO STAFF OR REGULAR USERS ALLOWED)
-    #Allows library admin(s) to create accounts for the staff.
-    #Displays analytical data for the admin users to read from.
+    '''
+    Access Level: ADMIN ONLY
+    Functions: Allows library admin(s) to create accounts of any access level, including admin.
+               Display Analytical data for the admin users to read from.
+    '''
     def __init__(self, root, notebook, user_email):
+        '''
+        Used for the initialisation of the visual aspect of the system.
+        '''
+        #Class variables
         self.root = root
         self.notebook = notebook
 
         admin_page = tk.Frame(self.notebook)
         notebook.add(admin_page, text="Admin")
 
+        #Page Header
         header_frame = tk.Frame(admin_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
         header = tk.Label(header_frame, text="Admin", font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
-
+        #Will store the tree ID values of each row of the TreeView table.
         self.tree_ids = []
-        # Library TreeView Book Database Frame
+        # Admin TreeView
         tree_container = tk.Frame(admin_page, bg=BG)
         tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=PADX, pady=PADY)
 
@@ -52,7 +67,7 @@ class Admin():
 
         #Set up TreeView table
         self.columns = ('User ID','Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
-        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
+        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings')
         self.tree.heading("User ID", text='User ID')
         self.tree.heading("Email Address", text='Email Address')
         self.tree.heading("Staff Mode", text='Staff Mode')
@@ -67,6 +82,7 @@ class Admin():
         self.tree.column("Issued BookIDs", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Earliest Return Date", width=WIDTH, anchor=tk.CENTER)
 
+        #Database Fetches
         #User IDs
         c.execute("SELECT user_id FROM Accounts")
         userIDs_fetch = c.fetchall()
@@ -87,35 +103,46 @@ class Admin():
         admin_fetch = c.fetchall()
         admin_list = [x[0] for x in admin_fetch]
 
-
+        #Delete all rows in the tree to start with a fresh, empty tree that will be populated.
         for k in self.tree.get_children():
             self.tree.delete(k)
 
+        #Iterate over each user in the Accounts table and add their relevant information on the table under a single row.
         for i in range(len(userID_list)):
-            #issued_bookIDs
+            
+            #Fetch the bookIDs of all the books under this specific user.
             c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
             issued_bookIDs_fetch = c.fetchall()
             issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
 
+            #Iterate over each book and present all the books in the table as a string with a comma seperating each book.
             for x in range(len(issued_bookIDs_list)):
-                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+                issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
 
-            #earliest return date
+            #Fetch all the return dates under this specific user.
             c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
 
-            #convert the return_date_list from a list of strins to a list of dates
+            #convert the return_date_list from a list of strings to a list of dates
             dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
 
             try:
+                #Try to store the earliest return date this user has.
                 earliest_date = str(min(dates_list))
             except ValueError:
-                pass
+                #If the user does not have any return dates tied to their account, display N/A.
+                earliest_date = 'N/A'
+                
+            #Check if there were any issued books and hence return dates to be placed on the table under this user's row.
             if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                #If there were no issued books and therefore no return dates under this user's account, display N/A in the corresponding columns to show such.
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
             else:
+                #If there was issued books and therefore return dates under this user's account, show them on the row this user is in.
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+
+        #Only now we pack the tree onto the page.
         self.tree.pack()
 
 
@@ -135,8 +162,11 @@ class Admin():
         userID_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.userID_var = tk.StringVar()
+
+        #Fetch the next highest user_id so that a new, fresh and empty field can be guarenteed.
         select_highest_userID = c.execute("SELECT MAX(user_id)+1 FROM Accounts").fetchall()
         highest_userID = [x[0] for x in select_highest_userID][0]
+
         self.userID_var.set(highest_userID)
 
         self.userID_entry = ttk.Entry(self.userID_container)
@@ -207,7 +237,6 @@ class Admin():
         #Add Account
         add_account_button_container = tk.Frame(add_account_container, bg=BG)
         add_account_button_container.pack(anchor=tk.W, fill=tk.X, expand=True)
-
 
         add_account_btn = ttk.Button(add_account_button_container)
         add_account_btn.config(text='    Add Account    ', command=self.add_account)
@@ -347,6 +376,8 @@ class Admin():
 
 
 
+
+
         #Analytical Information
         analytics_container = tk.Frame(admin_page, bg=BG)
         analytics_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
@@ -356,6 +387,7 @@ class Admin():
 
 
         #Number of total users
+        #Fetch all accounts from the Account table
         fetch_number_users = c.execute("SELECT * FROM Accounts").fetchall()
         number_users = len([x[0] for x in fetch_number_users])
 
@@ -367,6 +399,7 @@ class Admin():
 
 
         #Number of total patron accounts
+        #Fetch all patron accounts from the Accounts table
         fetch_number_patrons = c.execute("SELECT * FROM Accounts WHERE staff_mode=0 AND admin_mode=0").fetchall()
         number_patrons = len([x[0] for x in fetch_number_patrons])
 
@@ -378,6 +411,7 @@ class Admin():
 
 
         #Number of total staff accounts
+        #Fetch all staff accounts from the Accounts table
         fetch_number_staff = c.execute("SELECT * FROM Accounts WHERE staff_mode=1 AND admin_mode=0").fetchall()
         number_staff = len([x[0] for x in fetch_number_staff])
 
@@ -389,7 +423,8 @@ class Admin():
 
 
         #Number of total admin accounts
-        fetch_number_admins = c.execute("SELECT * FROM Accounts WHERE staff_mode=1 AND admin_mode=1").fetchall()
+        #Fetch all admin accounts from the Accounts table.
+        fetch_number_admins = c.execute("SELECT * FROM Accounts WHERE admin_mode=1").fetchall()
         number_admins = len([x[0] for x in fetch_number_admins])
 
         number_admins_frame = tk.Frame(analytics_container)
@@ -402,6 +437,7 @@ class Admin():
 
 
         #Total book tally
+        #Fetch all books from the Books table.
         fetch_number_books = c.execute("SELECT * FROM Books").fetchall()
         number_books = len([x[0] for x in fetch_number_books])
 
@@ -413,6 +449,7 @@ class Admin():
 
 
         #Total issued book tally
+        #Fetch all issued books from the Books table.
         fetch_number_issued_books = c.execute("SELECT * FROM Books WHERE issued=1").fetchall()
         number_issued_books = len([x[0] for x in fetch_number_issued_books])
 
@@ -424,6 +461,7 @@ class Admin():
 
 
         #Total non-issued book tally
+        #Fetch all non-issued books from the Books table.
         fetch_number_non_issued_books = c.execute("SELECT * FROM Books WHERE issued=0").fetchall()
         number_non_issued_books = len([x[0] for x in fetch_number_non_issued_books])
 
@@ -435,28 +473,12 @@ class Admin():
 
        
         #Average number of books issued out on a single day over the past week
-        #Tkinter display output here
         mean_avg_container = tk.Frame(analytics_container)
         mean_avg_container.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
         self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued out on a day:')
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
-        
-
-
-        #Analytical graphs will be created using numpy or something alike. This will be a great opportunity to use quicksort to sort a table of data values for the user.
-        #There will be buttons that open TopLevels that show the information regarding its topic accordingly.
-
-        #Types of data we could include here:
-        #   - Number of user accounts /DONE
-        #   - Number of staff accounts /DONE
-        #   - Number of admin accounts /DONE
-        #   - Total book tally /DONE
-        #   - Total issued book tally /DONE
-        #   - Total Non-Issued book tally /DONE
-        #   - Average number of days before return
-        #   - Average number of books issued out on a single day over the past week /DONE
-        #   - Genre Popularity (numpy bar chart required).
+    
 
         #Button to access genre popularity graph
         genre_popularity_btn = ttk.Button(analytics_container, text='Genre Popularity', command=lambda:self.genre_popularity())
@@ -465,17 +487,17 @@ class Admin():
         update_values_btn = ttk.Button(analytics_container, text='Update Values', command=lambda:self.update_values())
         update_values_btn.pack(side=tk.RIGHT, padx=10, pady=10)
 
+        #Bind F5 to updating this page's values.
         notebook.bind("<F5>", self.update_values)
 
 
     def genre_popularity(self):
+        '''
+        Prompt the user with an interactive bar graph.
+        '''
         # Genre Popularity is based on the number of books currently issued and how many have the specific genre.
         # x-axis plots the different genres
         # y-axis plots the number of currently issued books with that genre.
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from collections import Counter
-
 
         #Fetch genre of all currently issued books
         issued_genres_fetch = c.execute('SELECT genre FROM Books WHERE issued=1').fetchall()
@@ -508,19 +530,37 @@ class Admin():
 
 
     def update_values(self, *args):
-        #If a staff member returns a book, the mean average will change. ISSUE
-
+        '''
+        Update all values being displayed on the page.
+        '''
         week_ago = (datetime.today() - timedelta(days=7)).date()
+        #Iterate over the span of 7 days.
         for j in range(8):
+
+            # date issued is the date a week ago + the number of days that have been iterated over.
+            # E.g j is on its 2nd loop.
+            # week_ago = 20/12/20
+            # day 20 + 1 = 21
+            # therefore, date_issued will be 21/12/2020
+
             date_issued = week_ago + timedelta(days=j)
+
+            #Convert date issued to a string in the YYYY-MM-DD format.
             date_issued_string = date_issued.strftime('%Y-%m-%d')
+
+            #Fetch issued books from the date_issued.
             fetch_issued_books_past_week = c.execute("SELECT bookID FROM MyBooks WHERE date_issued=?",(date_issued,))
             issued_books_past_week = [x[0] for x in fetch_issued_books_past_week]
 
             #Write the values to a text file to read from and add upon.
             file = open("mean_avg_storage.txt","w")
 
+            # Make sure the books from the current date_issued loop are assigned to the correct variable.
+            # So if the current loop has just fetched all the books from the date 3 days ago, then all those books
+            # will be stored in the number_books_issued_3days_ago variable.
             if date_issued_string == week_ago.strftime("%Y-%m-%d"):
+                #len() is used to gauge the number of books that were issued on that particular date.
+                #This applies to all the similar variables in this if tree.
                 number_books_issued_7days_ago = len(issued_books_past_week)
                 file.write("7 DAYS AGO:%d"%number_books_issued_7days_ago)
             
@@ -547,17 +587,13 @@ class Admin():
             elif date_issued_string == (week_ago + timedelta(days=6)).strftime("%Y-%m-%d"):
                 number_books_issued_1days_ago = len(issued_books_past_week)
                 file.write("1 DAYS AGO:%d"%number_books_issued_1days_ago)
-
-            elif date_issued_string == (week_ago + timedelta(days=7)).strftime("%Y-%m-%d"):
-                number_books_issued_today = len(issued_books_past_week)
-                file.write("0 DAYS AGO:%d"%number_books_issued_today)
                 
-
-        mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago + number_books_issued_today)/7
-        self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days: {:.2f}'.format(mean_avg)
+        #Add up the number of books issued on each individual day for the past 7 days, excluding the current day, and divide it by the 7 days.
+        mean_avg = (number_books_issued_7days_ago + number_books_issued_6days_ago + number_books_issued_5days_ago + number_books_issued_4days_ago + number_books_issued_3days_ago + number_books_issued_2days_ago + number_books_issued_1days_ago)/7
+        self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days\n(Including today): {:.2f}'.format(mean_avg)
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
 
-        #Database fetch for the accounts information will go here
+        #Database fetch for the accounts information
         #User IDs
         c.execute("SELECT user_id FROM Accounts")
         userIDs_fetch = c.fetchall()
@@ -579,42 +615,65 @@ class Admin():
         admin_list = [x[0] for x in admin_fetch]
 
 
+        #Delete all rows in the tree to start with a fresh, empty tree that will be populated.
         for k in self.tree.get_children():
             self.tree.delete(k)
 
+        #Iterate over each user_id in the Accounts table.
         for i in range(len(userID_list)):
-            #issued_bookIDs
+            #Fetch the bookIDs of all the books under this specific user.
             c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
             issued_bookIDs_fetch = c.fetchall()
             issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
 
+            #Iterate over each book and present all the books in the table as a string with a comma seperating each book.
             for x in range(len(issued_bookIDs_list)):
                 issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
 
-            #earliest return date
+            #Fetch all the return dates under this specific user.
             c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
 
-            #convert the return_date_list from a list of strins to a list of dates
+            #convert the return_date_list from a list of strings to a list of dates
             dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
 
             try:
+                #Try to store the earliest return date this user has.
                 earliest_date = str(min(dates_list))
             except ValueError:
+                #If the user does not have any return dates tied to their account, display N/A.
+                earliest_date = 'N/A'
                 pass
+
+            #Check if there were any issued books and hence return dates to be placed on the table under this user's row.
             if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                #If there were no issued books and therefore no return dates under this user's account, display N/A in the corresponding columns to show such.
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
             else:
+                #If there was issued books and therefore return dates under this user's account, show them on the row this user is in.
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+
+        #Only now we pack the tree onto the page.
         self.tree.pack()
 
 
 
-        #Database fetch for the book information to go on the analytics part will go here. Based on any changes made to the database, the labels will be changed in here too using self.example_label["text"]
+
+
+        #Database fetch for the book information to go on the analytics part will go here. 
+        #Based on any changes made to the database, the labels will be changed in here too using self.example_label["text"]
+
+        #The Process described below applies to all the analytics beyond this point. 
+        #Fetch all accounts from the Accounts table.
         fetch_number_users = c.execute("SELECT * FROM Accounts").fetchall()
+
+        #Store the number of users returned from the query above.
         number_users = len([x[0] for x in fetch_number_users])
+
+        #Update the analytic displayed on the page.
         self.number_users_label["text"]='Total of All Users:%d' % number_users
+
         
         #Number of total patron accounts (not staff or admin)
         fetch_number_patrons = c.execute("SELECT * FROM Accounts WHERE staff_mode=0 AND admin_mode=0").fetchall()
@@ -647,32 +706,31 @@ class Admin():
         self.number_non_issued_books_label["text"]='Number of Non-Issued Books:%d' % number_non_issued_books
 
 
-
-
-
-
     def send_alert(self):
+        '''
+        Send a global email alert to patrons whose book return dates are nearing.
+        '''
         # Fetch all the accounts that are within 3 days of needing to return their book
-        with sqlite3.connect('LibrarySystem.db') as db:
-            c = db.cursor()
-
         db_return_fetch = c.execute("SELECT user_id, bookID, return_date FROM MyBooks").fetchall()
 
-        #Convert the return dates returned into datetime objects
+        #The for loop iterates over the user_id, bookID and return_date fetched from the query above.
         for parameter in db_return_fetch:
             date = parameter[2]
+
+            #Convert the return dates returned into datetime objects
             datetime_conversion = datetime.strptime(date, '%Y-%m-%d').date()
 
-            within_three_days = (datetime.today() + timedelta(days=3)).date()
+            #Fetches the date 3 days within the current date.
+            within_three_days = (datetime.today() - timedelta(days=3)).date()
 
-            if within_three_days > datetime_conversion:
+            if within_three_days >= datetime_conversion:
                 #If we're within three days of the return
 
                 #Identify the bookID behind the return date
                 target_bookID = parameter[1]
                 target_userID = parameter[0]
 
-                #Fetchall of that books information.
+                #Fetch all of that books information.
                 db_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
                 db_title = [x[0] for x in db_title_fetch][0]
 
@@ -692,58 +750,34 @@ class Admin():
                 db_target_email_address = [x[0] for x in db_target_email_address][0]
 
 
-                #Email user
+                #Instantiate email class in the email_sys file.
                 e = Email()
+                #Establish the API service connection
                 service = e.get_service()
+                #Create the to, from and message along with passing the required variables to the email template that need to be shown to the user in the email.
                 message = e.create_reminder_message("from@gmail.com", db_target_email_address, "Books4All Return Reminder", db_title, db_author, db_genre, db_issue_date, db_expected_return_date)
+                #Send the email.
                 e.send_message(service, "from@gmail.com", message)
 
-                
-            elif within_three_days == datetime_conversion:
-                #We are dead on three days of the return
-
-                #Identify the bookID behind the return date
-                target_bookID = parameter[1]
-                target_userID = parameter[0]
-
-                #Fetchall of that books information.
-                db_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
-                db_title = [x[0] for x in db_title_fetch][0]
-
-                db_author_fetch = c.execute("SELECT author FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
-                db_author = [x[0] for x in db_author_fetch][0]
-
-                db_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(target_bookID,)).fetchall()
-                db_genre = [x[0] for x in db_genre_fetch][0]
-
-                db_issue_date_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?",(target_bookID,)).fetchall()
-                db_issue_date = [x[0] for x in db_issue_date_fetch][0]
-
-                db_expected_return_date_fetch = c.execute("SELECT return_date FROM MyBooks WHERE bookID=?",(target_bookID,)).fetchall()
-                db_expected_return_date = [x[0] for x in db_expected_return_date_fetch][0]
-
-                db_target_email_address = c.execute("SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)",(target_bookID,)).fetchall()
-                db_target_email_address = [x[0] for x in db_target_email_address][0]
-
-
-                #Email user
-                e = Email()
-                service = e.get_service()
-                message = e.create_reminder_message("from@gmail.com", db_target_email_address, "Books4All Return Reminder", db_title, db_author, db_genre, db_issue_date, db_expected_return_date)
-                e.send_message(service, "from@gmail.com", message)
             else:
                 #Return date is not within allocated time to be emailed.
                 ms.showwarning('Warning','No books within reminder limit!')
         
 
     def add_account(self):
+        '''
+        Add an account onto the system, regardless of access level.
+        '''
+
+        #Get all required variables from entry fields.
         add_email = self.email_var.get()
         add_staff_mode = self.add_staff_mode_var.get()
         add_admin_mode = self.add_admin_mode_var.get()
 
+        #Broad regex to avoid invalid addresses
         email_regex = '^\S+@\S+$'
         if (re.search(email_regex, add_email)):
-            #Continue process
+
             add_password = self.password_var.get()
             add_confirm_password = self.confirm_password_var.get()
 
@@ -760,9 +794,6 @@ class Admin():
                 self.db_hashed_pw = hashed_pw.decode("utf-8")
 
                 #Send password to DB
-                with sqlite3.connect('LibrarySystem.db') as db:
-                    c = db.cursor()
-
                 find_user = ('SELECT * FROM Accounts WHERE email_address = ?')
                 c.execute(find_user,[(add_email)])
 
@@ -798,6 +829,7 @@ class Admin():
                     self.timer = tk.Label(header_frame, text='')
                     self.timer.pack(side=tk.TOP)
 
+                    #Establish timer to avoid spamming inbox.
                     self.time_remaining = 0
                     self.countdown(60)
 
@@ -839,6 +871,7 @@ class Admin():
                     self.email_verification_code = ''
                     i=0
                     while i<6:
+                        #random.SystemRandom() is used because it is cryptographically secure, due to its use of entropy - that is unpredictable from a source that cannot be observed.
                         random_integer = random.SystemRandom().randint(0,9)
                         i+=1
                         self.email_verification_code += str(random_integer)
@@ -853,6 +886,9 @@ class Admin():
             ms.showerror('Error', 'Invalid Email Address')
 
     def check_code(self, *args):
+        '''
+        Check that the code entered into the verification entry field matches the code that was send to the user via email.
+        '''
         #3. Compare the email code with the input code
         if self.verification_code_var.get() != self.email_verification_code:
             ms.showerror('Error','The verification code does not match the code sent.')
@@ -860,9 +896,7 @@ class Admin():
             ms.showinfo('Success','The verification code matches the code we sent!')
             self.accountVerification.destroy()
 
-            with sqlite3.connect('LibrarySystem.db') as db:
-                    c = db.cursor()
-
+            #Fetch the next highest user_id in the table that is empty.
             select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
             highest_val = [x[0] for x in select_highest_val][0]
 
@@ -870,6 +904,7 @@ class Admin():
             c.execute(insert,[(self.email_var.get()),(self.db_hashed_pw),(highest_val),(self.add_staff_mode_var.get()),(self.add_admin_mode_var.get())])
             db.commit()
 
+            #Database Fetch
             #User IDs
             c.execute("SELECT user_id FROM Accounts")
             userIDs_fetch = c.fetchall()
@@ -890,10 +925,11 @@ class Admin():
             admin_fetch = c.fetchall()
             admin_list = [x[0] for x in admin_fetch]
 
-
+            #Delete all rows to clear the table.
             for k in self.tree.get_children():
                 self.tree.delete(k)
 
+            #Iterate over each user_id in the Accounts table.
             for i in range(len(userID_list)):
                 #issued_bookIDs
                 c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
@@ -912,24 +948,35 @@ class Admin():
                 dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
 
                 try:
+                    #Store the earliest return date in the date list
                     earliest_date = str(min(dates_list))
                 except ValueError:
+                    #If no dates are in the list, display the earliest date as N/A
+                    earliest_date = 'N/A'
                     pass
 
+                #Check if the issued_books and return date lists are empty
                 if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                    #If there were no issued books and therefore no return dates under this user's account, display N/A in the corresponding columns to show such.
                     self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
                 else:
+                    #If there was issued books and therefore return dates under this user's account, show them on the row this user is in.
                     self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
             self.tree.pack()
 
             ms.showinfo('Success!','Account Created!')
 
-
     def resend_code(self, *args):
+        '''
+        Resend the code upon user button prompt to do so.
+        '''
+        #When the timer counts to 0, it updates the label to show that it is ready.
         if self.timer["text"] == "Ready to Resend Code!":
+            #If this condition is met, another code will be generated and sent to the target address.
             self.email_verification_code = ''
             i=0
             while i<6:
+                #Generate 6 digit code.
                 random_integer = random.SystemRandom().randint(0,9)
                 i+=1
                 self.email_verification_code += str(random_integer)
@@ -941,52 +988,83 @@ class Admin():
             message = e.create_verification_message("from@gmail.com", self.email_var.get(), "Books4All Verification Code", self.email_verification_code)
             e.send_message(service, "from@gmail.com", message)
 
+            #Reset the timer.
             self.time_remaining = 0
             self.countdown(60)
         else:
+            #Tell the user that the timer has not ran down to 0.
             ms.showwarning('Warning','Please wait another '+self.timer["text"]+'seconds to resend a code.')
 
     def countdown(self, time_remaining = None):
+        '''
+        Counts the timer down and updates the timer label accordingly.
+        '''
         if time_remaining is not None:
+            #Condition is met only when the timer has started.
             self.time_remaining = time_remaining
 
         if self.time_remaining <= 0:
+            #Timer has counted to 0.
             self.timer["text"]="Ready to Resend Code!"
         else:
+            #Timer is still counting down.
             self.timer["text"]=("%d" % self.time_remaining)
+
+            #Subtract 1 from the current time.
             self.time_remaining = self.time_remaining - 1
+
+            #Wait 1000ms (equal to 1 second).
             self.accountVerification.after(1000, self.countdown)
         
     def verification_code_validate(self, verification_code_inp):
+        '''
+        Validate the verification code entry field.
+        '''
+
+        #Is the input a digit?
         if verification_code_inp.isdigit():
+            #Is the input more than 6 digits long?
             if len(verification_code_inp) > 6:
                 return False
             else:
                 return True
+        #Is the entry field empty?
         elif verification_code_inp is "":
             return True
         else:
             return False
 
     def show_password(self, *args):
+        '''
+        Shows the password in plaintext upon button press.
+        '''
+        #If the password is currently hidden under asterisks, show it in plaintext
         if self.password_entry["show"] == "*":
             self.password_entry["show"]=''
             self.confirm_pw_entry["show"]=''
         else:
+            #Display the password in asterisks again.
             self.password_entry["show"]='*'
             self.confirm_pw_entry["show"]='*'
 
     def update_account(self):
+        '''
+        Update an account's access level.
+        '''
+        
+        #Get relevant input fields.
         user_id = int(self.update_userID_var.get())
         update_email = self.update_email_var.get()
-        with sqlite3.connect('LibrarySystem.db') as db:
-            c = db.cursor()
 
+        #The admin can choose to update a user based on their user id or email address
+        #The system works independently of which you choose.
         if user_id == '':
             if update_email != '':
                 email_regex = '^\S+@\S+$'
+                #If the update_email fits the regex, it is valid.
                 if (re.search(email_regex, update_email)):
 
+                    #Update the access levels in the database, according to the input.
                     update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
                     c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
                     db.commit()
@@ -1050,6 +1128,7 @@ class Admin():
                     try:
                         earliest_date = str(min(dates_list))
                     except ValueError:
+                        earliest_date = 'N/A'
                         pass
 
                     if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
@@ -1062,16 +1141,21 @@ class Admin():
 
 
     def remove_account(self):
+        '''
+        Remove an account from the system.
+        '''
+        #The same structural premise as the update_account function
+
+        #Get relevant values.
         user_id = self.remove_userID_var.get()
         remove_email = self.remove_email_var.get()
-        with sqlite3.connect('LibrarySystem.db') as db:
-            c = db.cursor()
 
         if user_id == '':
             if remove_email != '':
                 email_regex = '^\S+@\S+$'
                 if (re.search(email_regex, remove_email)):
 
+                    #Delete the entire row where the email address matches the email address entered by the admin.
                     remove = c.execute('DELETE FROM Accounts WHERE email_address=?',(remove_email,))
                     db.commit()
 
@@ -1081,12 +1165,15 @@ class Admin():
             else:
                 ms.showerror('Error','Empty Email Field.')
         else:
+            #Check if the user_id is an integer.
             if isinstance(user_id, int) == True:
                 #Check if userID exists.
                 check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?",(user_id,)).fetchall()
                 if len(check_account_existance) == 0:
                     ms.showerror('Error','Invalid User ID.')
                 else:
+
+                    #Delete the entire row where the user_id matches the user_id entered by the admin.
                     remove = c.execute('DELETE FROM Accounts WHERE user_id=?',(user_id,))
                     db.commit()
 
@@ -1134,6 +1221,7 @@ class Admin():
                         try:
                             earliest_date = str(min(dates_list))
                         except ValueError:
+                            earliest_date = 'N/A'
                             pass
 
 

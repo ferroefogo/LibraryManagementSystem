@@ -1,5 +1,6 @@
 #Account Page
 
+#Imports
 import tkinter as tk
 from tkinter import ttk
 import sqlite3
@@ -9,14 +10,16 @@ import sys
 import re
 import linecache
 
+#File Import
 from email_sys import Email
 
 
 
+#Connect to database
+with sqlite3.connect('LibrarySystem.db') as db:
+    c = db.cursor()
 
-conn = sqlite3.connect('LibrarySystem.db')
-c = conn.cursor()
-
+#File Configurations
 PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
 PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
 BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
@@ -26,14 +29,22 @@ FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
 
 class Account():
-    #USER ACCESS
-    #Display logged in user information.
+    '''
+    Access Level: USER
+    Functions: Display user-specific information regarding the currently logged in user.
+    '''
     def __init__(self, root, notebook, current_user_email):
-        self.user_email= current_user_email
+        '''
+        Used for the initialisation of the visual aspect of the system.
+        '''
+        #Class Variables
+        self.user_email = current_user_email
 
+        #Notebook Page Addition
         account_page = tk.Frame(notebook)
         notebook.add(account_page, text='Account')
 
+        #Account Header
         header_frame = tk.Frame(account_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
@@ -48,7 +59,6 @@ class Account():
         container_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
 
-        
         #Change password Container
         self.change_password_container = tk.Frame(account_page, bg=BG)
         self.container_change_password_header = tk.Label(self.change_password_container, text='Change Password', font=FONT, bg=BG)
@@ -63,8 +73,6 @@ class Account():
         self.current_pw_entry = ttk.Entry(self.current_pw_container, textvariable=self.current_pw_var, show='*')
         
 
-
-
         #New password entry
         self.new_pw_container = tk.Frame(self.change_password_container, bg=BG)
         self.new_pw_label = tk.Label(self.new_pw_container, text='New Password:',bg=BG)
@@ -72,8 +80,6 @@ class Account():
 
         self.new_pw_var = tk.StringVar()
         self.new_pw_entry = ttk.Entry(self.new_pw_container, textvariable=self.new_pw_var, show='*')
-        
-
 
 
         #New password confirmation entry
@@ -88,8 +94,6 @@ class Account():
         #Change password button
         self.change_password_button_container = tk.Frame(self.change_password_container, bg=BG)
         self.change_password_button = ttk.Button(self.change_password_button_container, text='Change Password', command=lambda:self.change_password())
-
-
 
 
         #Delete Account Container
@@ -120,12 +124,6 @@ class Account():
         self.delete_account_button = ttk.Button(self.delete_account_button_container, text='Delete Account', command=lambda:self.deletion_confirmation())
 
 
-
-        
-
-
-
-
         email_container = tk.Frame(details_container, bg=BG)
         email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
@@ -143,47 +141,64 @@ class Account():
         delete_account_label.bind("<Button-1>", lambda e: self.delete_account_container_func())
 
     def change_password(self, *args):
+        '''
+        Functions: Change the user password in the database.
+        '''
         change_password_confirmation = ms.askquestion('Change Password', 'Are you sure you want to change password?')
         if change_password_confirmation == 'yes':
-            #Update password in database to fit the new password and its hash
 
+            #Fetch entry field variables.
             current_pw = self.current_pw_var.get()
             new_pw = self.new_pw_var.get()
+            confirm_new_pw = self.confirm_pw_var.get()
 
-            #Check if the current password entered matches the one stored in the database
+            #Check if the new password field matches the confirm password field
+            if new_pw != confirm_new_pw:
+                ms.showerror('Error','New password and confirm password fields do not match.')
+            elif new_pw == confirm_new_pw:
+                #Check if the current password entered matches the one stored in the database
+                #Hash the password to check against the database one
+                db_current_pw_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (self.user_email,))
+                db_current_pw = c.fetchone()[0]
 
-            #Hash the password to check against the database one
-            db_current_pw_fetch = c.execute('SELECT password FROM Accounts WHERE email_address = ?', (self.user_email,))
-            db_current_pw = c.fetchone()[0]
+                #Password stored in database
+                db_current_pw_encode = db_current_pw.encode('utf-8')
 
-            #Password stored in database
-            db_current_pw_encode = db_current_pw.encode('utf-8')
+                #Password user has just typed in, converted into bytes literal to be checked using the bcrypt hash check function.
+                bytes_current_pw = bytes(current_pw, 'utf-8')
+                
+                if bcrypt.checkpw(bytes_current_pw, db_current_pw_encode):
+                    #Encrypt+Salt New PW
+                    hashable_new_pw = bytes(new_pw, 'utf-8')
+                    hashed_new_pw = bcrypt.hashpw(hashable_new_pw, bcrypt.gensalt())
 
-            #Password userhas just typed in, converted into bytes literal.
-            bytes_current_pw = bytes(current_pw, 'utf-8')
-            
+                    #Convert into base64string
+                    db_hashed_pw = hashed_new_pw.decode("utf-8")
 
-            if bcrypt.checkpw(bytes_current_pw, db_current_pw_encode):
-                #Encrypt+Salt New PW
-                hashable_new_pw = bytes(new_pw, 'utf-8')
-                hashed_new_pw = bcrypt.hashpw(hashable_new_pw, bcrypt.gensalt())
+                    #Update password in database to fit the new password and its hash
+                    db_new_pw_update = c.execute('UPDATE Accounts SET password=? WHERE email_address=?',(db_hashed_pw, self.user_email))
+                    db.commit()
 
-                #Convert into base64string
-                db_hashed_pw = hashed_new_pw.decode("utf-8")
+                    ms.showinfo('Success','Password has updated!')
 
-                db_new_pw_update = c.execute('UPDATE Accounts SET password=? WHERE email_address=?',(db_hashed_pw, email_address))
-                conn.commit()
-            else:
-                ms.showerror('Error','Current password does not match.')
+                    #Set all fields to be empty
+                    self.current_pw_var.set('')
+                    self.new_pw_var.set('')
+                    self.a
+                else:
+                    ms.showerror('Error','Current password does not match.')
 
     def deletion_confirmation(self, *args):
+        '''
+        Functions: Delete the user account from the database.
+        '''
         account_deletion_confirmation = ms.askquestion('Account Deletion', 'Are you sure you want to delete your account?\n\nYou will not be able to recover any information saved on this account.\nAll personal information associated to this account will be deleted permanently.')
         if account_deletion_confirmation == 'yes':
-            #logic for deleting account goes here
-            with sqlite3.connect('LibrarySystem.db') as db:
-                c = db.cursor()
+            
+            #Delete the account row where the current email address is signed in under.
             delete_account = c.execute("DELETE FROM Accounts WHERE email_address = ?",(self.user_email,))
             db.commit()
+
             ms.showinfo('Success','Account Deleted')
 
             #exit system upon account deletion
@@ -194,22 +209,13 @@ class Account():
     def change_password_container_func(self, *args):
         #If the user has pressed the button after the widgets were already packed, unpack them.
         if self.change_password_container.winfo_ismapped() == True:
-            #May be able to just use a for loop that iterates over child widget using winfo_children().
+            #Iterates over each widget in the password change frame, hiding each one from view.
+            for child in self.change_password_container.winfo_children():
+                child.pack_forget()
             self.change_password_container.pack_forget()
-            self.container_change_password_header.pack_forget()
-            self.current_pw_container.pack_forget()
-            self.current_pw_label.pack_forget()
-            self.current_pw_entry.pack_forget()
-            self.new_pw_container.pack_forget()
-            self.new_pw_label.pack_forget()
-            self.new_pw_entry.pack_forget()
-            self.new_pw_confirm_container.pack_forget()
-            self.new_pw_confirm_label.pack_forget()
-            self.new_pw_confirm_entry.pack_forget()
-            self.change_password_button_container.pack_forget()
-            self.change_password_button.pack_forget()
         else:
-            #Pack all the widgets upon the user pressing the button.
+            #Pack all the widgets upon the user pressing the button, only if the widgets are not currently packed.
+            #Must be done manually because each widget requires a specific parameters to sit in the frame correctly.
             self.change_password_container.pack(side=tk.LEFT, anchor=tk.N)
             self.container_change_password_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
             self.current_pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
@@ -227,18 +233,13 @@ class Account():
     def delete_account_container_func(self, *args):
         #If the user has pressed the button after the widgets were already packed, unpack them.
         if self.delete_account_container.winfo_ismapped() == True:
+            #Iterates over each widget in the password change frame, hiding each one from view.
+            for child in self.delete_account_container.winfo_children():
+                child.pack_forget()
             self.delete_account_container.pack_forget()
-            self.container_delete_account_header.pack_forget()
-            self.pw_container.pack_forget()
-            self.pw_label.pack_forget()
-            self.pw_entry.pack_forget()
-            self.confirm_pw_container.pack_forget()
-            self.confirm_pw_label.pack_forget()
-            self.confirm_pw_entry.pack_forget()
-            self.delete_account_button_container.pack_forget()
-            self.delete_account_button.pack_forget()
         else:
-            #Pack all the widgets to show the panel upon pressing the delete_account box in account details
+            #Pack all the widgets to show the panel upon pressing the delete_account box in account details, only if the widgets are not currently packed.
+            #Must be done manually because each widget requires a specific parameters to sit in the frame correctly.
             self.delete_account_container.pack(side=tk.LEFT, anchor=tk.N)
             self.container_delete_account_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
             self.pw_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
