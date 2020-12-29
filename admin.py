@@ -14,6 +14,7 @@ import linecache
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
+import random
 
 #File Imports
 from email_sys import Email
@@ -82,26 +83,14 @@ class Admin():
         self.tree.column("Issued BookIDs", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Earliest Return Date", width=WIDTH, anchor=tk.CENTER)
 
-        #Database Fetches
-        #User IDs
-        c.execute("SELECT user_id FROM Accounts")
-        userIDs_fetch = c.fetchall()
-        userID_list = [x[0] for x in userIDs_fetch]
+        #Call the database fetch function to get all the most recent values
+        db_fetch = self.database_fetch()
 
-        #Email addresses
-        c.execute("SELECT email_address FROM Accounts")
-        email_fetch = c.fetchall()
-        email_list = [x[0] for x in email_fetch]
-
-        #staff mode
-        c.execute("SELECT staff_mode FROM Accounts")
-        staff_fetch = c.fetchall()
-        staff_list = [x[0] for x in staff_fetch]
-
-        #admin mode
-        c.execute("SELECT admin_mode FROM Accounts")
-        admin_fetch = c.fetchall()
-        admin_list = [x[0] for x in admin_fetch]
+        #Extract return values from database fetch function.
+        userID_list = db_fetch[0]
+        email_list = db_fetch[1]
+        staff_list = db_fetch[2]
+        admin_list = db_fetch[3]
 
         #Delete all rows in the tree to start with a fresh, empty tree that will be populated.
         for k in self.tree.get_children():
@@ -493,8 +482,9 @@ class Admin():
 
     def genre_popularity(self):
         '''
-        Prompt the user with an interactive bar graph.
+        Prompt the user with an interactive bar graph regarding the popularity of genres.
         '''
+
         # Genre Popularity is based on the number of books currently issued and how many have the specific genre.
         # x-axis plots the different genres
         # y-axis plots the number of currently issued books with that genre.
@@ -593,26 +583,14 @@ class Admin():
         self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days\n(Including today): {:.2f}'.format(mean_avg)
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
 
-        #Database fetch for the accounts information
-        #User IDs
-        c.execute("SELECT user_id FROM Accounts")
-        userIDs_fetch = c.fetchall()
-        userID_list = [x[0] for x in userIDs_fetch]
+        #Call the database fetch function to get all the most recent values
+        db_fetch = self.database_fetch()
 
-        #Email addresses
-        c.execute("SELECT email_address FROM Accounts")
-        email_fetch = c.fetchall()
-        email_list = [x[0] for x in email_fetch]
-
-        #staff mode
-        c.execute("SELECT staff_mode FROM Accounts")
-        staff_fetch = c.fetchall()
-        staff_list = [x[0] for x in staff_fetch]
-
-        #admin mode
-        c.execute("SELECT admin_mode FROM Accounts")
-        admin_fetch = c.fetchall()
-        admin_list = [x[0] for x in admin_fetch]
+        #Extract return values from database fetch function.
+        userID_list = db_fetch[0]
+        email_list = db_fetch[1]
+        staff_list = db_fetch[2]
+        admin_list = db_fetch[3]
 
 
         #Delete all rows in the tree to start with a fresh, empty tree that will be populated.
@@ -644,7 +622,6 @@ class Admin():
             except ValueError:
                 #If the user does not have any return dates tied to their account, display N/A.
                 earliest_date = 'N/A'
-                pass
 
             #Check if there were any issued books and hence return dates to be placed on the table under this user's row.
             if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
@@ -844,7 +821,7 @@ class Admin():
                     verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=BG)
                     verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-                    self.verification_code_reg = root.register(self.verification_code_validate)
+                    self.verification_code_reg = self.root.register(self.verification_code_validate)
 
                     self.verification_code_var = tk.StringVar()
                     self.verification_code_var.set('')
@@ -904,26 +881,21 @@ class Admin():
             c.execute(insert,[(self.email_var.get()),(self.db_hashed_pw),(highest_val),(self.add_staff_mode_var.get()),(self.add_admin_mode_var.get())])
             db.commit()
 
-            #Database Fetch
-            #User IDs
-            c.execute("SELECT user_id FROM Accounts")
-            userIDs_fetch = c.fetchall()
-            userID_list = [x[0] for x in userIDs_fetch]
 
-            #Email addresses
-            c.execute("SELECT email_address FROM Accounts")
-            email_fetch = c.fetchall()
-            email_list = [x[0] for x in email_fetch]
+            #Update the next highest userID after this user has added their account.
+            select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
+            highest_val = [x[0] for x in select_highest_val][0]
+            self.userID_var.set(highest_val)
 
-            #staff mode
-            c.execute("SELECT staff_mode FROM Accounts")
-            staff_fetch = c.fetchall()
-            staff_list = [x[0] for x in staff_fetch]
 
-            #admin mode
-            c.execute("SELECT admin_mode FROM Accounts")
-            admin_fetch = c.fetchall()
-            admin_list = [x[0] for x in admin_fetch]
+            #Call the database fetch function to get all the most recent values
+            db_fetch = self.database_fetch()
+
+            #Extract return values from database fetch function.
+            userID_list = db_fetch[0]
+            email_list = db_fetch[1]
+            staff_list = db_fetch[2]
+            admin_list = db_fetch[3]
 
             #Delete all rows to clear the table.
             for k in self.tree.get_children():
@@ -953,7 +925,6 @@ class Admin():
                 except ValueError:
                     #If no dates are in the list, display the earliest date as N/A
                     earliest_date = 'N/A'
-                    pass
 
                 #Check if the issued_books and return date lists are empty
                 if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
@@ -1053,28 +1024,9 @@ class Admin():
         '''
         
         #Get relevant input fields.
-        user_id = int(self.update_userID_var.get())
-        update_email = self.update_email_var.get()
+        try:
+            user_id = int(self.update_userID_var.get())
 
-        #The admin can choose to update a user based on their user id or email address
-        #The system works independently of which you choose.
-        if user_id == '':
-            if update_email != '':
-                email_regex = '^\S+@\S+$'
-                #If the update_email fits the regex, it is valid.
-                if (re.search(email_regex, update_email)):
-
-                    #Update the access levels in the database, according to the input.
-                    update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
-                    c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
-                    db.commit()
-
-                    ms.showinfo('Success!','Account Updated!')
-                else:
-                    ms.showerror('Error', 'Invalid Email Address')
-            else:
-                ms.showerror('Error','Empty Email Field.')
-        else:
             #Check if userID exists.
             check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?",(user_id,)).fetchall()
             if len(check_account_existance) == 0:
@@ -1084,60 +1036,76 @@ class Admin():
                 c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
                 db.commit()
 
-                #User IDs
-                c.execute("SELECT user_id FROM Accounts")
-                userIDs_fetch = c.fetchall()
-                userID_list = [x[0] for x in userIDs_fetch]
-
-                #Email addresses
-                c.execute("SELECT email_address FROM Accounts")
-                email_fetch = c.fetchall()
-                email_list = [x[0] for x in email_fetch]
-
-                #staff mode
-                c.execute("SELECT staff_mode FROM Accounts")
-                staff_fetch = c.fetchall()
-                staff_list = [x[0] for x in staff_fetch]
-
-                #admin mode
-                c.execute("SELECT admin_mode FROM Accounts")
-                admin_fetch = c.fetchall()
-                admin_list = [x[0] for x in admin_fetch]
-
-
-                for k in self.tree.get_children():
-                    self.tree.delete(k)
-
-                for i in range(len(userID_list)):
-                    #issued_bookIDs
-                    c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
-                    issued_bookIDs_fetch = c.fetchall()
-                    issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
-
-                    for x in range(len(issued_bookIDs_list)):
-                        issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
-
-                    #earliest return date
-                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
-                    return_date_fetch = c.fetchall()
-                    return_date_list = [x[0] for x in return_date_fetch]
-
-                    #convert the return_date_list from a list of strins to a list of dates
-                    dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
-
-                    try:
-                        earliest_date = str(min(dates_list))
-                    except ValueError:
-                        earliest_date = 'N/A'
-                        pass
-
-                    if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
-                        self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
-                    else:
-                        self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
-                    self.tree.pack()
-
                 ms.showinfo('Success','Account Updated!')
+                ms.showinfo('Changes','To see the changes to the account, you must relog.')
+
+        except ValueError:
+            #In case the user_id is empty or not an integer, assumption is made that the user has entered an email address.
+
+            #The admin can choose to update a user based on their user id or email address
+            #The system works independently of which you choose.
+            update_email = self.update_email_var.get()
+            if update_email != '':
+                email_regex = '^\S+@\S+$'
+                #If the update_email fits the regex, it is valid.
+                if (re.search(email_regex, update_email)):
+                    #Check if the email is registered in the system
+                    check_db = c.execute('SELECT email_address FROM Accounts WHERE email_address=?',(update_email,)).fetchall()
+                    if len(check_db) == 0:
+                        ms.showerror('Error','Account does not exist in the system.')
+                    else:
+                        #Update the access levels in the database, according to the input.
+                        update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
+                        c.execute(update,[(self.update_staff_mode_var.get()),(self.update_admin_mode_var.get())])
+                        db.commit()
+
+                        ms.showinfo('Success!','Account Updated!')
+                        ms.showinfo('Changes','To see the changes to the account, you must relog.')
+                else:
+                    ms.showerror('Error', 'Invalid Email Address')
+            else:
+                ms.showerror('Error','Empty fields.')
+
+        #Call the database fetch function to get all the most recent values
+        db_fetch = self.database_fetch()
+
+        #Extract return values from database fetch function.
+        userID_list = db_fetch[0]
+        email_list = db_fetch[1]
+        staff_list = db_fetch[2]
+        admin_list = db_fetch[3]
+
+        for k in self.tree.get_children():
+            self.tree.delete(k)
+
+        for i in range(len(userID_list)):
+            #issued_bookIDs
+            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            issued_bookIDs_fetch = c.fetchall()
+            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+            for x in range(len(issued_bookIDs_list)):
+                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+            #earliest return date
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            return_date_fetch = c.fetchall()
+            return_date_list = [x[0] for x in return_date_fetch]
+
+            #convert the return_date_list from a list of strins to a list of dates
+            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+            try:
+                earliest_date = str(min(dates_list))
+            except ValueError:
+                earliest_date = 'N/A'
+
+            if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+            else:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+            self.tree.pack()
+
 
 
     def remove_account(self):
@@ -1147,24 +1115,9 @@ class Admin():
         #The same structural premise as the update_account function
 
         #Get relevant values.
-        user_id = self.remove_userID_var.get()
-        remove_email = self.remove_email_var.get()
+        try:
+            user_id = int(self.remove_userID_var.get())
 
-        if user_id == '':
-            if remove_email != '':
-                email_regex = '^\S+@\S+$'
-                if (re.search(email_regex, remove_email)):
-
-                    #Delete the entire row where the email address matches the email address entered by the admin.
-                    remove = c.execute('DELETE FROM Accounts WHERE email_address=?',(remove_email,))
-                    db.commit()
-
-                    ms.showinfo('Success!','Account Removed!')
-                else:
-                    ms.showerror('Error', 'Invalid Email Address')
-            else:
-                ms.showerror('Error','Empty Email Field.')
-        else:
             #Check if the user_id is an integer.
             if isinstance(user_id, int) == True:
                 #Check if userID exists.
@@ -1172,65 +1125,139 @@ class Admin():
                 if len(check_account_existance) == 0:
                     ms.showerror('Error','Invalid User ID.')
                 else:
+                    #Unlink any books connected to this account and make them available.
+                    #Must also delete the user from the MyBooks table.
+
+                    db_check_linked_books_fetch = c.execute('SELECT bookID FROM MyBooks WHERE user_id=?',(user_id,)).fetchall()
+                    db_check_linked_books = [x[0] for x in db_check_linked_books_fetch]
+                    if len(db_check_linked_books) != 0:
+                        #Must unlink the books and delete the MyBooks user_id entry.
+                        for i in range(len(db_check_linked_books)):
+                            update_book_status = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(db_check_linked_books[i],))
+
+                        #Delete MyBooks row of this user.
+                        remove_mybooks = c.execute('DELETE FROM MyBooks WHERE user_id=?',(user_id,))
+                        db.commit()
 
                     #Delete the entire row where the user_id matches the user_id entered by the admin.
                     remove = c.execute('DELETE FROM Accounts WHERE user_id=?',(user_id,))
                     db.commit()
 
-                    #User IDs
-                    c.execute("SELECT user_id FROM Accounts")
-                    userIDs_fetch = c.fetchall()
-                    userID_list = [x[0] for x in userIDs_fetch]
-
-                    #Email addresses
-                    c.execute("SELECT email_address FROM Accounts")
-                    email_fetch = c.fetchall()
-                    email_list = [x[0] for x in email_fetch]
-
-                    #staff mode
-                    c.execute("SELECT staff_mode FROM Accounts")
-                    staff_fetch = c.fetchall()
-                    staff_list = [x[0] for x in staff_fetch]
-
-                    #admin mode
-                    c.execute("SELECT admin_mode FROM Accounts")
-                    admin_fetch = c.fetchall()
-                    admin_list = [x[0] for x in admin_fetch]
-
-
-                    for k in self.tree.get_children():
-                        self.tree.delete(k)
-
-                    for i in range(len(userID_list)):
-                        #issued_bookIDs
-                        c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
-                        issued_bookIDs_fetch = c.fetchall()
-                        issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
-
-                        for x in range(len(issued_bookIDs_list)):
-                            issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
-
-                        #earliest return date
-                        c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
-                        return_date_fetch = c.fetchall()
-                        return_date_list = [x[0] for x in return_date_fetch]
-
-                        #convert the return_date_list from a list of strins to a list of dates
-                        dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
-
-                        try:
-                            earliest_date = str(min(dates_list))
-                        except ValueError:
-                            earliest_date = 'N/A'
-                            pass
-
-
-                        if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
-                            self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
-                        else:
-                            self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
-                        self.tree.pack()
-
                     ms.showinfo('Success!','Account Removed!')
+
+                    #Fetch the next highest user_id in the table that is empty.
+                    select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
+                    highest_val = [x[0] for x in select_highest_val][0]
+                    self.userID_var.set(highest_val)
             else:
-                ms.showerror('Error','Invalid User ID.')
+                ms.showerror('Error','Invalid User ID')
+        except Exception:
+            #In case the user_id is empty or not an integer, assumption is made that the user has entered an email address.
+            remove_email = self.remove_email_var.get()
+            if remove_email != '':
+                email_regex = '^\S+@\S+$'
+                if (re.search(email_regex, remove_email)):
+                    #Check if the email is registered in the system
+                    check_db = c.execute('SELECT email_address FROM Accounts WHERE email_address=?',(remove_email,)).fetchall()
+                    if len(check_db) == 0:
+                        ms.showerror('Error','Account does not exist in the system.')
+                    else:
+                        #Unlink any books connected to this account and make them available.
+                        #Must also delete the user from the MyBooks table.
+
+                        db_check_linked_books_fetch = c.execute('SELECT bookID FROM MyBooks WHERE user_id=(SELECT user_id FROM Accounts WHERE email_address=?)',(remove_email,)).fetchall()
+                        db_check_linked_books = [x[0] for x in db_check_linked_books_fetch]
+                        if len(db_check_linked_books) != 0:
+                            #Must unlink the books and delete the MyBooks user_id entry.
+                            for i in range(len(db_check_linked_books)):
+                                update_book_status = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(db_check_linked_books[i],))
+
+                            #Delete MyBooks row of this user.
+                            remove_mybooks = c.execute('DELETE FROM MyBooks WHERE user_id=(SELECT user_id FROM Accounts WHERE email_address=?)',(remove_email,))
+                            db.commit()
+
+                        #Delete the entire row where the email address matches the email address entered by the admin.
+                        remove = c.execute('DELETE FROM Accounts WHERE email_address=?',(remove_email,))
+                        db.commit()
+
+                        ms.showinfo('Success!','Account Removed!')
+
+                    #Fetch the next highest user_id in the table that is empty.
+                    select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
+                    highest_val = [x[0] for x in select_highest_val][0]
+                    self.userID_var.set(highest_val)
+                else:
+                    ms.showerror('Error', 'Invalid Email Address')
+            else:
+                ms.showerror('Error','Empty fields')
+            
+
+        #Call the database fetch function to get all the most recent values
+        db_fetch = self.database_fetch()
+
+        #Extract return values from database fetch function.
+        userID_list = db_fetch[0]
+        email_list = db_fetch[1]
+        staff_list = db_fetch[2]
+        admin_list = db_fetch[3]
+
+        for k in self.tree.get_children():
+            self.tree.delete(k)
+
+        for i in range(len(userID_list)):
+            #issued_bookIDs
+            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            issued_bookIDs_fetch = c.fetchall()
+            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+
+            for x in range(len(issued_bookIDs_list)):
+                issued_book_list_string = ','.join(map(str, issued_bookIDs_list)) 
+
+            #earliest return date
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            return_date_fetch = c.fetchall()
+            return_date_list = [x[0] for x in return_date_fetch]
+
+            #convert the return_date_list from a list of strins to a list of dates
+            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+            try:
+                earliest_date = str(min(dates_list))
+            except ValueError:
+                earliest_date = 'N/A'
+
+
+            if len(issued_bookIDs_list)==0 or len(return_date_list)==0:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i],'N/A','N/A')))
+            else:
+                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_bookIDs_list, earliest_date)))
+            self.tree.pack()
+
+    def database_fetch(self):
+        '''
+        Fetches the most commonly required values from the database
+        that are mostly used when the table has to be updated.
+        '''
+
+        #User IDs
+        c.execute("SELECT user_id FROM Accounts")
+        userIDs_fetch = c.fetchall()
+        userID_list = [x[0] for x in userIDs_fetch]
+
+        #Email addresses
+        c.execute("SELECT email_address FROM Accounts")
+        email_fetch = c.fetchall()
+        email_list = [x[0] for x in email_fetch]
+
+        #staff mode
+        c.execute("SELECT staff_mode FROM Accounts")
+        staff_fetch = c.fetchall()
+        staff_list = [x[0] for x in staff_fetch]
+
+        #admin mode
+        c.execute("SELECT admin_mode FROM Accounts")
+        admin_fetch = c.fetchall()
+        admin_list = [x[0] for x in admin_fetch]
+
+        return (userID_list,email_list,staff_list,admin_list)
+

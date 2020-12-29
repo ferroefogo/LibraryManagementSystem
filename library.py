@@ -24,18 +24,6 @@ c.execute("SELECT genre FROM Genres")
 genres_list_fetch = c.fetchall()
 genre_choice_list = [x[0] for x in genres_list_fetch]
 
-#Fetch database values
-#Titles that have not been issued (issued=0) 
-c.execute("SELECT title FROM Books WHERE issued=0")
-books_title_fetch = c.fetchall()
-book_title_list = [x[0] for x in books_title_fetch]
-
-#Fetch database books that have been issued (issued=1)
-#Titles
-c.execute("SELECT title FROM Books WHERE issued=1")
-issued_titles_fetch = c.fetchall()
-issued_titles = [x[0] for x in issued_titles_fetch]
-
 #List of locations
 location_choice_list = list(string.ascii_uppercase)
 location_alphabet_symbol = location_choice_list.append('*')
@@ -181,29 +169,17 @@ class Library():
 
     def notebook_tab_change(self, event):
         #gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
-        #BookIDs
-        c.execute("SELECT bookID FROM Books WHERE issued=0")
-        non_issued_bookIDs_fetch = c.fetchall()
-        non_issued_bookID_list = [x[0] for x in non_issued_bookIDs_fetch]
+        
 
-        c.execute("SELECT title FROM Books WHERE issued=0")
-        non_issued_title_fetch = c.fetchall()
-        non_issued_title_list = [x[0] for x in non_issued_title_fetch]
-
-        #Authors
-        c.execute("SELECT author FROM Books WHERE issued=0")
-        non_issued_author_fetch = c.fetchall()
-        non_issued_author_list = [x[0] for x in non_issued_author_fetch]
-
-        #Genres
-        c.execute("SELECT genre FROM Books WHERE issued=0")
-        non_issued_genre_fetch = c.fetchall()
-        non_issued_genre_list = [x[0] for x in non_issued_genre_fetch]
-
-        #Locations
-        c.execute('SELECT location FROM Books WHERE issued=0')
-        non_issued_location_fetch = c.fetchall()
-        non_issued_location_list = [x[0] for x in non_issued_location_fetch]
+        #Call database fetch function to fetch latest values from database.
+        db_fetch = self.database_fetch()
+        
+        #Extract the return values of the database fetch function.
+        non_issued_bookID_list = db_fetch[0]
+        non_issued_title_list = db_fetch[1]
+        non_issued_author_list = db_fetch[2]
+        non_issued_genre_list = db_fetch[3]
+        non_issued_location_list = db_fetch[4]
 
         #Set all fields to be -EMPTY-
         self.bookID_var.set('')
@@ -348,3 +324,30 @@ class Library():
             arr_reverse = arr[::-1]
             for index, (val, k) in enumerate(arr_reverse):
                 tv.move(k, '', index)
+
+    def database_fetch(self):
+        #BookIDs
+        c.execute("SELECT bookID FROM Books WHERE issued=0")
+        non_issued_bookIDs_fetch = c.fetchall()
+        non_issued_bookID_list = [x[0] for x in non_issued_bookIDs_fetch]
+
+        c.execute("SELECT title FROM Books WHERE issued=0")
+        non_issued_title_fetch = c.fetchall()
+        non_issued_title_list = [x[0] for x in non_issued_title_fetch]
+
+        #Authors
+        c.execute("SELECT author FROM Books WHERE issued=0")
+        non_issued_author_fetch = c.fetchall()
+        non_issued_author_list = [x[0] for x in non_issued_author_fetch]
+
+        #Genres
+        c.execute("SELECT genre FROM Books WHERE issued=0")
+        non_issued_genre_fetch = c.fetchall()
+        non_issued_genre_list = [x[0] for x in non_issued_genre_fetch]
+
+        #Locations
+        c.execute('SELECT location FROM Books WHERE issued=0')
+        non_issued_location_fetch = c.fetchall()
+        non_issued_location_list = [x[0] for x in non_issued_location_fetch]
+
+        return (non_issued_bookID_list,non_issued_title_list,non_issued_author_list,non_issued_genre_list,non_issued_location_list)

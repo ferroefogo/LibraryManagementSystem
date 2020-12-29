@@ -1,5 +1,6 @@
 #BookDatabase page
 
+#Imports
 import tkinter as tk
 from tkinter import ttk
 import sqlite3
@@ -13,11 +14,14 @@ from dateutil.relativedelta import relativedelta
 import re
 import linecache
 
-
+#File Imports
 from email_sys import Email
+
+#Connect to database
 conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
+#File Configurations
 WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt',1))
 PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
 PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
@@ -31,17 +35,6 @@ c.execute("SELECT genre FROM Genres")
 genres_list_fetch = c.fetchall()
 genre_choice_list = [x[0] for x in genres_list_fetch]
 
-#Fetch database values
-#Titles that have not been issued (issued=0) 
-c.execute("SELECT title FROM Books WHERE issued=0")
-books_title_fetch = c.fetchall()
-book_title_list = [x[0] for x in books_title_fetch]
-
-#Fetch database books that have been issued (issued=1)
-#Titles
-c.execute("SELECT title FROM Books WHERE issued=1")
-issued_titles_fetch = c.fetchall()
-issued_titles = [x[0] for x in issued_titles_fetch]
 
 #List of locations
 location_choice_list = list(string.ascii_uppercase)
@@ -54,25 +47,41 @@ issued_choice_list = ['-EMPTY-', '0', '1']
 
 
 class BookDatabase():
-    #STAFF ONLY ACCESS
-    #Update book database when books are taken in/out.
+    '''
+    Access Level: STAFF ONLY
+    Functions: Update the database when book information is moved around,
+               by cause of:
+                    - Issuing Books
+                    - Returning Books
+                    - Adding Books
+                    - Removing Books
+                    - Adding Genres
+                    - Removing Genres
+    '''
     def __init__(self, root, notebook, current_user_email):
+        '''
+        Initiates the visual window of the system.
+        '''
+
+        #Class variables
         self.tree_ids = [] 
         self.lista = []
         self.root = root
         self.notebook = notebook
         user_email = current_user_email
 
+        #Create notebook tab
         book_database_page = tk.Frame(self.notebook)
         notebook.add(book_database_page, text='Book Database')
 
+        #Page header
         header_frame = tk.Frame(book_database_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
         header = tk.Label(header_frame, text='Book Database', font=HEADER_FONT)
         header.pack(side=tk.TOP)
 
-        # Library TreeView Book Database Frame
+        # Book database TreeView
         tree_container = tk.Frame(book_database_page, bg=BG)
         tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=PADX, pady=PADY)
 
@@ -81,7 +90,7 @@ class BookDatabase():
 
         #Set up TreeView table
         self.columns = ('Book ID','Title', 'Author', 'Genre','Location', 'Issued', 'Issue Date', 'Return Date')
-        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings') #create tree
+        self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings')
         self.tree.heading("Book ID", text='Book ID')
         self.tree.heading("Title", text='Title')
         self.tree.heading("Author", text='Author')
@@ -100,39 +109,23 @@ class BookDatabase():
         self.tree.column("Issue Date", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Return Date", width=WIDTH, anchor=tk.CENTER)
 
-        #Book IDs
-        c.execute("SELECT bookID FROM Books")
-        bookIDs_fetch = c.fetchall()
-        bookID_list = [x[0] for x in bookIDs_fetch]
+        #Run database fetch function
+        db_fetch = self.database_fetch()
 
-        #Titles
-        c.execute("SELECT title FROM Books")
-        title_fetch = c.fetchall()
-        title_list = [x[0] for x in title_fetch]
+        #Extract return values from function.
+        bookID_list = db_fetch[0]
+        title_list = db_fetch[1]
+        author_list = db_fetch[2]
+        genre_list = db_fetch[3]
+        location_list = db_fetch[4]
+        issued_list = db_fetch[5]
 
-        #Authors
-        c.execute("SELECT author FROM Books")
-        author_fetch = c.fetchall()
-        author_list = [x[0] for x in author_fetch]
-
-        #Genres
-        c.execute("SELECT genre FROM Books")
-        genre_fetch = c.fetchall()
-        genre_list = [x[0] for x in genre_fetch]
-
-        #location
-        c.execute("SELECT location FROM Books")
-        location_fetch = c.fetchall()
-        location_list = [x[0] for x in location_fetch]
-
-        #Issued/Not Issued
-        c.execute("SELECT issued FROM Books")
-        issued_fetch = c.fetchall()
-        issued_list = [x[0] for x in issued_fetch]
-
+        #Delete all rows on the table to start with a fresh table.
         for k in self.tree.get_children():
             self.tree.delete(k)
 
+        #Populate the table with all the relevant information in the database, 
+        #by iterating over the information of each book and adding it onto the table.
         for i in range(len(bookID_list)):
             #Issue Date
             c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
@@ -143,11 +136,13 @@ class BookDatabase():
             c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
-            #creates an entry in the tree for each element of the list
-            #then stores the id of the tree in the self.ids list
+            
+            #Check if the current book iteration has an issue date and therefore a return date.
             if len(date_issued_list)==0 or len(return_date_list)==0:
+                #No issue date, then set the corresponding issue_date and return_date column values to N/A
                 self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
             else:
+                #Issue date and return date exists, therefore set them on the table.
                 self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
         self.tree.pack()
 
@@ -163,7 +158,7 @@ class BookDatabase():
 
         self._detached = set()
         self.db_search_bookID_var = tk.StringVar()
-        self.db_search_bookID_var.trace("w", self._columns_searcher_bookID_BD)
+        self.db_search_bookID_var.trace("w", self._columns_searcher)
 
         self.db_search_bookID_entry = ttk.Entry(self.db_search_container, textvariable=self.db_search_bookID_var)
         self.db_search_bookID_entry.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
@@ -173,9 +168,8 @@ class BookDatabase():
         db_search_label_title = tk.Label(self.db_search_container, text='Title: ', bg=BG)
         db_search_label_title.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-        self._detached = set()
         self.db_search_title_var = tk.StringVar()
-        self.db_search_title_var.trace("w", self._columns_searcher_title_BD)
+        self.db_search_title_var.trace("w", self._columns_searcher)
 
         self.db_search_title_entry = ttk.Entry(self.db_search_container, textvariable=self.db_search_title_var)
         self.db_search_title_entry.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
@@ -185,9 +179,8 @@ class BookDatabase():
         db_search_label_author = tk.Label(self.db_search_container, text='Author: ', bg=BG)
         db_search_label_author.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-        self._detached = set()
         self.db_search_author_var = tk.StringVar()
-        self.db_search_author_var.trace("w", self._columns_searcher_author_BD)
+        self.db_search_author_var.trace("w", self._columns_searcher)
 
         self.db_search_author_entry = ttk.Entry(self.db_search_container, textvariable=self.db_search_author_var)
         self.db_search_author_entry.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
@@ -197,13 +190,11 @@ class BookDatabase():
         db_search_label_genre = tk.Label(self.db_search_container, text='Genre: ', bg=BG)
         db_search_label_genre.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-        self._detached = set()
         self.db_search_genre_var = tk.StringVar()
         self.db_search_genre_var.set("-EMPTY-")
-        self.db_search_genre_var.trace("w", self._columns_searcher_genre_BD)
 
-
-        self.db_search_genre_menu = ttk.OptionMenu(self.db_search_container, self.db_search_genre_var, genre_choice_list[0], *genre_choice_list)
+        from functools import partial
+        self.db_search_genre_menu = ttk.OptionMenu(self.db_search_container, self.db_search_genre_var, genre_choice_list[0], *genre_choice_list, command=partial(self._columns_searcher))
         self.db_search_genre_menu.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
 
@@ -212,10 +203,9 @@ class BookDatabase():
         db_search_label_location = tk.Label(self.db_search_container, text='Location: ', bg=BG)
         db_search_label_location.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-        self._detached = set()
         self.db_search_location_var = tk.StringVar()
         self.db_search_location_var.set("-EMPTY-")
-        self.db_search_location_var.trace("w", self._columns_searcher_location_BD)
+        self.db_search_location_var.trace("w", self._columns_searcher)
 
 
         self.db_search_location_menu = ttk.OptionMenu(self.db_search_container, self.db_search_location_var, location_choice_list[0], *location_choice_list)
@@ -226,15 +216,16 @@ class BookDatabase():
         db_search_label_issued = tk.Label(self.db_search_container, text='Issued(1/0): ', bg=BG)
         db_search_label_issued.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-        self._detached = set()
         self.db_search_issued_var = tk.StringVar()
         self.db_search_issued_var.set("-EMPTY-")
-        self.db_search_issued_var.trace("w", self._columns_searcher_issued_BD)
+        self.db_search_issued_var.trace('w', self._columns_searcher_issued)
 
         self.db_search_issued_menu = ttk.OptionMenu(self.db_search_container, self.db_search_issued_var, issued_choice_list[0], *issued_choice_list)
         self.db_search_issued_menu.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
-
+        #For each column in the list of columns, call the function that sorts each column.
+        #Each column will be sorted according to its inherent data type. (integers sorted numerically, strings sorted alphabetically)
+        #Sort function described in more detail in the function.
         for self.col in self.columns:
                 self.tree.heading(self.col, text=self.col,
                                       command=lambda c=self.col: self.sort_upon_press(c))
@@ -347,11 +338,8 @@ class BookDatabase():
         issue_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         # Gather an updated list of books to be displayed correctly on the autocomplete box.
-
-
+        # Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         autocomplete_issue_bookID = AutoCompleteEntryBD_IssueBookID(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
-
-
 
 
 
@@ -448,9 +436,8 @@ class BookDatabase():
         return_book_btn.config(text='    Return Book    ', command=self.return_book)
         return_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
-
+        # Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         autocomplete_return_bookID = AutoCompleteEntryBD_ReturnBookID(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
-
 
 
 
@@ -534,6 +521,7 @@ class BookDatabase():
         remove_book_btn.config(text='    Remove Book    ', command=self.remove_book)
         remove_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
+        # Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         autocomplete_remove_bookID = AutoCompleteEntryBD_RemoveBookID(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
 
 
@@ -642,6 +630,10 @@ class BookDatabase():
         remove_newgenre_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
     def add_newgenre(self):
+        '''
+        Called when the staff presses the button for a new genre to be added.
+        Sends the information to the database and updates the dropdown genre selection menus.
+        '''
         #Requires input validation
 
         #Fetch entry field values
@@ -692,6 +684,10 @@ class BookDatabase():
 
 
     def remove_newgenre(self):
+        '''
+        Called when the staff presses the button for a genre to be removed.
+        Sends the information to the database and updates the dropdown genre selection menus.
+        '''
         #Requires input validation
 
         #Fetch entry field values
@@ -749,6 +745,10 @@ class BookDatabase():
 
 
     def add_book(self):
+        '''
+        Called when the staff presses the button for a book to be added into the system.
+        Sends the information to the database and updates the treeview table.
+        '''
 
         #Fetch entry field values
         add_bookID_var = self.add_bookID_var.get()
@@ -761,10 +761,12 @@ class BookDatabase():
         #Example, Title= 1 step closer. Location=*
         #Example 2, Title=Drowning, Location=D
 
+        #Iterate over the alphabet to find the letter that the first letter of the title matches.
         for letter in string.ascii_uppercase:
             if letter == add_title_var[0]:
                 location=letter
             elif add_title_var[0] not in string.ascii_uppercase:
+                #If the letter does not match an alphabetical character.
                 location='*'
 
         #Insert fetched values into database
@@ -783,36 +785,16 @@ class BookDatabase():
         self.add_author_var.set('')
 
 
-        #Update TreeView
-        #Book IDs
-        c.execute("SELECT bookID FROM Books")
-        bookIDs_fetch = c.fetchall()
-        bookID_list = [x[0] for x in bookIDs_fetch]
+        #Run database fetch function
+        db_fetch = self.database_fetch()
 
-        #Titles
-        c.execute("SELECT title FROM Books")
-        title_fetch = c.fetchall()
-        title_list = [x[0] for x in title_fetch]
-
-        #Authors
-        c.execute("SELECT author FROM Books")
-        author_fetch = c.fetchall()
-        author_list = [x[0] for x in author_fetch]
-
-        #Genres
-        c.execute("SELECT genre FROM Books")
-        genre_fetch = c.fetchall()
-        genre_list = [x[0] for x in genre_fetch]
-
-        #location
-        c.execute("SELECT location FROM Books")
-        location_fetch = c.fetchall()
-        location_list = [x[0] for x in location_fetch]
-
-        #Issued/Not Issued
-        c.execute("SELECT issued FROM Books")
-        issued_fetch = c.fetchall()
-        issued_list = [x[0] for x in issued_fetch]
+        #Extract return values from function.
+        bookID_list = db_fetch[0]
+        title_list = db_fetch[1]
+        author_list = db_fetch[2]
+        genre_list = db_fetch[3]
+        location_list = db_fetch[4]
+        issued_list = db_fetch[5]
 
         for k in self.tree.get_children():
             self.tree.delete(k)
@@ -847,10 +829,15 @@ class BookDatabase():
 
 
     def remove_book(self):
+        '''
+        Called when the staff presses the button to remove a book from the system.
+        Sends the information to the database and updates the treeview table.
+        '''
         
         #Fetch entry field values
         remove_bookID_var = self.remove_bookID_var.get()
 
+        #Delete the book with said book ID
         remove_bookID_search = c.execute('DELETE FROM Books WHERE bookID=?',(remove_bookID_var,))
         conn.commit()
 
@@ -867,36 +854,16 @@ class BookDatabase():
         self.remove_title_var.set('')
         self.remove_author_var.set('')
 
-        #Update TreeView
-        #Book IDs
-        c.execute("SELECT bookID FROM Books")
-        bookIDs_fetch = c.fetchall()
-        bookID_list = [x[0] for x in bookIDs_fetch]
+        #Run database fetch function
+        db_fetch = self.database_fetch()
 
-        #Titles
-        c.execute("SELECT title FROM Books")
-        title_fetch = c.fetchall()
-        title_list = [x[0] for x in title_fetch]
-
-        #Authors
-        c.execute("SELECT author FROM Books")
-        author_fetch = c.fetchall()
-        author_list = [x[0] for x in author_fetch]
-
-        #Genres
-        c.execute("SELECT genre FROM Books")
-        genre_fetch = c.fetchall()
-        genre_list = [x[0] for x in genre_fetch]
-
-        #location
-        c.execute("SELECT location FROM Books")
-        location_fetch = c.fetchall()
-        location_list = [x[0] for x in location_fetch]
-
-        #Issued/Not Issued
-        c.execute("SELECT issued FROM Books")
-        issued_fetch = c.fetchall()
-        issued_list = [x[0] for x in issued_fetch]
+        #Extract return values from function.
+        bookID_list = db_fetch[0]
+        title_list = db_fetch[1]
+        author_list = db_fetch[2]
+        genre_list = db_fetch[3]
+        location_list = db_fetch[4]
+        issued_list = db_fetch[5]
 
         for k in self.tree.get_children():
             self.tree.delete(k)
@@ -931,23 +898,32 @@ class BookDatabase():
 
 
     def issue_book(self):
-        #Send entered information to the database.
-        #May need try/except block here
+        '''
+        Called when the staff presses the button to issue a book to a target user.
+        Sends the information to the database and updates the treeview table.
+        '''
+
+        #Get all relevant entry values.
         bookID_var = self.bookID_var.get()
         title_var = self.title_var.get()
         author_var = self.author_var.get()
         recipient_email = self.recipient_var.get()
         date_issued = self.issue_date_entry.get_date()
 
+        #Convert date object into a string for easier manipulation.
         date_issued_string = str(date_issued.strftime('%d-%m-%Y'))
 
+        #Check if the string date is equal to the date today.
         if str(date_issued_string) == str(datetime.today().strftime('%d-%m-%Y')):
+
+            #Get the excepted, target return date.
             expected_return_date = self.actual_return_date_entry.get_date()
 
+            #Fetch the bookID that matches the title and author
             book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ',(title_var, author_var)).fetchall()
             book_id = [x[0] for x in book_id_search][0]
 
-            # Send info to db
+            # Send info to database
             account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(recipient_email,)).fetchall()
             if len(account_info_fetch) != 0:
                 accounts_userid_check = [x[0] for x in account_info_fetch][0]
@@ -957,19 +933,23 @@ class BookDatabase():
                 book_already_issued = [x[0] for x in book_already_issued_fetch][0]
 
                 if book_already_issued == 0:
+                    #Insert the book information into the MyBooks table under the given user id, if the book issued status is 0
                     insert_my_bookID = 'INSERT INTO MyBooks(user_id,bookID) VALUES(?,?)'
                     c.execute(insert_my_bookID,[(accounts_userid_check),(book_id)])
                     conn.commit()
 
+                    #Followed by updating said book to be issued after inserting it above.
                     update_issued_val = c.execute('UPDATE Books SET issued=1 WHERE bookID=?',(book_id,))
                     conn.commit()
 
+                    #Update the issue date to the current date.
                     update_date_issued_val = c.execute("""UPDATE MyBooks
                         SET date_issued=?
                         WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
                         AND bookID=?""",(date_issued, recipient_email, bookID_var))
                     conn.commit()
 
+                    #Update the return date to the target return date set by the staff.
                     update_return_date_val = c.execute("""UPDATE MyBooks
                         SET return_date=?
                         WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
@@ -984,10 +964,13 @@ class BookDatabase():
                     book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?",(bookID_var,)).fetchall()
                     book_genre = [x[0] for x in book_genre_fetch][0]
 
-
+                    #Call the email class from the email_sys file.
                     e = Email()
+                    #Establish the Google API connection.
                     service = e.get_service()
+                    #Create the message along with passing any additional information that must go on the message.
                     message = e.create_issuing_message("from@gmail.com",recipient_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date)
+                    #Send the message.
                     e.send_message(service,"from@gmail.com",message)
 
                     ms.showinfo('Success', 'Book issued out successfully\nAn email has been sent to\n'+recipient_email+'\nregarding the issuing information.')
@@ -1003,39 +986,22 @@ class BookDatabase():
                 #update treeview BookDatabase when the book is issued
                 #gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
 
-                #Book IDs
-                c.execute("SELECT bookID FROM Books")
-                bookIDs_fetch = c.fetchall()
-                bookID_list = [x[0] for x in bookIDs_fetch]
+                #Run database fetch function
+                db_fetch = self.database_fetch()
 
-                #Titles
-                c.execute("SELECT title FROM Books")
-                title_fetch = c.fetchall()
-                title_list = [x[0] for x in title_fetch]
+                #Extract return values from function.
+                bookID_list = db_fetch[0]
+                title_list = db_fetch[1]
+                author_list = db_fetch[2]
+                genre_list = db_fetch[3]
+                location_list = db_fetch[4]
+                issued_list = db_fetch[5]
 
-                #Authors
-                c.execute("SELECT author FROM Books")
-                author_fetch = c.fetchall()
-                author_list = [x[0] for x in author_fetch]
-
-                #Genres
-                c.execute("SELECT genre FROM Books")
-                genre_fetch = c.fetchall()
-                genre_list = [x[0] for x in genre_fetch]
-
-                #location
-                c.execute("SELECT location FROM Books")
-                location_fetch = c.fetchall()
-                location_list = [x[0] for x in location_fetch]
-
-                #Issued/Not Issued
-                c.execute("SELECT issued FROM Books")
-                issued_fetch = c.fetchall()
-                issued_list = [x[0] for x in issued_fetch]
-
+                #Delete all rows in the tree.
                 for k in self.tree.get_children():
                     self.tree.delete(k)
 
+                #Iterate over each bookID in the database table and populate the table one row at a time.
                 for i in range(len(bookID_list)):
                     #Issue Date
                     c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
@@ -1047,8 +1013,6 @@ class BookDatabase():
                     return_date_fetch = c.fetchall()
                     return_date_list = [x[0] for x in return_date_fetch]
 
-                    #creates an entry in the tree for each element of the list
-                    #then stores the id of the tree in the self.ids list
                     if len(date_issued_list)==0 or len(return_date_list)==0:
                         self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
                     else:
@@ -1067,10 +1031,13 @@ class BookDatabase():
 
 
     def return_book(self):
-        #Send entered information to the database.
-        #Retrieve all entryboxes variables
+        '''
+        Called when the staff presses the button to return a book to the system from the ownership of a user.
+        Sends the information to the database and updates the treeview table.
 
-        #May need try/except block here
+        Structuraly the same as the issue book.
+        '''
+        #Retrieve all entryboxes variables
         title_var = self.ret_title_var.get()
         author_var = self.ret_author_var.get()
         return_email = self.return_email_var.get()
@@ -1080,20 +1047,19 @@ class BookDatabase():
         book_id = [x[0] for x in book_id_search][0]
 
         # Send info to db
-        #could be shortened a bit.
         account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?',(return_email,)).fetchall()
 
         #Check if email matches the owner of the loaned book.
         book_owner_email_fetch = c.execute('SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)',(book_id,)).fetchall()
         book_owner_email = [x[0] for x in book_owner_email_fetch][0]
 
-        print(return_email, book_owner_email)
         if return_email != book_owner_email:
             ms.showerror('Error','Email address does not match its rightful owner.')
         else:
             if len(account_info_fetch) != 0:
                 accounts_userid_check = [x[0] for x in account_info_fetch][0]
 
+                #Update the MyBooks table to set the actual return date. (the real date the patron returned the book, not the target date).
                 update_issued_val = c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID=?',(actual_return_date, book_id,))
                 conn.commit()
 
@@ -1114,10 +1080,12 @@ class BookDatabase():
                     result = ms.askyesno('Warning','This user has returned the book late by %s days\nDo you wish to Continue?' % days_since_return_date_formatted_integer)
 
                     if result == True:
+                        #Delete the user where the bookID is equal to the returned book.
                         remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
                         c.execute(remove_user_id,[(book_id)])
                         conn.commit()
 
+                        #Set the book issued status to 0 (meaning its now available).
                         update_issued_val = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
                         conn.commit()
 
@@ -1172,42 +1140,22 @@ class BookDatabase():
                 self.ret_author_var.set('')
                 self.return_email_var.set('')
 
-                #Update Treeview table in BookDatabase Page
-                #Maybe pack into a function?
-                #Book IDs
-                #compress
-                c.execute("SELECT bookID FROM Books")
-                bookIDs_fetch = c.fetchall()
-                bookID_list = [x[0] for x in bookIDs_fetch]
+                #Run database fetch function
+                db_fetch = self.database_fetch()
 
-                #Titles
-                c.execute("SELECT title FROM Books")
-                title_fetch = c.fetchall()
-                title_list = [x[0] for x in title_fetch]
+                #Extract return values from function.
+                bookID_list = db_fetch[0]
+                title_list = db_fetch[1]
+                author_list = db_fetch[2]
+                genre_list = db_fetch[3]
+                location_list = db_fetch[4]
+                issued_list = db_fetch[5]
 
-                #Authors
-                c.execute("SELECT author FROM Books")
-                author_fetch = c.fetchall()
-                author_list = [x[0] for x in author_fetch]
-
-                #Genres
-                c.execute("SELECT genre FROM Books")
-                genre_fetch = c.fetchall()
-                genre_list = [x[0] for x in genre_fetch]
-
-                #location
-                c.execute("SELECT location FROM Books")
-                location_fetch = c.fetchall()
-                location_list = [x[0] for x in location_fetch]
-
-                #Issued/Not Issued
-                c.execute("SELECT issued FROM Books")
-                issued_fetch = c.fetchall()
-                issued_list = [x[0] for x in issued_fetch]
-
+                #Delete all rows in the table.
                 for k in self.tree.get_children():
                     self.tree.delete(k)
 
+                #Iterate over each bookID and populate the table row by row.
                 for i in range(len(bookID_list)):
                     #Issue Date
                     c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
@@ -1219,8 +1167,6 @@ class BookDatabase():
                     return_date_fetch = c.fetchall()
                     return_date_list = [x[0] for x in return_date_fetch]
 
-                    #creates an entry in the tree for each element of the list
-                    #then stores the id of the tree in the self.ids list
                     if len(date_issued_list)==0 or len(return_date_list)==0:
                         self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
                     else:
@@ -1236,6 +1182,9 @@ class BookDatabase():
                 ms.showerror('Error', 'Email was not found.', icon='error')
 
     def bookID_validate(self, bookID_input):
+        '''
+        Validation to avoid invalid inputs in real-time.
+        '''
         if bookID_input.isdigit():
             return True
         elif bookID_input is "":
@@ -1244,6 +1193,9 @@ class BookDatabase():
             return False
 
     def ret_bookID_validate(self, ret_bookID_input):
+        '''
+        Validation to avoid invalid inputs in real-time.
+        '''
         if ret_bookID_input.isdigit():
             return True
         elif ret_bookID_input is "":
@@ -1252,6 +1204,9 @@ class BookDatabase():
             return False
 
     def remove_bookID_validate(self, remove_bookID_input):
+        '''
+        Validation to avoid invalid inputs in real-time.
+        '''
         if remove_bookID_input.isdigit():
             return True
         elif remove_bookID_input is "":
@@ -1260,126 +1215,127 @@ class BookDatabase():
             return False
 
 
+    def _columns_searcher(self, *args):
+        '''
+        Passes in the values entered in the search fields below the table.
+        Evaluates the state of the tree and what values are currently displayed.
+        Passes this information onto the tree searching function(s).
+        '''
 
-    def _columns_searcher_bookID_BD(self, *args):
+        #Gets the empty self._detached list that will store all the rows of the table that are not to be shown, based on the search fields that the user entered.
+        #Adds the self._detached empty list to a list of currently displayed rows in the table, 
+        #thereby creating one list called children, which stores both the hidden and visible rows of the table.
         children = list(self._detached) + list(self.tree.get_children())
+
+        #self._detached is made into a set, which is a data structure that stores values in an unordered fashion.
         self._detached = set()
-        query_bookID = self.db_search_bookID_var.get()
 
-        self.search_bookID_tv_BD(children, query_bookID)
+        #Get all search entry fields and convert them into strings for easier manipulation later on.
+        query_bookID = str(self.db_search_bookID_var.get())
+        query_title = str(self.db_search_title_var.get())
+        query_author = str(self.db_search_author_var.get())
+        query_genre = str(self.db_search_genre_var.get())
+        query_location = str(self.db_search_location_var.get())
 
-    def _columns_searcher_title_BD(self, *args):
-        children = list(self._detached) + list(self.tree.get_children())
-        self._detached = set()
-        query_title = self.db_search_title_var.get()
+        #Call the function that will re-order the tree according to the search parameters entered by the user.
+        self.search_tv(children, query_bookID, query_title, query_author, query_genre, query_location)
 
-        self.search_title_tv_BD(children, query_title)
+    def search_tv(self, children, query_bookID, query_title, query_author, query_genre, query_location):
+        '''
+        Returns a tree that is ordered according to the search parameters entered by the user.
+        '''
 
-    def _columns_searcher_author_BD(self, *args):
-        children = list(self._detached) + list(self.tree.get_children())
-        self._detached = set()
-        query_author = self.db_search_author_var.get()
+        #Iterable variable that will iterate from row 0 on the tree.
+        i_r = -1
 
-        self.search_author_tv_BD(children, query_author)
+        #Iterate over each item_id (which is the row id) in the whole tree, both the hidden and currently displayed rows.
+        for item_id in children:
+            #Get the string values of each column value of the current row.
+            bookID_text = str(self.tree.item(item_id)['values'][0])
+            title_text = str(self.tree.item(item_id)['values'][1])
+            author_text = str(self.tree.item(item_id)['values'][2])
+            genre_text = str(self.tree.item(item_id)['values'][3])
+            location_text = str(self.tree.item(item_id)['values'][4])
 
-    def _columns_searcher_genre_BD(self, *args):
-        children = list(self._detached) + list(self.tree.get_children())
-        self._detached = set()
-        query_genre = self.db_search_genre_var.get()
+            #If the current search parameter is empty, the tree will display all the rows on the table.
+            #E.g. If all the search fields are empty, meaning nothing has been searched for, then the table will display all the values as a default.
+            if query_bookID != '':
+                if query_bookID in bookID_text:
+                    #If any of the characters in the user search query are in the column string value (in this case the bookID_text string value);
+                    #The iterable will increase to find the next row (if this is the start of the search, then the iterable will increment to 0, which is the top row of the table.)
+                    i_r += 1
+                    #The tree will reattach the correct row (item_id) onto the top of the table, as well as any other searches which contain the same characters so far.
+                    #E.g. searching bookID=1 in a database with bookIDs= 1, 11, 133. This will prompt the table to show all those rows on the table, because they all begin with the 1
+                    #that the user searched for.
+                    #This process repeats for the rest of the function.
+                    self.tree.reattach(item_id, '', i_r)
+                else:
+                    self._detached.add(item_id)
+                    self.tree.detach(item_id)
 
-        self.search_genre_tv_BD(children, query_genre)
+            elif query_title != '':
+                if query_title in title_text:
+                    i_r +=1
+                    self.tree.reattach(item_id, '', i_r)
+                else:
+                    self._detached.add(item_id)
+                    self.tree.detach(item_id)
 
-    def _columns_searcher_location_BD(self, *args):
-        children = list(self._detached) + list(self.tree.get_children())
-        self._detached = set()
-        query_location = self.db_search_location_var.get()
+            elif query_author != '':
+                if query_author in author_text:
+                    i_r +=1
+                    self.tree.reattach(item_id, '', i_r)
+                else:
+                    self._detached.add(item_id)
+                    self.tree.detach(item_id)
 
-        self.search_location_tv_BD(children, query_location)
+            elif query_genre != '-EMPTY-':
+                if query_genre in genre_text:
+                    i_r +=1
+                    self.tree.reattach(item_id, '', i_r)
+                else:
+                    self._detached.add(item_id)
+                    self.tree.detach(item_id)
 
-    def _columns_searcher_issued_BD(self, *args):
+            elif query_location != '-EMPTY-':
+                if query_location in location_text:
+                    i_r +=1
+                    self.tree.reattach(item_id, '', i_r)
+                else:
+                    self._detached.add(item_id)
+                    self.tree.detach(item_id)
+            else:
+                #If all the fields are empty or in their default state, display the default table.
+                self.tree.reattach(item_id, '', i_r)
+
+
+    def _columns_searcher_issued(self, *args):
+        '''
+        Passes in the values entered in the search fields below the table.
+        Evaluates the state of the tree and what values are currently displayed.
+        Passes this information onto the tree searching function(s).
+
+        Seperate from the rest of the query searches, because the trace() feature
+        does not allow more than one variable to be traced onto the same function callback.
+
+        Structuraly the same as the above function of _columns_searcher
+        '''
         children = list(self._detached) + list(self.tree.get_children())
         self._detached = set()
         query_issued = self.db_search_issued_var.get()
 
-        self.search_issued_tv_BD(children, query_issued)
+        self.search_issued_tv(children, query_issued)
 
-    def search_bookID_tv_BD(self, children, query_bookID):
-        i_r = -1
 
-        for item_id in children:
-            bookID_text = str(self.tree.item(item_id)['values'][0])
+    def search_issued_tv(self, children, query_issued):
+        '''
+        Returns a tree that is ordered according to the search parameters entered by the user.
 
-            if query_bookID in bookID_text:
-                i_r += 1
-                self.tree.reattach(item_id, '', i_r)
+        Seperate from the rest of the query searches, because the trace() feature
+        does not allow more than one variable to be traced onto the same function callback.
 
-            else:
-                self._detached.add(item_id)
-                self.tree.detach(item_id)
-
-    def search_title_tv_BD(self, children, query_title):
-        i_r = -1
-
-        for item_id in children:
-            title_text = self.tree.item(item_id)['values'][1]
-
-            if query_title in title_text:
-                i_r += 1
-                self.tree.reattach(item_id, '', i_r)
-
-            else:
-                self._detached.add(item_id)
-                self.tree.detach(item_id)
-
-    def search_author_tv_BD(self, children, query_author):
-        i_r = -1
-
-        for item_id in children:
-            author_text = self.tree.item(item_id)['values'][2]
-
-            if query_author in author_text:
-                i_r += 1
-                self.tree.reattach(item_id, '', i_r)
-
-            else:
-                self._detached.add(item_id)
-                self.tree.detach(item_id)
-
-    def search_genre_tv_BD(self, children, query_genre):
-        i_r = -1
-
-        for item_id in children:
-            genre_text = self.tree.item(item_id)['values'][3]
-
-            if query_genre in genre_text:
-                i_r += 1
-                self.tree.reattach(item_id, '', i_r)
-
-            elif query_genre == '-EMPTY-':
-                self.tree.reattach(item_id, '', i_r)
-
-            else:
-                self._detached.add(item_id)
-                self.tree.detach(item_id)
-
-    def search_location_tv_BD(self, children, query_location):
-        i_r = -1
-
-        for item_id in children:
-            location_text = self.tree.item(item_id)['values'][4]
-
-            if query_location in location_text:
-                i_r += 1
-                self.tree.reattach(item_id, '', i_r)
-
-            elif query_location == '-EMPTY-':
-                self.tree.reattach(item_id, '', i_r)
-
-            else:
-                self._detached.add(item_id)
-                self.tree.detach(item_id)
-
-    def search_issued_tv_BD(self, children, query_issued):
+        Structuraly the same as the above function of search_tv
+        '''
         i_r = -1
 
         for item_id in children:
@@ -1398,55 +1354,150 @@ class BookDatabase():
 
 
     def sort_upon_press(self, c):
+        '''
+        Passes in a column value c
+        Passes an array for the quicksort algorithm to sort into the correct alphanumerical order.
+        '''
+
+        #Try statement here, because the column heading that is pressed may require that the
+        #sort is done based on integers, therefore the array values would need to be converted into integers.
+        #whereas if the column that is attempted to be sorted is alphabetical, all the values of the array must
+        #be converted into strings when read from the tree.
         try:
+            #Iterates over each row of the tree (tuple data structure) and places it into an array that the quicksort can use.
             self.arr = [(int(self.tree.set(k, c)), k) for k in self.tree.get_children('')]
         except ValueError:
+            #In case the column requires a string sort, the same happens here as above.
             self.arr = [(self.tree.set(k, c), k) for k in self.tree.get_children('')]
+
+        #Store the length of the array.
         self.n = len(self.arr)
+        #Call the quicksort function and pass in:
+        #       - The tree object to allow the sort algorithm to re-order the tree upon each partition.
+        #       - The column value that the tree is currently being sorted by.
+        #       - The array that was established above for the sorting algorithm to sort.
+        #       - The low variable for the sort algorithm is set to 0.
+        #       - The length of the array -1 set as the high
+        #       - Reverse is set to False, as this is the assumed First press of the heading, on the second press, this would be True.
+        
         self.quickSort(self.tree, c, self.arr, 0, self.n-1, False)
 
     def partition(self, arr,low, high):
+        '''
+        Create the partition for the sort algorithm
+        The partition will be sorted until its completed that section and returns the left bound pointer i, upon it reaching a value >= the pivot 
+        '''
+
+        #Lower bound pointer i
         i = (low-1)
+        #Pivot is chosen as the value of the length of the array -1
         pivot = arr[high]
-     
+        
+        #Iterate j over the elements between the beginning of the array (low) and the pivot (high).
         for j in range(low, high):
+            #If the current iteration of j is an element that is less than or equal to the pivot.
             if arr[j] <= pivot:
+                #Increment the lower bound pointer i
                 i = i+1
+                #Swap the lower bound pointer i's element for the element at position j in the array.
+                #and element at position j swaps with element at position i.
                 arr[i], arr[j] = arr[j], arr[i]
-     
+        
+        #swap the element above the current position of the left bound pointer i, to the position of the pivot.
+        #swap the element at the pivot to the position above the current position of the left bound pointer i.
         arr[i+1], arr[high] = arr[high], arr[i+1]
 
+        #return the left bound pointer i value upon completion of the first partition.
         return (i+1)
      
     def quickSort(self, tv, col, arr, low, high, reverse):
+        '''
+        Quicksort is called to keep the partitions going until the tree is considered sorted, where no partitions can be made.
+        Returns a sorted tree.
+        '''
         #Need to update arr if a new value is added to the treeview
         if len(arr) == 1:
+            #If the array has only one element, it is already inherently sorted.
             return arr
         if low < high:
-            # pi is partitioning index, arr[p] is now
-            # at right place
-            pi = self.partition(arr, low, high)
+            # pt is partitioning index
+            pt = self.partition(arr, low, high)
      
             # Separately sort elements before
             # partition and after partition
-            self.quickSort(tv, col, arr, low, pi-1, reverse=reverse)
-            self.quickSort(tv, col, arr, pi+1, high, reverse=reverse)
+            self.quickSort(tv, col, arr, low, pt-1, reverse=reverse)
+            self.quickSort(tv, col, arr, pt+1, high, reverse=reverse)
 
+        #Iterate over the tuple values in the array and move each row to the correct index position determined by the array that has been sorted.
         for index, (val, k) in enumerate(arr):
+            #Moves the correct row id to the correct index.
             tv.move(k, '', index)
 
+        #For each time that the column heading is pressed, the opposite of the reverse variable will occur.
+        #Meaning if the reverse variable is currently False, because it has already been ran as a False and sorted the tree in ascending order,
+        #then the next press will invert the array to be sorted in descending order.
         tv.heading(col, command=lambda: \
             self.quickSort(tv, col, arr, low, high, not reverse))
+
         if reverse == True:
+            #To save time and avoid having to sort the list again when it has already been sorted,
+            #when the reverse sort is triggered, the array simply inverts itself, rather than go
+            #through the whole partitioning sort process again.
             arr_reverse = arr[::-1]
+            #The tree is re-ordered as this function is described above.
             for index, (val, k) in enumerate(arr_reverse):
                 tv.move(k, '', index)
+
+    def database_fetch(self):
+        '''
+        Commonly used database fetch
+        Returns the lists of bookIDs, titles, authors, genres, locations and issued books.
+        '''
+        #Book IDs
+        c.execute("SELECT bookID FROM Books")
+        bookIDs_fetch = c.fetchall()
+        bookID_list = [x[0] for x in bookIDs_fetch]
+
+        #Titles
+        c.execute("SELECT title FROM Books")
+        title_fetch = c.fetchall()
+        title_list = [x[0] for x in title_fetch]
+
+        #Authors
+        c.execute("SELECT author FROM Books")
+        author_fetch = c.fetchall()
+        author_list = [x[0] for x in author_fetch]
+
+        #Genres
+        c.execute("SELECT genre FROM Books")
+        genre_fetch = c.fetchall()
+        genre_list = [x[0] for x in genre_fetch]
+
+        #location
+        c.execute("SELECT location FROM Books")
+        location_fetch = c.fetchall()
+        location_list = [x[0] for x in location_fetch]
+
+        #Issued/Not Issued
+        c.execute("SELECT issued FROM Books")
+        issued_fetch = c.fetchall()
+        issued_list = [x[0] for x in issued_fetch]
+
+        return (bookID_list, title_list, author_list, genre_list, location_list, issued_list)
+
 
 
 
 class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+    '''
     def __init__(self, ret_search_container_autocomplete, ret_title_entry, ret_title_var, ret_author_entry, ret_author_var, ret_bookID_var, ret_bookID_entry, ret_date_entry, ret_search_container_canvas, *args, **kwargs):
+        '''
+        Fetch all the necessary values and setup the variables required for the upcoming functions.
+        '''
 
+        #Add self to variables to make them class instance variables and be accessed across the class.
         self.ret_search_container_autocomplete = ret_search_container_autocomplete
         self.ret_bookID_entry = ret_bookID_entry
         self.ret_title_entry = ret_title_entry
@@ -1461,8 +1512,9 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         else:
             self.listboxLength = 8
 
-
+        #Initiate the entry box for the autocomplete search field.
         ttk.Entry.__init__(self, *args, **kwargs)
+        #Focus the user keyboard on the this field.
         self.focus()
 
         #Fetch database books that have been issued (issued=1)
@@ -1471,6 +1523,8 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         issued_bookIDs_fetch = c.fetchall()
         issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
 
+
+        #Establish more class instance variables.
         self.listb = issued_bookIDs_list
 
         self.ret_bookID_var = ret_bookID_var
@@ -1481,14 +1535,28 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         if self.ret_bookID_entry == '':
             self.ret_bookID_entry = self["textvariable"] = tk.StringVar()
 
+        #Trace the user input in the entry field.
+        #Calls self.changed function upon any user changes in the field.
         self.ret_bookID_var.trace('w', self.changed)
+
+        #Bind the user's arrow keys to different functions in the autocomplete box.
+        #<Right> arrow key allows for the user to select the currently highlighted autocomplete value.
         self.bind("<Right>", self.selection)
+        #<Up> and <Down> arrow keys allow the user to navigate the autocomplete box.
         self.bind("<Up>", self.up)
         self.bind("<Down>", self.down)
         
+        #lb_up determines whether the autocomplete frame should be currently showing or not.
+        #Set to False by default, to avoid having the box showing the entire time, despite any user input or not.
         self.lb_up = False
 
     def changed(self, name, index, mode):
+        '''
+        Passes in the name, index and mode of the search.
+        Name: Holds the event trigger that is automatically passed by tkinter when the .trace() function is called
+        Index: Holds the index position of the user when searching through the autocomplete box using the arrow keys.
+        Mode: Holds the mode which is currently being used to search through the box.
+        '''
         #Fetch database books that have been issued (issued=1)
         #Titles
         c.execute("SELECT bookID FROM Books WHERE issued=1")
@@ -1497,42 +1565,68 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
 
         self.listb = issued_bookIDs
 
+        #Check if the autocomplete container is currently on the screen.
         if self.ret_search_container_autocomplete.winfo_ismapped() == False:
+            #If the autocomplete container is not on the screen, display it on there.
             self.ret_search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
 
+
         if self.ret_bookID_var.get() == '':
+            #If the user input is empty, destroy the autocomplete box.
             if self.lb_up:
                 self.lb.destroy()
                 self.lb_up = False
         else:
+            #If the user input is not empty, populate the autocomplete container with the correct values that match the input.
+            #Call the comparison function that checks if any of the bookIDs in the database match any of the characters entered by the user.
+            #Returns a list each character entered by the user. Example: input=(Yes), then words=['Y','e','s']
             words = self.comparison()
-            if words:            
+            if words:
+                #Since there are no operators to evaluate the variable 'words',
+                #the if statement evaluates it as a boolean, therefore if there is any kind of data in words, it will be considered a truthy statement
+                #and return True, if there is no data in the variable at all, it is considered a False.
                 if not self.lb_up:
+                    #If the opposite of the autocomplete container status is True, then the container is currently not showing, therefore it must be shown, hence the widget is packed below.
                     self.lb = tk.Listbox(self.ret_search_container_canvas, width=self["width"], height=self.listboxLength)
+
+                    #Bind double clicking the mouse button 1 as a selection event.
                     self.lb.bind("<Double-Button-1>", self.selection)
+
+                    #Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
                     self.lb.bind("<Right>", self.selection)
                     self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+
+                    #The autocomplete container is now showing, therefore lb_up is True.
                     self.lb_up = True
 
+                #Delete any values that may have lingered on from the previous call of this function.
+                #Clears any possible values from the box to have an empty box to then populate.
                 self.lb.delete(0, tk.END)
 
-
+                #For each character in the user input list that we created earlier, insert the character back into the options in the autocomplete box.
                 for w in words:
                     self.lb.insert(tk.END,w)
             else:
+                #If the list of words is empty, then destroy the autocomplete box.
                 if self.lb_up:
                     self.lb.destroy()
                     self.lb_up = False
 
+                    #Hide the box from view, not destroy.
                     self.ret_search_container_autocomplete.pack_forget()
                     self.ret_search_container_canvas["height"]=0
                     self.ret_search_container_canvas["width"]=0
         
     def selection(self, event):
+        '''
+        Upon triggering this function, the selected autocomplete option will be copied over to the entry field.
+        '''
         if self.lb_up:
+            #If the autocomplete container is currently showing, then set the entry field where the user was entering their search, to be the value that they selected.
             self.ret_bookID_var.set(self.lb.get(tk.ACTIVE))
 
+            #Fetch the book's title, author and return date based on the bookID that was selected above.
             book_title_fetch = c.execute('SELECT title FROM Books WHERE bookID=?',(self.ret_bookID_var.get(),)).fetchall()
             book_title = [x[0] for x in book_title_fetch][0]
 
@@ -1543,34 +1637,57 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
             return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=?',(self.ret_bookID_var.get(),)).fetchall()
             return_date = [x[0] for x in return_date_fetch][0]
 
+            #Set the entry fields to be the fetched values.
             self.ret_title_var.set(book_title)
             self.ret_author_var.set(book_author)
             self.ret_date_entry.set_date(datetime.strptime(return_date, '%Y-%m-%d'))
 
+            #Hide the autocomplete box upon setting the other entry field values.
             self.ret_search_container_autocomplete.pack_forget()
             self.ret_search_container_canvas["height"]=0
             self.ret_search_container_canvas["width"]=0
 
+            #Destroy the container of the autocomplete box.
             self.lb.destroy()
+
+            #The container is no longer showing, therefore lb_up should be False.
             self.lb_up = False
+
+            #Set the cursor (flashing line when you type) to be at the end of the string in the entry field.
             self.icursor(tk.END)
 
     def up(self, event):
+        '''
+        Allow the user to move up the autocomplete box using the <Up> arrow key.
+        '''
+
         if self.lb_up:
+            #only allow the user to move this way, if the autocomplete box is currently on the screen.
             if self.lb.curselection() == ():
+                #lb.curselection() returns a tuple with the number of elements in the listbox that is the autocomplete box.
+                #If this tuple is empty, then set the index to 0 (the first element in the listbox will be highlighted)
                 index = '0'
             else:
+                #If it is not empty, then the index will be equal to the position of the currently selected element in the listbox.
                 index = self.lb.curselection()[0]
 
-            if index != '0':                
+            if index != '0':
+                #If the index is not 0, then the element in the index position will be cleared
                 self.lb.selection_clear(first=index)
+                #The index will decrement by one
                 index = str(int(index)-1)  
 
+                #Allow the element in the listbox at the index position to be in view.
                 self.lb.see(index)
                 self.lb.selection_set(first=index)
+
+                #Select the element specified by the index.
                 self.lb.activate(index) 
 
     def down(self, event):
+        '''
+        The same as the up function, but downward.
+        '''
         if self.lb_up:
             if self.lb.curselection() == ():
                 index = '0'
@@ -1585,6 +1702,11 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
                 self.lb.activate(index)
 
     def comparison(self):
+        '''
+        Convert the user input into a segmented list, where each character from the input is a seperate element.
+        Compares the database issued book values to the user input, and checks if any of the characters match any characters in the other and vice versa.
+        Returns a list of elements that make up the user input.
+        '''
         pattern = re.compile('.*' + self.ret_bookID_var.get() + '.*')
         return [w for w in self.listb if re.match(pattern, str(w))]
 
@@ -1592,6 +1714,12 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
 
 
 class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+
+    Structuraly the same as all the other Autocomplete classes, however this applies to the issuing of books.
+    Already described above.
+    '''
     def __init__(self, search_container_autocomplete, title_entry, title_var, author_entry, author_var, bookID_var, bookID_entry, search_container_canvas, *args, **kwargs):
 
         self.search_container_autocomplete = search_container_autocomplete
@@ -1731,6 +1859,12 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
 
 
 class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+
+    Structuraly the same as all the other Autocomplete classes, however this applies to the removal of books.
+    Already described above.
+    '''
     def __init__(self, remove_container_autocomplete, remove_title_entry, remove_title_var, remove_author_entry, remove_author_var, remove_bookID_var, remove_bookID_entry, remove_genre_var, remove_genre_menu, remove_container_canvas, *args, **kwargs):
 
         self.remove_container_autocomplete = remove_container_autocomplete
@@ -1867,3 +2001,5 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
     def comparison(self):
         pattern = re.compile('.*' + self.remove_bookID_var.get() + '.*')
         return [w for w in self.lista if re.match(pattern, str(w))]
+
+

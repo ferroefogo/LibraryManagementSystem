@@ -184,7 +184,7 @@ class Account():
                     #Set all fields to be empty
                     self.current_pw_var.set('')
                     self.new_pw_var.set('')
-                    self.a
+                    self.confirm_pw_var.set('')
                 else:
                     ms.showerror('Error','Current password does not match.')
 
@@ -194,6 +194,19 @@ class Account():
         '''
         account_deletion_confirmation = ms.askquestion('Account Deletion', 'Are you sure you want to delete your account?\n\nYou will not be able to recover any information saved on this account.\nAll personal information associated to this account will be deleted permanently.')
         if account_deletion_confirmation == 'yes':
+            #Unlink any books connected to this account and make them available.
+            #Must also delete the user from the MyBooks table.
+
+            db_check_linked_books_fetch = c.execute('SELECT bookID FROM MyBooks WHERE user_id=(SELECT user_id FROM Accounts WHERE email_address=?)',(self.user_email,)).fetchall()
+            db_check_linked_books = [x[0] for x in db_check_linked_books_fetch]
+            if len(db_check_linked_books) != 0:
+                #Must unlink the books and delete the MyBooks user_id entry.
+                for i in range(len(db_check_linked_books)):
+                    update_book_status = c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(db_check_linked_books[i],))
+
+                #Delete MyBooks row of this user.
+                remove_mybooks = c.execute('DELETE FROM MyBooks WHERE user_id=?',(user_id,))
+                db.commit()
             
             #Delete the account row where the current email address is signed in under.
             delete_account = c.execute("DELETE FROM Accounts WHERE email_address = ?",(self.user_email,))
