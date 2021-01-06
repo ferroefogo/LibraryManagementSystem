@@ -283,6 +283,23 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "library.py",
+			"settings":
+			{
+				"buffer_size": 14431,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "main.py",
+			"settings":
+			{
+				"buffer_size": 30721,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		}
 	],
 	"build_system": "Packages/Python/Python.sublime-build",
 	"build_system_choices":
@@ -457,6 +474,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"regex"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -474,8 +492,69 @@
 	"groups":
 	[
 		{
+			"selected": 1,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "library.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 14431,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3472,
+								3475
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 803.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "main.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 30721,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13965,
+								13974
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3910.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -510,6 +589,10 @@
 		]
 	},
 	"menu_visible": true,
+	"output.SublimeLinter":
+	{
+		"height": 0.0
+	},
 	"output.exec":
 	{
 		"height": 96.0
@@ -542,7 +625,7 @@
 		[
 			[
 				"",
-				"D:\\Desktop\\Collyer's Folder\\Computer Science\\Y2 Project\\Library Management System\\LMS.sublime-project"
+				"D:\\Desktop\\Collyer's Folder\\Computer Science\\Y2 Project\\Library Management System\\main.sublime-workspace"
 			]
 		],
 		"width": 380.0

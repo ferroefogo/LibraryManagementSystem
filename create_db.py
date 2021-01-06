@@ -44,6 +44,3 @@ conn.commit()
 
 c.execute("INSERT INTO Genres VALUES('-EMPTY-')")
 conn.commit()
-
-#Need an insert for the guest account login.
-
