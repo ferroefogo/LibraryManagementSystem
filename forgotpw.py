@@ -285,7 +285,7 @@ class ForgotPW():
             self.time_remaining = 0
             self.countdown(60)
         else:
-            ms.showwarning('Warning', 'Please wait another '+self.timer["text"]+'seconds to resend a password.')
+            ms.showwarning('Warning', 'Please wait another '+self.timer["text"]+' seconds to resend a password.')
 
     def password_strength(self, *args):
         '''

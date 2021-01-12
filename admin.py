@@ -46,6 +46,7 @@ class Admin():
         # Class variables
         self.root = root
         self.notebook = notebook
+        self.user_email = user_email
 
         admin_page = tk.Frame(self.notebook)
         notebook.add(admin_page, text="Admin")
@@ -706,7 +707,6 @@ class Admin():
         # Get all required variables from entry fields.
         add_email = self.email_var.get()
 
-
         # Broad regex to avoid invalid addresses
         email_regex = '^\S+@\S+$'
         if (re.search(email_regex, add_email)):
@@ -915,7 +915,7 @@ class Admin():
             self.countdown(60)
         else:
             # Tell the user that the timer has not ran down to 0.
-            ms.showwarning('Warning', 'Please wait another '+self.timer["text"]+'seconds to resend a code.')
+            ms.showwarning('Warning', 'Please wait another '+self.timer["text"]+' seconds to resend a code.')
 
     def countdown(self, time_remaining=None):
         '''
@@ -983,12 +983,24 @@ class Admin():
             if len(check_account_existance) == 0:
                 ms.showerror('Error', 'Invalid User ID.')
             else:
-                update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
+                update = 'UPDATE Accounts SET staff_mode=?, admin_mode=?'
                 c.execute(update, [(self.update_staff_mode_var.get()), (self.update_admin_mode_var.get())])
                 db.commit()
 
-                ms.showinfo('Success', 'Account Updated!')
-                ms.showinfo('Changes', 'To see the changes to the account, you must relog.')
+                find_email_tied_to_user = c.execute("SELECT email_address FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
+                user_email = [x[0] for x in find_email_tied_to_user][0]
+
+                # Call the email class from the email_sys file.
+                e = Email()
+                # Establish the Google API connection.
+                service = e.get_service()
+                # Create the message along with passing any additional information that must go on the message.
+                message = e.create_admin_update_acc_message("from@gmail.com", user_email,"Books4All Account Permissions Update", self.update_staff_mode_var.get(), self.update_admin_mode_var.get())
+                # Send the message.
+                e.send_message(service, "from@gmail.com", message)
+
+                ms.showinfo('Success', 'Account Updated!\nAn email has been sent to\n'+user_email+'\nwith the details of this action.')
+                ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
 
         except ValueError:
             # In case the user_id is empty or not an integer, assumption is made that the user has entered an email address.
@@ -1003,15 +1015,24 @@ class Admin():
                     # Check if the email is registered in the system
                     check_db = c.execute('SELECT email_address FROM Accounts WHERE email_address=?', (update_email,)).fetchall()
                     if len(check_db) == 0:
-                        ms.showerror('Error','Account does not exist in the system.')
+                        ms.showerror('Error', 'Account does not exist in the system.')
                     else:
                         # Update the access levels in the database, according to the input.
-                        update = 'UPDATE Accounts SET staff_mode=? AND admin_mode=?'
+                        update = 'UPDATE Accounts SET staff_mode=?, admin_mode=?'
                         c.execute(update, [(self.update_staff_mode_var.get()), (self.update_admin_mode_var.get())])
                         db.commit()
 
-                        ms.showinfo('Success!', 'Account Updated!')
-                        ms.showinfo('Changes', 'To see the changes to the account, you must relog.')
+                        # Call the email class from the email_sys file.
+                        e = Email()
+                        # Establish the Google API connection.
+                        service = e.get_service()
+                        # Create the message along with passing any additional information that must go on the message.
+                        message = e.create_admin_update_acc_message("from@gmail.com", update_email,"Books4All Account Permissions Update", self.update_staff_mode_var.get(), self.update_admin_mode_var.get())
+                        # Send the message.
+                        e.send_message(service, "from@gmail.com", message)
+
+                        ms.showinfo('Success', 'Account Updated!\nAn email has been sent to\n'+update_email+'\nwith the details of this action.')
+                        ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
                 else:
                     ms.showerror('Error', 'Invalid Email Address')
             else:
@@ -1051,7 +1072,7 @@ class Admin():
             except ValueError:
                 earliest_date = 'N/A'
 
-            if len(issued_bookIDs_list)==0 or len(return_date_list) == 0:
+            if len(issued_bookIDs_list) == 0 or len(return_date_list) == 0:
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], 'N/A', 'N/A')))
             else:
                 self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_book_list_string, earliest_date)))
@@ -1064,43 +1085,65 @@ class Admin():
         # The same structural premise as the update_account function
 
         # Get relevant values.
+
         try:
             user_id = int(self.remove_userID_var.get())
+            # Find all user_ids to check if the admin is attempting to remove the last account from the system.
+            all_accounts_fetch = c.execute("SELECT user_id FROM Accounts WHERE user_id=?", (user_id)).fetchall()
+            all_accounts = [x[0] for x in all_accounts_fetch]
+            if len(all_accounts) == 1:
+                ms.showerror("Do not remove any more accounts\nto keep the system stable and ensure optimal performance.")
+            else:
+                # Check if the user_id is an integer.
+                if isinstance(user_id, int) is True:
+                    # Check if userID exists.
+                    check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
+                    if len(check_account_existance) == 0:
+                        ms.showerror('Error', 'Invalid User ID.')
+                    else:
+                        # Unlink any books connected to this account and make them available.
+                        # Must also delete the user from the MyBooks table.
 
-            # Check if the user_id is an integer.
-            if isinstance(user_id, int) is True:
-                # Check if userID exists.
-                check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
-                if len(check_account_existance) == 0:
-                    ms.showerror('Error', 'Invalid User ID.')
-                else:
-                    # Unlink any books connected to this account and make them available.
-                    # Must also delete the user from the MyBooks table.
+                        db_check_linked_books_fetch = c.execute('SELECT bookID FROM MyBooks WHERE user_id=?', (user_id,)).fetchall()
+                        db_check_linked_books = [x[0] for x in db_check_linked_books_fetch]
+                        if len(db_check_linked_books) != 0:
+                            # Must unlink the books and delete the MyBooks user_id entry.
+                            for i in range(len(db_check_linked_books)):
+                                c.execute('UPDATE Books SET issued=0 WHERE bookID=?', (db_check_linked_books[i],))
 
-                    db_check_linked_books_fetch = c.execute('SELECT bookID FROM MyBooks WHERE user_id=?', (user_id,)).fetchall()
-                    db_check_linked_books = [x[0] for x in db_check_linked_books_fetch]
-                    if len(db_check_linked_books) != 0:
-                        # Must unlink the books and delete the MyBooks user_id entry.
-                        for i in range(len(db_check_linked_books)):
-                            c.execute('UPDATE Books SET issued=0 WHERE bookID=?', (db_check_linked_books[i],))
+                            # Delete MyBooks row of this user.
+                            c.execute('DELETE FROM MyBooks WHERE user_id=?', (user_id,))
+                            db.commit()
 
-                        # Delete MyBooks row of this user.
-                        c.execute('DELETE FROM MyBooks WHERE user_id=?', (user_id,))
+                        find_email_tied_to_user = c.execute("SELECT email_address FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
+                        user_email = [x[0] for x in find_email_tied_to_user]
+
+                        # Call the email class from the email_sys file.
+                        e = Email()
+
+                        # Establish the Google API connection.
+                        service = e.get_service()
+
+                        # Create the message along with passing any additional information that must go on the message.
+                        message = e.create_admin_acc_removal_message("from@gmail.com", user_email,"Books4All Account Removal")
+
+                        # Send the message.
+                        e.send_message(service, "from@gmail.com", message)
+
+                        # Delete the entire row where the user_id matches the user_id entered by the admin.
+                        c.execute('DELETE FROM Accounts WHERE user_id=?', (user_id,))
                         db.commit()
 
-                    # Delete the entire row where the user_id matches the user_id entered by the admin.
-                    c.execute('DELETE FROM Accounts WHERE user_id=?', (user_id,))
-                    db.commit()
+                        ms.showinfo('Success', 'Account Removed\nAn email has been sent to\n'+user_email+'\nwith the details of this action.')
+                        ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
 
-                    ms.showinfo('Success!', 'Account Removed!')
-
-                    # Fetch the next highest user_id in the table that is empty.
-                    select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
-                    highest_val = [x[0] for x in select_highest_val][0]
-                    self.userID_var.set(highest_val)
-            else:
-                ms.showerror('Error', 'Invalid User ID')
-        except Exception:
+                        # Fetch the next highest user_id in the table that is empty.
+                        select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
+                        highest_val = [x[0] for x in select_highest_val][0]
+                        self.userID_var.set(highest_val)
+                else:
+                    ms.showerror('Error', 'Invalid User ID')
+        except Exception as e:
             # In case the user_id is empty or not an integer, assumption is made that the user has entered an email address.
             remove_email = self.remove_email_var.get()
             if remove_email != '':
@@ -1129,7 +1172,17 @@ class Admin():
                         c.execute('DELETE FROM Accounts WHERE email_address=?', (remove_email,))
                         db.commit()
 
-                        ms.showinfo('Success!','Account Removed!')
+                        # Call the email class from the email_sys file.
+                        e = Email()
+                        # Establish the Google API connection.
+                        service = e.get_service()
+                        # Create the message along with passing any additional information that must go on the message.
+                        message = e.create_admin_acc_removal_message("from@gmail.com", remove_email,"Books4All Account Removal")
+                        # Send the message.
+                        e.send_message(service, "from@gmail.com", message)
+
+                        ms.showinfo('Success', 'Account Removed\nAn email has been sent to\n'+remove_email+'\nwith the details of this action.')
+                        ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
 
                     # Fetch the next highest user_id in the table that is empty.
                     select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
@@ -1138,7 +1191,7 @@ class Admin():
                 else:
                     ms.showerror('Error', 'Invalid Email Address')
             else:
-                ms.showerror('Error', 'Empty fields')
+                ms.showerror('Error', 'Invalid Input')
 
         # Call the database fetch function to get all the most recent values
         db_fetch = self.database_fetch()

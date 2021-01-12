@@ -232,8 +232,7 @@ class Account():
                         ms.showinfo('Success', 'Password has been updated.\nAn email has been sent to\n'+self.user_email+'\nwith the date of this change.')
 
                         # Set all fields to be empty
-                        self.current_pw_var.set('')
-                        self.new_pw_var.set('')
+                        self.pw_var.set('')
                         self.confirm_pw_var.set('')
                     else:
                         ms.showerror('Error', 'Current password does not match.')
@@ -264,7 +263,21 @@ class Account():
             c.execute("DELETE FROM Accounts WHERE email_address = ?", (self.user_email,))
             db.commit()
 
-            ms.showinfo('Success', 'Account Deleted')
+            # Call the email class from the email_sys file.
+            e = Email()
+            # Establish the Google API connection.
+            service = e.get_service()
+            # Create the message along with passing any additional information that must go on the message.
+            message = e.create_acc_deletion_message("from@gmail.com", self.user_email, "Books4All Account Deletion")
+            # Send the message.
+            e.send_message(service, "from@gmail.com", message)
+
+            ms.showinfo('Success', 'Account has been deleted.\nAn email has been sent to\n'+self.user_email+'\nwith the date of this action.')
+
+            # Set all fields to be empty
+            self.current_pw_var.set('')
+            self.new_pw_var.set('')
+            self.new_pw_confirm_var.set('')
 
             # exit system upon account deletion
             ms.showinfo('Deletion Notice', 'The system will now shutdown upon deletion')

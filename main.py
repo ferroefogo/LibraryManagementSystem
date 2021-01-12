@@ -514,7 +514,7 @@ class Register():
             self.countdown(60)
         else:
             # Display warning if the user attempts to resend the code, when the timer is not yet at 0.
-            ms.showwarning('Warning', 'Please wait another '+self.timer["text"]+'seconds to resend a code.')
+            ms.showwarning('Warning', 'Please wait another '+self.timer["text"]+' seconds to resend a code.')
 
     def countdown(self, time_remaining=None):
         '''

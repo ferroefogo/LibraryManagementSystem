@@ -101,13 +101,176 @@ class Email():
             logging.error('An HTTP error occurred: %s', error)
 
     @staticmethod
+    def create_admin_acc_removal_message(sender, to, subject, *args):
+        """
+        Create a message to be sent when the user deletes their account.
+        Returns:
+          An object containing a base64url encoded email object.
+        """
+        date_of_change = str(datetime.today().date().strftime('%d/%m/%Y'))
+        string_update = "As of "+date_of_change+" your account has been removed from our systems."
+
+        html = open("admin_delete_acc_email.html")
+
+        soup = BeautifulSoup(html, features="lxml")
+        html.close()
+        target = soup.find(id='date_of_change')
+        target_result = soup.find(id='date_of_change').find_all(text=True, recursive=False)
+        target_text = str(target_result[0])
+
+        for v in target:
+            v.replace_with(v.replace(target_text, string_update))
+
+        with open("admin_delete_acc_email.html", "w") as file:
+            file.write(str(soup))
+
+        updated_html = open("admin_delete_acc_email.html")
+
+        message = MIMEText(updated_html.read(), 'html')
+
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        s = message.as_string()
+        b = base64.urlsafe_b64encode(s.encode('utf-8'))
+        return {'raw': b.decode('utf-8')}
+
+    @staticmethod
+    def create_admin_update_acc_message(sender, to, subject, *args):
+        """
+        Create a message to be sent when an admin updates a target account.
+        Returns:
+          An object containing a base64url encoded email object.
+        """
+        # Extract the variables from the *args list passed in.
+        staff_mode = str(args[0])
+        admin_mode = str(args[1])
+
+        # Current date datetime object in YYYY-MM-DD.
+        CURRENT_DATE = str((datetime.today().date()).strftime('%d/%m/%Y'))
+        string_current_date = "As of "+CURRENT_DATE+" your account permissions have been updated."
+
+        # Format the information into a string that will be placed on the HTML file.
+        string_staff_mode = "Staff Access:: "+staff_mode
+        string_admin_mode = "Admin Access:: "+admin_mode
+
+        # Open the already formatted HTML email file.
+        html = open("admin_update_acc_email.html")
+
+        # Use BeautifulSoup to search through the HTML file
+        # to find the correct place to substitute in the
+        # variables that should be displayed in this
+        # email.
+        soup = BeautifulSoup(html, features="lxml")
+        # Close the file.
+        html.close()
+
+        # ID list containing all the HTML <span> tag IDs
+        # that will be searched for, so that their label
+        # text can be changed to match the variables
+        # above, such as admin_mode.
+        id_list = ['date_of_change', 'admin_mode', 'staff_mode']
+
+        # string variables assigned earlier are placed in a list to be iterated through.
+        field_list = [string_current_date, string_admin_mode, string_staff_mode]
+
+        # Iterate over the ID list with the field variable.
+        for field in range(len(id_list)):
+
+            # The current iteration will be the first element in the ID list.
+            current_id = id_list[field]
+
+            # target variable attempts to find and store
+            # the correct id of the span tag in the HTML file
+            target = soup.find(id=current_id)
+
+            # Return all the text within any of the tags with the id=current_id.
+            # The target_result variable stores all the text returned in a list,
+            # where each element is a different string within a different tag.
+            target_result = soup.find(id=current_id).find_all(text=True, recursive=False)
+
+            # Fetch the first element in the list of target_result,
+            # because there is only one HTML tag with this ID (e.g. book_title)
+            target_text = str(target_result[0])
+
+            # Store the string variable from the field_list of the current `field` iteration
+            current_field = field_list[field]
+
+            # Replace each character in the HTML tag with the string variable we want to put in.
+            for v in target:
+                v.replace_with(v.replace(target_text, current_field))
+
+            # Open the HTML file and write the changes to the file.
+            with open("admin_update_acc_email.html", "w") as file:
+                file.write(str(soup))
+
+        # The file is opened and the message is read from the HTML file
+        # to be passed into the send_message function to be sent.
+        updated_html = open("admin_update_acc_email.html")
+        message = MIMEText(updated_html.read(), 'html')
+
+        # Establish:
+        #   - The target email address (to)
+        #   - The system email address (from)
+        #   - The subject of the message (subject)
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+
+        # Convert the entire message into a string format (s)
+        s = message.as_string()
+
+        # Encode the string formatted variable (s) into a byte string
+        # which can then be converted into a base 64 urlsafe byte string
+        b = base64.urlsafe_b64encode(s.encode('utf-8'))
+
+        # Returns the raw decoded (b) byte string that will be passed into the
+        # send_message function, so that it can send the email.
+        return {'raw': b.decode('utf-8')}
+
+    @staticmethod
+    def create_acc_deletion_message(sender, to, subject, *args):
+        """
+        Create a message to be sent when the user deletes their account.
+        Returns:
+          An object containing a base64url encoded email object.
+        """
+        date_of_change = str(datetime.today().date().strftime('%d/%m/%Y'))
+        string_update = "As of "+date_of_change+" your account has been removed from our systems."
+
+        html = open("delete_acc_email.html")
+
+        soup = BeautifulSoup(html, features="lxml")
+        html.close()
+        target = soup.find(id='date_of_change')
+        target_result = soup.find(id='date_of_change').find_all(text=True, recursive=False)
+        target_text = str(target_result[0])
+
+        for v in target:
+            v.replace_with(v.replace(target_text, string_update))
+
+        with open("delete_acc_email.html", "w") as file:
+            file.write(str(soup))
+
+        updated_html = open("delete_acc_email.html")
+
+        message = MIMEText(updated_html.read(), 'html')
+
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        s = message.as_string()
+        b = base64.urlsafe_b64encode(s.encode('utf-8'))
+        return {'raw': b.decode('utf-8')}
+
+    @staticmethod
     def create_pw_change_message(sender, to, subject, *args):
         """
         Create a message to be sent when the user changes their password
         Returns:
           An object containing a base64url encoded email object.
         """
-        date_of_change = str(datetime.today().date())
+        date_of_change = str(datetime.today().date().strftime('%d/%m/%Y'))
         string_update = "As of "+date_of_change+" your password has been updated."
 
         html = open("change_pw_email.html")
@@ -121,10 +284,10 @@ class Email():
         for v in target:
             v.replace_with(v.replace(target_text, string_update))
 
-        with open("verification_email.html", "w") as file:
+        with open("change_pw_email.html", "w") as file:
             file.write(str(soup))
 
-        updated_html = open("verification_email.html")
+        updated_html = open("change_pw_email.html")
 
         message = MIMEText(updated_html.read(), 'html')
 
@@ -152,7 +315,7 @@ class Email():
         book_expected_return_date = args[4]
 
         # Current date datetime object in YYYY-MM-DD.
-        CURRENT_DATE = (datetime.today().date()).strftime('%Y-%m-%d')
+        CURRENT_DATE = (datetime.today().date()).strftime('%d/%m/%Y')
 
         # Format the information into a string that will be placed on the HTML file.
         string_book_title = "Title: "+title_var
