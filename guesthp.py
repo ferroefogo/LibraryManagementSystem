@@ -24,7 +24,7 @@ class GuestHelp():
         large_frame = tk.Frame(guest_help_page)
         large_frame.pack(fill=tk.BOTH, expand=True)
 
-        _help = tk.Label(large_frame, text="""The guest page is designed for those who do no want to create an account but
+        _help = tk.Label(large_frame, text="""The guest login is designed for those who do no want to create an account but
 still want to use the system to search for books.The library page allows you
 to view and filter through all available books in the library.
 
