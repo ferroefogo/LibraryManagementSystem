@@ -95,9 +95,7 @@ class Account():
         self.password_strength_label_1 = tk.Label(self.password_strength_container_1, text='Password must be a minimum of 8 characters.', bg=BG, fg=DANGER_FG)
 
         self.password_strength_container_2 = tk.Frame(self.change_password_container, bg=BG)
-        self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol)\n([!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]""", bg=BG, fg=DANGER_FG)
-
-        # Delete Account Container
+        self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol)\n([!@#$%^*-_+=|\{}[]`¬;:@"'<>,./?]""", bg=BG, fg=DANGER_FG)
         self.delete_account_container = tk.Frame(account_page, bg=BG)
         self.container_delete_account_header = tk.Label(self.delete_account_container, text='Delete Account', font=FONT, bg=BG)
 

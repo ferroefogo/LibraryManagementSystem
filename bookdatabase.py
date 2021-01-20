@@ -319,6 +319,8 @@ class BookDatabase():
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         AutoCompleteEntryBD_IssueBookID(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
 
+        AutoCompleteEntryBD_IssueTitle(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
+
         # # #  Book Return ('ret' following the variable name is short for 'return' to differentiate between the variables above and below)
         # Return Books UI
         ret_filter_container = tk.Frame(book_database_page, bg=BG)
@@ -1773,6 +1775,229 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         return [w for w in self.listb if re.match(pattern, str(w))]
 
 
+class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+    '''
+    def __init__(self, ret_search_container_autocomplete, ret_title_entry, ret_title_var, ret_author_entry, ret_author_var, ret_bookID_var, ret_bookID_entry, ret_date_entry, ret_search_container_canvas, *args, **kwargs):
+        '''
+        Fetch all the necessary values and setup the variables required for the upcoming functions.
+        '''
+
+        # Add self to variables to make them class instance variables and be accessed across the class.
+        self.ret_search_container_autocomplete = ret_search_container_autocomplete
+        self.ret_bookID_entry = ret_bookID_entry
+        self.ret_title_entry = ret_title_entry
+        self.ret_author_entry = ret_author_entry
+        self.ret_date_entry = ret_date_entry
+        self.ret_search_container_canvas = ret_search_container_canvas
+
+        #  Listbox length
+        if 'listboxLength' in kwargs:
+            self.listboxLength = kwargs['listboxLength']
+            del kwargs['listboxLength']
+        else:
+            self.listboxLength = 8
+
+        # Initiate the entry box for the autocomplete search field.
+        ttk.Entry.__init__(self, *args, **kwargs)
+        # Focus the user keyboard on the this field.
+        self.focus()
+
+        # Fetch database books that have been issued (issued=1)
+        # Titles
+        c.execute("SELECT title FROM Books WHERE issued=1")
+        issued_titles_fetch = c.fetchall()
+        issued_titles_list = [x[0] for x in issued_titles_fetch]
+
+        # Establish more class instance variables.
+        self.listb = issued_titles_list
+
+        self.ret_bookID_var = ret_bookID_var
+        self.ret_title_var = ret_title_var
+        self.ret_author_var = ret_author_var
+
+        self.ret_title_entry = self["textvariable"]
+        if self.ret_title_entry == '':
+            self.ret_title_entry = self["textvariable"] = tk.StringVar()
+
+        # Trace the user input in the entry field.
+        # Calls self.changed function upon any user changes in the field.
+        self.ret_title_var.trace('w', self.changed)
+
+        # Bind the user's arrow keys to different functions in the autocomplete box.
+        # <Right> arrow key allows for the user to select the currently highlighted autocomplete value.
+        self.bind("<Right>", self.selection)
+        # <Up> and <Down> arrow keys allow the user to navigate the autocomplete box.
+        self.bind("<Up>", self.up)
+        self.bind("<Down>", self.down)
+
+        # lb_up determines whether the autocomplete frame should be currently showing or not.
+        # Set to False by default, to avoid having the box showing the entire time, despite any user input or not.
+        self.lb_up = False
+
+    def changed(self, name, index, mode):
+        '''
+        Passes in the name, index and mode of the search.
+        Name: Holds the event trigger that is automatically passed by tkinter when the .trace() function is called
+        Index: Holds the index position of the user when searching through the autocomplete box using the arrow keys.
+        Mode: Holds the mode which is currently being used to search through the box.
+        '''
+        # Fetch database books that have been issued (issued=1)
+        # Titles
+        c.execute("SELECT title FROM Books WHERE issued=1")
+        issued_titles_fetch = c.fetchall()
+        issued_titles = [x[0] for x in issued_titles_fetch]
+
+        self.listb = issued_titles
+
+        # Check if the autocomplete container is currently on the screen.
+        if self.ret_search_container_autocomplete.winfo_ismapped() == False:
+            # If the autocomplete container is not on the screen, display it on there.
+            self.ret_search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+
+        if self.ret_title_var.get() == '':
+            # If the user input is empty, destroy the autocomplete box.
+            if self.lb_up:
+                self.lb.destroy()
+                self.lb_up = False
+        else:
+            # If the user input is not empty, populate the autocomplete container with the correct values that match the input.
+            # Call the comparison function that checks if any of the bookIDs in the database match any of the characters entered by the user.
+            # Returns a list each character entered by the user. Example: input=(Yes), then words=['Y','e','s']
+            words = self.comparison()
+            if words:
+                # Since there are no operators to evaluate the variable 'words',
+                # the if statement evaluates it as a boolean, therefore if there is any kind of data in words, it will be considered a truthy statement
+                # and return True, if there is no data in the variable at all, it is considered a False.
+                if not self.lb_up:
+                    # If the opposite of the autocomplete container status is True, then the container is currently not showing, therefore it must be shown, hence the widget is packed below.
+                    self.lb = tk.Listbox(self.ret_search_container_canvas, width=self["width"], height=self.listboxLength)
+
+                    # Bind double clicking the mouse button 1 as a selection event.
+                    self.lb.bind("<Double-Button-1>", self.selection)
+
+                    # Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
+                    self.lb.bind("<Right>", self.selection)
+                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+
+                    # The autocomplete container is now showing, therefore lb_up is True.
+                    self.lb_up = True
+
+                # Delete any values that may have lingered on from the previous call of this function.
+                # Clears any possible values from the box to have an empty box to then populate.
+                self.lb.delete(0, tk.END)
+
+                # For each character in the user input list that we created earlier, insert the character back into the options in the autocomplete box.
+                for w in words:
+                    self.lb.insert(tk.END, w)
+            else:
+                # If the list of words is empty, then destroy the autocomplete box.
+                if self.lb_up:
+                    self.lb.destroy()
+                    self.lb_up = False
+
+                    # Hide the box from view, not destroy.
+                    self.ret_search_container_autocomplete.pack_forget()
+                    self.ret_search_container_canvas["height"] = 0
+                    self.ret_search_container_canvas["width"] = 0
+
+    def selection(self, event):
+        '''
+        Upon triggering this function, the selected autocomplete option will be copied over to the entry field.
+        '''
+        if self.lb_up:
+            # If the autocomplete container is currently showing, then set the entry field where the user was entering their search, to be the value that they selected.
+            self.ret_title_var.set(self.lb.get(tk.ACTIVE))
+
+            # Fetch the book's title, author and return date based on the bookID that was selected above.
+            book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.ret_title_var.get(),)).fetchall()
+            book_bookID = [x[0] for x in book_bookID_fetch][0]
+
+            book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.ret_title_var.get(),)).fetchall()
+            book_author = [x[0] for x in book_author_fetch][0]
+
+            try:
+                # Fetch return date from table
+                return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE title=?', (self.ret_title_var.get(),)).fetchall()
+                return_date = [x[0] for x in return_date_fetch][0]
+            except IndexError:
+                return_date = str(datetime.today().strftime('%Y-%m-%d'))
+
+            # Set the entry fields to be the fetched values.
+            self.ret_bookID_var.set(book_bookID)
+            self.ret_author_var.set(book_author)
+            self.ret_date_entry.set_date(datetime.strptime(return_date, '%Y-%m-%d'))
+
+            # Hide the autocomplete box upon setting the other entry field values.
+            self.ret_search_container_autocomplete.pack_forget()
+            self.ret_search_container_canvas["height"] = 0
+            self.ret_search_container_canvas["width"] = 0
+
+            # Destroy the container of the autocomplete box.
+            self.lb.destroy()
+
+            # The container is no longer showing, therefore lb_up should be False.
+            self.lb_up = False
+
+            # Set the cursor (flashing line when you type) to be at the end of the string in the entry field.
+            self.icursor(tk.END)
+
+    def up(self, event):
+        '''
+        Allow the user to move up the autocomplete box using the <Up> arrow key.
+        '''
+
+        if self.lb_up:
+            # only allow the user to move this way, if the autocomplete box is currently on the screen.
+            if self.lb.curselection() == ():
+                # lb.curselection() returns a tuple with the number of elements in the listbox that is the autocomplete box.
+                # If this tuple is empty, then set the index to 0 (the first element in the listbox will be highlighted)
+                index = '0'
+            else:
+                # If it is not empty, then the index will be equal to the position of the currently selected element in the listbox.
+                index = self.lb.curselection()[0]
+
+            if index != '0':
+                # If the index is not 0, then the element in the index position will be cleared
+                self.lb.selection_clear(first=index)
+                # The index will decrement by one
+                index = str(int(index)-1)
+
+                # Allow the element in the listbox at the index position to be in view.
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+
+                # Select the element specified by the index.
+                self.lb.activate(index)
+
+    def down(self, event):
+        '''
+        The same as the up function, but downward.
+        '''
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+            if index != tk.END:
+                self.lb.selection_clear(first=index)
+                index = str(int(index)+1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def comparison(self):
+        '''
+        Convert the user input into a segmented list, where each character from the input is a seperate element.
+        Compares the database issued book values to the user input, and checks if any of the characters match any characters in the other and vice versa.
+        Returns a list of elements that make up the user input.
+        '''
+        pattern = re.compile('.*' + self.ret_title_var.get() + '.*')
+        return [w for w in self.listb if re.match(pattern, str(w))]
+
+
 class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
     '''
     Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
@@ -1849,7 +2074,7 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
                 self.lb.delete(0, tk.END)
 
                 for w in words:
-                    self.lb.insert(tk.END,w)
+                    self.lb.insert(tk.END, w)
 
             else:
                 if self.lb_up:
@@ -1857,8 +2082,8 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
                     self.lb_up = False
 
                     self.search_container_autocomplete.pack_forget()
-                    self.search_container_canvas["height"]=0
-                    self.search_container_canvas["width"]=0
+                    self.search_container_canvas["height"] = 0
+                    self.search_container_canvas["width"] = 0
 
     def selection(self, event):
         if self.lb_up:
@@ -1912,6 +2137,148 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
 
     def comparison(self):
         pattern = re.compile('.*' + self.bookID_var.get() + '.*')
+        return [w for w in self.lista if re.match(pattern, str(w))]
+
+
+class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+
+    Structuraly the same as all the other Autocomplete classes, however this applies to the issuing of books given the title field input.
+    Already described above.
+    '''
+    def __init__(self, search_container_autocomplete, title_entry, title_var, author_entry, author_var, bookID_var, bookID_entry, search_container_canvas, *args, **kwargs):
+
+        self.search_container_autocomplete = search_container_autocomplete
+        self.search_container_canvas = search_container_canvas
+
+        self.title_entry = title_entry
+        self.author_entry = author_entry
+
+        #  Listbox length
+        if 'listboxLength' in kwargs:
+            self.listboxLength = kwargs['listboxLength']
+            del kwargs['listboxLength']
+        else:
+            self.listboxLength = 8
+
+        ttk.Entry.__init__(self, *args, **kwargs)
+        self.focus()
+
+        # Titles
+        c.execute("SELECT title FROM Books WHERE issued=0")
+        books_titles_fetch = c.fetchall()
+        book_titles_list = [x[0] for x in books_titles_fetch]
+
+        self.lista = book_titles_list
+
+        self.bookID_var = bookID_var
+        self.title_var = title_var
+        self.author_var = author_var
+
+        self.title_entry = self["textvariable"]
+        if self.title_entry == '':
+            self.title_entry = self["textvariable"] = tk.StringVar()
+
+        self.title_var.trace('w', self.changed)
+        self.bind("<Right>", self.selection)
+        self.bind("<Up>", self.up)
+        self.bind("<Down>", self.down)
+
+        self.lb_up = False
+
+    def changed(self, name, index, mode):
+        # Titles
+        c.execute("SELECT title FROM Books WHERE issued=0")
+        books_titles_fetch = c.fetchall()
+        book_titles_list = [x[0] for x in books_titles_fetch]
+
+        self.lista = book_titles_list
+
+        if self.search_container_autocomplete.winfo_ismapped() is False:
+            self.search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+
+        if self.title_var.get() == '':
+            if self.lb_up:
+                self.lb.destroy()
+                self.lb_up = False
+
+        else:
+            words = self.comparison()
+            if words:
+                if not self.lb_up:
+                    self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
+                    self.lb.bind("<Double-Button-1>", self.selection)
+                    self.lb.bind("<Right>", self.selection)
+                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+                    self.lb_up = True
+
+                self.lb.delete(0, tk.END)
+
+                for w in words:
+                    self.lb.insert(tk.END, w)
+
+            else:
+                if self.lb_up:
+                    self.lb.destroy()
+                    self.lb_up = False
+
+                    self.search_container_autocomplete.pack_forget()
+                    self.search_container_canvas["height"] = 0
+                    self.search_container_canvas["width"] = 0
+
+    def selection(self, event):
+        if self.lb_up:
+            self.title_var.set(self.lb.get(tk.ACTIVE))
+
+            book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.title_var.get(),)).fetchall()
+            book_bookID = [x[0] for x in book_bookID_fetch][0]
+
+            book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.title_var.get(),)).fetchall()
+            book_author = [x[0] for x in book_author_fetch][0]
+
+            self.bookID_var.set(book_bookID)
+            self.author_var.set(book_author)
+
+            self.search_container_autocomplete.pack_forget()
+            self.search_container_canvas["height"] = 0
+            self.search_container_canvas["width"] = 0
+
+            self.lb.destroy()
+            self.lb_up = False
+            self.icursor(tk.END)
+
+    def up(self, event):
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+
+            if index != '0':
+                self.lb.selection_clear(first=index)
+                index = str(int(index)-1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def down(self, event):
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+            if index != tk.END:
+                self.lb.selection_clear(first=index)
+                index = str(int(index)+1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def comparison(self):
+        pattern = re.compile('.*' + self.title_var.get() + '.*')
         return [w for w in self.lista if re.match(pattern, str(w))]
 
 

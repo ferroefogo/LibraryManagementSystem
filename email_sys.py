@@ -146,13 +146,22 @@ class Email():
         staff_mode = str(args[0])
         admin_mode = str(args[1])
 
+        if staff_mode == 1:
+            staff_access = 'Enabled'
+        else:
+            staff_mode = 'Disabled'
+        if admin_mode == 1:
+            admin_access = 'Enabled'
+        else:
+            admin_access = 'Disabled'
+
         # Current date datetime object in YYYY-MM-DD.
         CURRENT_DATE = str((datetime.today().date()).strftime('%d/%m/%Y'))
         string_current_date = "As of "+CURRENT_DATE+" your account permissions have been updated."
 
         # Format the information into a string that will be placed on the HTML file.
-        string_staff_mode = "Staff Access:: "+staff_mode
-        string_admin_mode = "Admin Access:: "+admin_mode
+        string_staff_mode = "Staff Access:: "+staff_access
+        string_admin_mode = "Admin Access:: "+admin_access
 
         # Open the already formatted HTML email file.
         html = open("admin_update_acc_email.html")

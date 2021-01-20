@@ -28,6 +28,7 @@ PADX = re.sub('^.*?=', '', linecache.getline('config.txt', 2))
 PADY = re.sub('^.*?=', '', linecache.getline('config.txt', 3))
 SMALL_GEOMETRY = re.sub('^.*?=','',linecache.getline('config.txt', 5)).strip()
 BG = re.sub('^.*?=', '', linecache.getline('config.txt', 6)).strip()
+DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt',7)).strip()
 MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt', 9)).strip()
 FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 10)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 11)).strip()
@@ -67,7 +68,7 @@ class Admin():
         tree_header.pack(padx=PADX, pady=PADY)
 
         # Set up TreeView table
-        self.columns = ('User ID','Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
+        self.columns = ('User ID', 'Email Address', 'Staff Mode', 'Admin Mode', 'Issued BookIDs', 'Earliest Return Date')
         self.tree = ttk.Treeview(tree_container, columns=self.columns, show='headings')
         self.tree.heading("User ID", text='User ID')
         self.tree.heading("Email Address", text='Email Address')
@@ -100,7 +101,7 @@ class Admin():
         for i in range(len(userID_list)):
 
             # Fetch the bookIDs of all the books under this specific user.
-            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?", (userID_list[i],))
             issued_bookIDs_fetch = c.fetchall()
             issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
 
@@ -109,7 +110,7 @@ class Admin():
                 issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
 
             # Fetch all the return dates under this specific user.
-            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?",(userID_list[i],))
+            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?", (userID_list[i],))
             return_date_fetch = c.fetchall()
             return_date_list = [x[0] for x in return_date_fetch]
 
@@ -180,6 +181,7 @@ class Admin():
         password_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         self.password_var = tk.StringVar()
+        self.password_var.trace('w', self.password_strength)
 
         self.password_entry = ttk.Entry(self.password_container, textvariable=self.password_var, show='*')
         self.password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
@@ -196,6 +198,22 @@ class Admin():
         self.confirm_password_entry = ttk.Entry(self.confirm_password_container, textvariable=self.confirm_password_var, show='*')
         self.confirm_password_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
+        # Password Strength measure container
+        self.password_strength_master_container = tk.Frame(add_account_container, bg=BG)
+        self.password_strength_master_container.pack(expand=True)
+
+        self.password_strength_container_1 = tk.Frame(self.password_strength_master_container, bg=BG)
+        self.password_strength_container_1.pack(expand=True)
+
+        self.password_strength_label_1 = tk.Label(self.password_strength_container_1, text='Password must be a minimum of 8 characters.', bg=BG, fg=DANGER_FG)
+        self.password_strength_label_1.pack(anchor=tk.E, side=tk.RIGHT, padx=PADX, pady=PADY)
+
+        self.password_strength_container_2 = tk.Frame(self.password_strength_master_container, bg=BG)
+        self.password_strength_container_2.pack(expand=True)
+
+        self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol)\n([!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]""", bg=BG, fg=DANGER_FG)
+        self.password_strength_label_2.pack(anchor=tk.E, side=tk.RIGHT, padx=PADX, pady=PADY)
+
         # Staff Mode Box
         add_mode_container = tk.Frame(add_account_container, bg=BG)
         add_mode_container.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
@@ -205,8 +223,8 @@ class Admin():
 
         self.add_staff_mode_var = tk.IntVar()
 
-        add_staff_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_staff_mode_var)
-        add_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
+        self.add_staff_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_staff_mode_var)
+        self.add_staff_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Admin Mode Box
         add_admin_mode_label = tk.Label(add_mode_container, text='Admin Mode: ', bg=BG)
@@ -214,8 +232,8 @@ class Admin():
 
         self.add_admin_mode_var = tk.IntVar()
 
-        add_admin_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_admin_mode_var)
-        add_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
+        self.add_admin_mode_checkbtn = ttk.Checkbutton(add_mode_container, variable=self.add_admin_mode_var)
+        self.add_admin_mode_checkbtn.pack(side=tk.LEFT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Add Account
         add_account_button_container = tk.Frame(add_account_container, bg=BG)
@@ -224,6 +242,10 @@ class Admin():
         add_account_btn = ttk.Button(add_account_button_container)
         add_account_btn.config(text='    Add Account    ', command=self.add_account)
         add_account_btn.pack(side=tk.RIGHT, anchor=tk.W, padx=PADX, pady=PADY)
+
+        # Show password button
+        self.show_password_button = ttk.Button(add_account_button_container, text='Show Password', command=lambda: self.show_password())
+        self.show_password_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         # Update Existing Account
         # Allows an admin to update the permissions of a staff/user account.
@@ -242,18 +264,6 @@ class Admin():
         self.update_userID_var = ttk.Entry(self.update_account_userID_container)
         self.update_userID_var.config(textvariable=self.update_userID_var)
         self.update_userID_var.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-
-        # Email Address Entry Field
-        self.update_account_email_container = tk.Frame(add_account_container, bg=BG)
-        self.update_account_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-
-        update_email_label = tk.Label(self.update_account_email_container, text='Email Address: ', bg=BG)
-        update_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
-
-        self.update_email_var = tk.StringVar()
-
-        self.update_email_entry = ttk.Entry(self.update_account_email_container, textvariable=self.update_email_var)
-        self.update_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Update staff mode frame
         update_mode_container = tk.Frame(add_account_container, bg=BG)
@@ -304,18 +314,6 @@ class Admin():
         self.remove_userID_entry = ttk.Entry(self.remove_userID_container)
         self.remove_userID_entry.config(textvariable=self.remove_userID_var)
         self.remove_userID_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-
-        # Email Address Entry Field
-        self.remove_email_container = tk.Frame(remove_account_container, bg=BG)
-        self.remove_email_container.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
-
-        remove_email_label = tk.Label(self.remove_email_container, text='Email Address: ', bg=BG)
-        remove_email_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
-
-        self.remove_email_var = tk.StringVar()
-
-        self.remove_email_entry = ttk.Entry(self.remove_email_container, textvariable=self.remove_email_var)
-        self.remove_email_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Remove Account
         remove_account_button_container = tk.Frame(remove_account_container, bg=BG)
@@ -407,7 +405,7 @@ class Admin():
         number_books_frame = tk.Frame(analytics_container)
         number_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        self.number_books_label = tk.Label(number_books_frame, text='Number of books:%d' % number_books)
+        self.number_books_label = tk.Label(number_books_frame, text='Number of Books:%d' % number_books)
         self.number_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
         # Total issued book tally
@@ -418,7 +416,7 @@ class Admin():
         number_issued_books_frame = tk.Frame(analytics_container)
         number_issued_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        self.number_issued_books_label = tk.Label(number_issued_books_frame, text='Number of issued books:%d' % number_issued_books)
+        self.number_issued_books_label = tk.Label(number_issued_books_frame, text='Number of Issued Books:%d' % number_issued_books)
         self.number_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
         # Total non-issued book tally
@@ -429,14 +427,14 @@ class Admin():
         number_non_issued_books_frame = tk.Frame(analytics_container)
         number_non_issued_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        self.number_non_issued_books_label = tk.Label(number_non_issued_books_frame, text='Number of non-issued books:%d' % number_non_issued_books)
+        self.number_non_issued_books_label = tk.Label(number_non_issued_books_frame, text='Number of Non-Issued Books:%d' % number_non_issued_books)
         self.number_non_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
         # Average number of books issued out on a single day over the past week
         mean_avg_container = tk.Frame(analytics_container)
         mean_avg_container.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
-        self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued out on a day:')
+        self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued\nOver the Last 7 Days\n(NOT Including today)')
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
 
         # Button to access genre popularity graph
@@ -704,6 +702,9 @@ class Admin():
         Add an account onto the system, regardless of access level.
         '''
 
+        # Password Regex check chars
+        special_characters_regex = re.compile("""[!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]()""")
+
         # Get all required variables from entry fields.
         add_email = self.email_var.get()
 
@@ -718,100 +719,105 @@ class Admin():
                 ms.showwarning('Warning','Your passwords do not match.')
             elif add_password == '' or add_confirm_password == '':
                 ms.showwarning('Warning', 'You left the password fields empty!')
-            else:
-                # Encrypt+Salt PWs
-                hashable_pw = bytes(add_password, 'utf-8')
-                hashed_pw = bcrypt.hashpw(hashable_pw, bcrypt.gensalt())
+            elif len(add_password) >= 8:
+                if special_characters_regex.search(add_password) != None:
+                    # Encrypt+Salt PWs
+                    hashable_pw = bytes(add_password, 'utf-8')
+                    hashed_pw = bcrypt.hashpw(hashable_pw, bcrypt.gensalt())
 
-                # Convert into base64string
-                self.db_hashed_pw = hashed_pw.decode("utf-8")
+                    # Convert into base64string
+                    self.db_hashed_pw = hashed_pw.decode("utf-8")
 
-                # Send password to DB
-                find_user = ('SELECT * FROM Accounts WHERE email_address = ?')
-                c.execute(find_user, [(add_email)])
+                    # Send password to DB
+                    find_user = ('SELECT * FROM Accounts WHERE email_address = ?')
+                    c.execute(find_user, [(add_email)])
 
-                if c.fetchall():
-                    ms.showerror('Error!', 'Email is already registered to an Account.')
+                    if c.fetchall():
+                        ms.showerror('Error!', 'Email is already registered to an Account.')
+                    else:
+                        # 1. TopLevel window and layout.
+                        self.accountVerification = tk.Toplevel()
+
+                        # configurations
+                        self.accountVerification.title("Account Verification")
+                        self.accountVerification.option_add('*Font', 'System 12')
+                        self.accountVerification.option_add('*Label.Font', 'System 12')
+                        self.accountVerification.geometry(SMALL_GEOMETRY)
+                        self.accountVerification.resizable(False, False)
+
+                        main_frame = tk.Frame(self.accountVerification, relief=tk.FLAT)
+                        main_frame.pack(fill=tk.BOTH, side=tk.TOP)
+
+                        main_label = tk.Label(main_frame, text='Library System v1.0')
+                        main_label.pack(fill=tk.X, anchor=tk.N)
+
+                        header_frame = tk.Frame(self.accountVerification)
+                        header_frame.pack(fill=tk.X, side=tk.TOP)
+
+                        header = tk.Label(header_frame, text='Account Verification', font=HEADER_FONT)
+                        header.pack(side=tk.TOP)
+
+                        header_description = tk.Label(header_frame, text='A 6 digit verification code has been sent to\n'+add_email+'\n Please enter the 6 digit code into the entry field below.', font='System 8')
+                        header_description.pack(side=tk.TOP)
+
+                        self.timer = tk.Label(header_frame, text='')
+                        self.timer.pack(side=tk.TOP)
+
+                        # Establish timer to avoid spamming inbox.
+                        self.time_remaining = 0
+                        self.countdown(60)
+
+                        # Codes Full Container
+                        code_container = tk.Frame(self.accountVerification, bg=BG)
+                        code_container.pack(padx=PADX, pady=PADY)
+
+                        # Code Entry Field Container
+                        verification_code_container = tk.Frame(code_container, bg=BG)
+                        verification_code_container.pack(expand=True)
+
+                        verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=BG)
+                        verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+
+                        self.verification_code_reg = self.root.register(self.verification_code_validate)
+
+                        self.verification_code_var = tk.StringVar()
+                        self.verification_code_var.set('')
+                        self.verification_code_entry = ttk.Entry(verification_code_container, textvariable=self.verification_code_var,
+                                                                font='System 6', validate="key",
+                                                                validatecommand=(self.verification_code_reg, "%P"))
+                        self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+
+                        # Buttons Container
+                        button_container = tk.Frame(code_container, bg=BG)
+                        button_container.pack(expand=True)
+
+                        check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda: self.check_code(self.verification_code_var.get()))
+                        resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda: self.resend_code(self.verification_code_var.get()))
+
+                        check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
+                        resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+
+                        self.verification_code_entry.bind("<Return>", self.check_code)
+
+                        # 2.1. Randomly generate a 6 digit code to be sent by email
+                        self.email_verification_code = ''
+                        i = 0
+                        while i < 6:
+                            # random.SystemRandom() is used because it is cryptographically secure, due to its use of entropy - that is unpredictable from a source that cannot be observed.
+                            random_integer = random.SystemRandom().randint(0, 9)
+                            i += 1
+                            self.email_verification_code += str(random_integer)
+
+                        # 2.2. Send Email to user with the verification code.
+                        # Call the Email class
+                        e = Email()
+                        service = e.get_service()
+                        message = e.create_verification_message("from@gmail.com", add_email, "Books4All Re", self.email_verification_code)
+                        e.send_message(service, "from@gmail.com", message)
                 else:
-                    # 1. TopLevel window and layout.
-                    self.accountVerification = tk.Toplevel()
-
-                    # configurations
-                    self.accountVerification.title("Account Verification")
-                    self.accountVerification.option_add('*Font', 'System 12')
-                    self.accountVerification.option_add('*Label.Font', 'System 12')
-                    self.accountVerification.geometry(SMALL_GEOMETRY)
-                    self.accountVerification.resizable(False, False)
-
-                    main_frame = tk.Frame(self.accountVerification, relief=tk.FLAT)
-                    main_frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-                    main_label = tk.Label(main_frame, text='Library System v1.0')
-                    main_label.pack(fill=tk.X, anchor=tk.N)
-
-                    header_frame = tk.Frame(self.accountVerification)
-                    header_frame.pack(fill=tk.X, side=tk.TOP)
-
-                    header = tk.Label(header_frame, text='Account Verification', font=HEADER_FONT)
-                    header.pack(side=tk.TOP)
-
-                    header_description = tk.Label(header_frame, text='A 6 digit verification code has been sent to\n'+add_email+'\n Please enter the 6 digit code into the entry field below.', font='System 8')
-                    header_description.pack(side=tk.TOP)
-
-                    self.timer = tk.Label(header_frame, text='')
-                    self.timer.pack(side=tk.TOP)
-
-                    # Establish timer to avoid spamming inbox.
-                    self.time_remaining = 0
-                    self.countdown(60)
-
-                    # Codes Full Container
-                    code_container = tk.Frame(self.accountVerification, bg=BG)
-                    code_container.pack(padx=PADX, pady=PADY)
-
-                    # Code Entry Field Container
-                    verification_code_container = tk.Frame(code_container, bg=BG)
-                    verification_code_container.pack(expand=True)
-
-                    verification_code_label = tk.Label(verification_code_container, text='    Verification Code:   ', bg=BG)
-                    verification_code_label.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
-
-                    self.verification_code_reg = self.root.register(self.verification_code_validate)
-
-                    self.verification_code_var = tk.StringVar()
-                    self.verification_code_var.set('')
-                    self.verification_code_entry = ttk.Entry(verification_code_container, textvariable=self.verification_code_var,
-                                                            font='System 6', validate="key",
-                                                            validatecommand=(self.verification_code_reg, "%P"))
-                    self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-
-                    # Buttons Container
-                    button_container = tk.Frame(code_container, bg=BG)
-                    button_container.pack(expand=True)
-
-                    check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda: self.check_code(self.verification_code_var.get()))
-                    resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda: self.resend_code(self.verification_code_var.get()))
-
-                    check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
-                    resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-
-                    self.verification_code_entry.bind("<Return>", self.check_code)
-
-                    # 2.1. Randomly generate a 6 digit code to be sent by email
-                    self.email_verification_code = ''
-                    i = 0
-                    while i < 6:
-                        # random.SystemRandom() is used because it is cryptographically secure, due to its use of entropy - that is unpredictable from a source that cannot be observed.
-                        random_integer = random.SystemRandom().randint(0, 9)
-                        i += 1
-                        self.email_verification_code += str(random_integer)
-
-                    # 2.2. Send Email to user with the verification code.
-                    # Call the Email class
-                    e = Email()
-                    service = e.get_service()
-                    message = e.create_verification_message("from@gmail.com", add_email, "Books4All Re", self.email_verification_code)
-                    e.send_message(service, "from@gmail.com", message)
+                    ms.showerror('Error', 'The password entered does not have any special characters.')
+            else:
+                ms.showerror('Error', 'The password entered does not have at least 8 characters.')
         else:
             ms.showerror('Error', 'Invalid Email Address')
 
@@ -886,6 +892,12 @@ class Admin():
                     self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_book_list_string, earliest_date)))
             self.tree.pack()
 
+            self.email_var.set('')
+            self.password_var.set('')
+            self.confirm_password_var.set('')
+            self.add_staff_mode_var.set(0)
+            self.add_staff_mode_var.set(0)
+
             ms.showinfo('Success!', 'Account Created!')
 
     def resend_code(self, *args):
@@ -956,19 +968,6 @@ class Admin():
         else:
             return False
 
-    def show_password(self, *args):
-        '''
-        Shows the password in plaintext upon button press.
-        '''
-        # If the password is currently hidden under asterisks, show it in plaintext
-        if self.password_entry["show"] == "*":
-            self.password_entry["show"] = ''
-            self.confirm_pw_entry["show"] = ''
-        else:
-            # Display the password in asterisks again.
-            self.password_entry["show"] = '*'
-            self.confirm_pw_entry["show"] = '*'
-
     def update_account(self):
         '''
         Update an account's access level.
@@ -976,7 +975,7 @@ class Admin():
 
         # Get relevant input fields.
         try:
-            user_id = int(self.update_userID_var.get())
+            user_id = self.update_userID_var.get()
 
             # Check if userID exists.
             check_account_existance = c.execute("SELECT user_id FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
@@ -1012,93 +1011,47 @@ class Admin():
                 else:
                     ms.showerror('Error', 'You cannot change your own account privileges')
 
-        except ValueError:
-            # In case the user_id is empty or not an integer, assumption is made that the user has entered an email address.
+            # Call the database fetch function to get all the most recent values
+            db_fetch = self.database_fetch()
 
-            # The admin can choose to update a user based on their user id or email address
-            # The system works independently of which you choose.
-            update_email = self.update_email_var.get()
-            if update_email != '':
-                email_regex = '^\S+@\S+$'
-                # If the update_email fits the regex, it is valid.
-                if (re.search(email_regex, update_email)):
-                    # Check if the email is registered in the system
-                    check_db = c.execute('SELECT email_address FROM Accounts WHERE email_address=?', (update_email,)).fetchall()
-                    if len(check_db) == 0:
-                        ms.showerror('Error', 'Account does not exist in the system.')
-                    else:
-                        # Return user userid given the email address.
-                        check_current_user = c.execute("SELECT email_address FROM Accounts WHERE email_address=?", (self.user_email,)).fetchall()[0][0]
-                        if update_email != check_current_user:
-                            # Returns the access level of the user at a given userid
-                            check_admin = c.execute("SELECT admin_mode FROM Accounts WHERE email_address=?", (update_email,)).fetchall()[0][0]
-                            if check_admin == 1:
-                                ms.showerror('Error', 'You cannot update the account of another admin account.')
-                            else:
-                                update = 'UPDATE Accounts SET staff_mode=?, admin_mode=? WHERE email_address=?'
-                                c.execute(update, [(self.update_staff_mode_var.get()), (self.update_admin_mode_var.get()), (update_email)])
-                                db.commit()
+            # Extract return values from database fetch function.
+            userID_list = db_fetch[0]
+            email_list = db_fetch[1]
+            staff_list = db_fetch[2]
+            admin_list = db_fetch[3]
 
-                                find_email_tied_to_user = c.execute("SELECT email_address FROM Accounts WHERE email_address=?", (update_email,)).fetchall()
-                                user_email = [x[0] for x in find_email_tied_to_user][0]
+            for k in self.tree.get_children():
+                self.tree.delete(k)
 
-                                # Call the email class from the email_sys file.
-                                e = Email()
-                                # Establish the Google API connection.
-                                service = e.get_service()
-                                # Create the message along with passing any additional information that must go on the message.
-                                message = e.create_admin_update_acc_message("from@gmail.com", user_email,"Books4All Account Permissions Update", self.update_staff_mode_var.get(), self.update_admin_mode_var.get())
-                                # Send the message.
-                                e.send_message(service, "from@gmail.com", message)
+            for i in range(len(userID_list)):
+                # issued_bookIDs
+                c.execute("SELECT bookID FROM MyBooks WHERE user_id=?", (userID_list[i],))
+                issued_bookIDs_fetch = c.fetchall()
+                issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
 
-                                ms.showinfo('Success', 'Account Updated!\nAn email has been sent to\n'+user_email+'\nwith the details of this action.')
-                                ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
-                        else:
-                            ms.showerror('Error', 'You cannot change your own account privileges')
+                for x in range(len(issued_bookIDs_list)):
+                    issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
+
+                # earliest return date
+                c.execute("SELECT return_date FROM MyBooks WHERE user_id=?", (userID_list[i],))
+                return_date_fetch = c.fetchall()
+                return_date_list = [x[0] for x in return_date_fetch]
+
+                # convert the return_date_list from a list of strins to a list of dates
+                dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+                try:
+                    earliest_date = str(min(dates_list))
+                except ValueError:
+                    earliest_date = 'N/A'
+
+                if len(issued_bookIDs_list) == 0 or len(return_date_list) == 0:
+                    self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], 'N/A', 'N/A')))
                 else:
-                    ms.showerror('Error', 'Invalid Email Address')
-            else:
-                ms.showerror('Error', 'Empty fields.')
-
-        # Call the database fetch function to get all the most recent values
-        db_fetch = self.database_fetch()
-
-        # Extract return values from database fetch function.
-        userID_list = db_fetch[0]
-        email_list = db_fetch[1]
-        staff_list = db_fetch[2]
-        admin_list = db_fetch[3]
-
-        for k in self.tree.get_children():
-            self.tree.delete(k)
-
-        for i in range(len(userID_list)):
-            # issued_bookIDs
-            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?", (userID_list[i],))
-            issued_bookIDs_fetch = c.fetchall()
-            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
-
-            for x in range(len(issued_bookIDs_list)):
-                issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
-
-            # earliest return date
-            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?", (userID_list[i],))
-            return_date_fetch = c.fetchall()
-            return_date_list = [x[0] for x in return_date_fetch]
-
-            # convert the return_date_list from a list of strins to a list of dates
-            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
-
-            try:
-                earliest_date = str(min(dates_list))
-            except ValueError:
-                earliest_date = 'N/A'
-
-            if len(issued_bookIDs_list) == 0 or len(return_date_list) == 0:
-                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], 'N/A', 'N/A')))
-            else:
-                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_book_list_string, earliest_date)))
-            self.tree.pack()
+                    self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_book_list_string, earliest_date)))
+                self.tree.pack()
+        except Exception:
+            ms.showerror('Error', 'Invalid Input')
 
     def remove_account(self):
         '''
@@ -1107,14 +1060,13 @@ class Admin():
         # The same structural premise as the update_account function
 
         # Get relevant values.
-
         try:
             user_id = int(self.remove_userID_var.get())
             # Find all user_ids to check if the admin is attempting to remove the last account from the system.
             all_accounts_fetch = c.execute("SELECT user_id FROM Accounts").fetchall()
             all_accounts = [x[0] for x in all_accounts_fetch]
             if len(all_accounts) == 1:
-                ms.showerror("Error","Do not remove any more accounts\nto keep the system stable and ensure optimal performance.")
+                ms.showerror("Error", "Do not remove any more accounts\nto keep the system stable and ensure optimal performance.")
             else:
                 # Check if the user_id is an integer.
                 if isinstance(user_id, int) is True:
@@ -1146,7 +1098,8 @@ class Admin():
                                     db.commit()
 
                                 find_email_tied_to_user = c.execute("SELECT email_address FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
-                                user_email = [x[0] for x in find_email_tied_to_user]
+                                user_email = [x[0] for x in find_email_tied_to_user][0]
+                                print(user_email)
 
                                 # Call the email class from the email_sys file.
                                 e = Email()
@@ -1167,115 +1120,99 @@ class Admin():
                                 ms.showinfo('Success', 'Account Removed\nAn email has been sent to\n'+user_email+'\nwith the details of this action.')
                                 ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
 
+                                # Clear the entry fields.
+                                self.remove_userID_var.set('')
                                 # Fetch the next highest user_id in the table that is empty.
                                 select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
                                 highest_val = [x[0] for x in select_highest_val][0]
                                 self.userID_var.set(highest_val)
                 else:
                     ms.showerror('Error', 'Invalid User ID')
-        except Exception as e:
-            # In case the user_id is empty or not an integer, assumption is made that the user has entered an email address.
-            remove_email = self.remove_email_var.get()
-            # Find all user_ids to check if the admin is attempting to remove the last account from the system.
-            all_accounts_fetch = c.execute("SELECT user_id FROM Accounts").fetchall()
-            all_accounts = [x[0] for x in all_accounts_fetch]
-            if len(all_accounts) == 1:
-                ms.showerror("Error","Do not remove any more accounts\nto keep the system stable and ensure optimal performance.")
-            else:
-                if remove_email != '':
-                    email_regex = '^\S+@\S+$'
-                    if (re.search(email_regex, remove_email)):
-                        # Check if the email is registered in the system
-                        check_db = c.execute('SELECT email_address FROM Accounts WHERE email_address=?', (remove_email,)).fetchall()
-                        if len(check_db) == 0:
-                            ms.showerror('Error', 'Account does not exist in the system.')
-                        else:
-                            # Return user userid given the email address.
-                            check_current_user = c.execute("SELECT email_address FROM Accounts WHERE email_address=?", (self.user_email,)).fetchall()[0][0]
-                            if remove_email != check_current_user:
-                                # Returns the access level of the user at a given userid
-                                check_admin = c.execute("SELECT admin_mode FROM Accounts WHERE email_address=?", (remove_email,)).fetchall()[0][0]
-                                if check_admin == 1:
-                                    ms.showerror('Error', 'You cannot update the account of another admin account.')
-                                else:
-                                    # Unlink any books connected to this account and make them available.
-                                    # Must also delete the user from the MyBooks table.
 
-                                    db_check_linked_books_fetch = c.execute('SELECT bookID FROM MyBooks WHERE user_id=(SELECT user_id FROM Accounts WHERE email_address=?)', (remove_email,)).fetchall()
-                                    db_check_linked_books = [x[0] for x in db_check_linked_books_fetch]
-                                    if len(db_check_linked_books) != 0:
-                                        # Must unlink the books and delete the MyBooks user_id entry.
-                                        for i in range(len(db_check_linked_books)):
-                                            c.execute('UPDATE Books SET issued=0 WHERE bookID=?', (db_check_linked_books[i],))
+            # Call the database fetch function to get all the most recent values
+            db_fetch = self.database_fetch()
 
-                                        # Delete MyBooks row of this user.
-                                        c.execute('DELETE FROM MyBooks WHERE user_id=(SELECT user_id FROM Accounts WHERE email_address=?)', (remove_email,))
-                                        db.commit()
+            # Extract return values from database fetch function.
+            userID_list = db_fetch[0]
+            email_list = db_fetch[1]
+            staff_list = db_fetch[2]
+            admin_list = db_fetch[3]
 
-                                    # Delete the entire row where the email address matches the email address entered by the admin.
-                                    c.execute('DELETE FROM Accounts WHERE email_address=?', (remove_email,))
-                                    db.commit()
+            for k in self.tree.get_children():
+                self.tree.delete(k)
 
-                                    # Call the email class from the email_sys file.
-                                    e = Email()
-                                    # Establish the Google API connection.
-                                    service = e.get_service()
-                                    # Create the message along with passing any additional information that must go on the message.
-                                    message = e.create_admin_acc_removal_message("from@gmail.com", remove_email,"Books4All Account Removal")
-                                    # Send the message.
-                                    e.send_message(service, "from@gmail.com", message)
+            for i in range(len(userID_list)):
+                # issued_bookIDs
+                c.execute("SELECT bookID FROM MyBooks WHERE user_id=?", (userID_list[i],))
+                issued_bookIDs_fetch = c.fetchall()
+                issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
 
-                                    ms.showinfo('Success', 'Account Removed\nAn email has been sent to\n'+remove_email+'\nwith the details of this action.')
-                                    ms.showinfo('Changes', 'To see the changes to the account, the account must relog, if currently logged in.')
+                for x in range(len(issued_bookIDs_list)):
+                    issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
 
-                                    # Fetch the next highest user_id in the table that is empty.
-                                    select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
-                                    highest_val = [x[0] for x in select_highest_val][0]
-                                    self.userID_var.set(highest_val)
-                    else:
-                        ms.showerror('Error', 'Invalid Email Address')
+                # earliest return date
+                c.execute("SELECT return_date FROM MyBooks WHERE user_id=?", (userID_list[i],))
+                return_date_fetch = c.fetchall()
+                return_date_list = [x[0] for x in return_date_fetch]
+
+                # convert the return_date_list from a list of strins to a list of dates
+                dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
+
+                try:
+                    earliest_date = str(min(dates_list))
+                except ValueError:
+                    earliest_date = 'N/A'
+
+                if len(issued_bookIDs_list) == 0 or len(return_date_list) == 0:
+                    self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], 'N/A', 'N/A')))
                 else:
-                    ms.showerror('Error', 'Invalid Input')
+                    self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_book_list_string, earliest_date)))
+                self.tree.pack()
+        except Exception:
+            ms.showerror('Error', 'Invalid user ID')
 
-        # Call the database fetch function to get all the most recent values
-        db_fetch = self.database_fetch()
+    def show_password(self, *args):
+        '''
+        Allow the user toggle between showing their password
+        in plaintext and hidden behind asterisks.
+        '''
+        if self.password_entry["show"] == "*":
+            self.password_entry["show"] = ''
+            self.confirm_password_entry["show"] = ''
+        else:
+            self.password_entry["show"] = '*'
+            self.confirm_password_entry["show"] = '*'
 
-        # Extract return values from database fetch function.
-        userID_list = db_fetch[0]
-        email_list = db_fetch[1]
-        staff_list = db_fetch[2]
-        admin_list = db_fetch[3]
+    def password_strength(self, *args):
+        '''
+        Evaluate the strength of the password
+        based on length and characters used.
+        '''
 
-        for k in self.tree.get_children():
-            self.tree.delete(k)
+        # A regex with a docstring of all of the valid characters
+        # that can be used in the password.
+        special_characters_regex = re.compile("""[!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]()""")
+        password_input = self.password_var.get()
 
-        for i in range(len(userID_list)):
-            # issued_bookIDs
-            c.execute("SELECT bookID FROM MyBooks WHERE user_id=?", (userID_list[i],))
-            issued_bookIDs_fetch = c.fetchall()
-            issued_bookIDs_list = [x[0] for x in issued_bookIDs_fetch]
+        # Check if the password is longer than the 8 character minimum.
+        if len(password_input) >= 8:
 
-            for x in range(len(issued_bookIDs_list)):
-                issued_book_list_string = ','.join(map(str, issued_bookIDs_list))
-
-            # earliest return date
-            c.execute("SELECT return_date FROM MyBooks WHERE user_id=?", (userID_list[i],))
-            return_date_fetch = c.fetchall()
-            return_date_list = [x[0] for x in return_date_fetch]
-
-            # convert the return_date_list from a list of strins to a list of dates
-            dates_list = [datetime.strptime(date, '%Y-%m-%d').date() for date in return_date_list]
-
-            try:
-                earliest_date = str(min(dates_list))
-            except ValueError:
-                earliest_date = 'N/A'
-
-            if len(issued_bookIDs_list) == 0 or len(return_date_list) == 0:
-                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], 'N/A', 'N/A')))
+            # Hide the label describing the password strength requirements
+            # to show that the password meets that requirement.
+            self.password_strength_container_1.pack_forget()
+            if special_characters_regex.search(password_input) != None:
+                self.password_strength_container_2.pack_forget()
             else:
-                self.tree_ids.append(self.tree.insert("", "end", values=(userID_list[i], email_list[i], staff_list[i], admin_list[i], issued_book_list_string, earliest_date)))
-            self.tree.pack()
+                self.password_strength_container_2.pack(expand=True)
+
+        elif len(password_input) < 8:
+            # Show the label describing the password strength requirements
+            # to show that the password does not meet that requirement.
+            self.password_strength_container_1.pack(expand=True)
+            if special_characters_regex.search(password_input) != None:
+                self.password_strength_container_2.pack_forget()
+            else:
+                self.password_strength_container_2.pack(expand=True)
 
     def database_fetch(self):
         '''
