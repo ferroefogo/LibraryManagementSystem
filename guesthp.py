@@ -7,12 +7,17 @@ import re
 import linecache
 
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
+
+
 class GuestHelp():
     def __init__(self, root, notebook):
         self.root = root
         self.notebook = notebook
 
-        guest_help_page = tk.Frame(self.notebook)
+        guest_help_page = tk.Frame(self.notebook, relief=RELIEF, bd=BD)
         notebook.add(guest_help_page, text="Guest Help Page")
 
         header_frame = tk.Frame(guest_help_page)
@@ -24,7 +29,7 @@ class GuestHelp():
         large_frame = tk.Frame(guest_help_page)
         large_frame.pack(fill=tk.BOTH, expand=True)
 
-        _help = tk.Label(large_frame, text="""The guest page is designed for those who do no want to create an account but
+        _help = tk.Label(large_frame, text="""The guest login is designed for those who do no want to create an account but
 still want to use the system to search for books.The library page allows you
 to view and filter through all available books in the library.
 

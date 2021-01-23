@@ -4,9 +4,7 @@ conn = connect('LibrarySystem.db')
 c = conn.cursor()
 user_id = 1
 find_email_tied_to_user = c.execute("SELECT email_address FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
-print(find_email_tied_to_user)
 user_email = [x[0] for x in find_email_tied_to_user]
-print(user_email)
 
 '''
 c.execute("""CREATE TABLE Accounts (

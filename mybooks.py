@@ -18,6 +18,9 @@ PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
 BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
 FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
 # List of genres
 c.execute("SELECT genre FROM Genres")
@@ -47,7 +50,7 @@ class MyBooks():
         header.pack(side=tk.TOP)
 
         # Library TreeView Book Database Frame
-        tree_container = tk.Frame(my_books_page)
+        tree_container = tk.Frame(my_books_page, relief=RELIEF, bd=BD)
         tree_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX)
 
         # Set up TreeView table
@@ -61,11 +64,11 @@ class MyBooks():
         self.tree.heading("Issue Date", text='Issue Date')
         self.tree.heading("Return Date", text="Return Date")
 
-        self.tree.column("Book ID", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Book ID", width=65, anchor=tk.CENTER)
         self.tree.column("Title", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Author", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Genre", width=WIDTH, anchor=tk.CENTER)
-        self.tree.column("Location", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Location", width=65, anchor=tk.CENTER)
         self.tree.column("Issue Date", width=WIDTH, anchor=tk.CENTER)
         self.tree.column("Return Date", width=WIDTH, anchor=tk.CENTER)
 
@@ -88,7 +91,7 @@ class MyBooks():
         self.tree.pack()
 
         # Search Books UI
-        filter_container = tk.Frame(my_books_page, bg=BG)
+        filter_container = tk.Frame(my_books_page, bg=BG, relief=RELIEF, bd=BD)
         filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
         filter_header = tk.Label(filter_container, text='Filters', font=FONT, bg=BG)

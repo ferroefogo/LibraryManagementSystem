@@ -18,13 +18,16 @@ with sqlite3.connect('LibrarySystem.db') as db:
     c = db.cursor()
 
 # File Configurations
-PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
-PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
-BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
-DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt',7)).strip()
-LINK_FG = re.sub('^.*?=', '', linecache.getline('config.txt',8)).strip()
-FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
-HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt', 2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt', 3))
+BG = re.sub('^.*?=', '', linecache.getline('config.txt', 6)).strip()
+DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt', 7)).strip()
+LINK_FG = re.sub('^.*?=', '', linecache.getline('config.txt', 8)).strip()
+FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 10)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 11)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
 
 class Account():
@@ -47,18 +50,18 @@ class Account():
         header_frame = tk.Frame(account_page)
         header_frame.pack(fill=tk.X, side=tk.TOP)
 
-        header = tk.Label(header_frame, text='Account', font=HEADER_FONT)
+        header = tk.Label(header_frame, text='Account', font=HEADER_FONT, fg=FG)
         header.pack(side=tk.TOP)
 
         #  Account Details Frame
-        details_container = tk.Frame(account_page, bg=BG)
+        details_container = tk.Frame(account_page, bg=BG, relief=RELIEF, bd=BD)
         details_container.pack(side=tk.LEFT, anchor=tk.N)
 
         container_header = tk.Label(details_container, text='Account Details', font=FONT, bg=BG)
         container_header.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         # Change password Container
-        self.change_password_container = tk.Frame(account_page, bg=BG)
+        self.change_password_container = tk.Frame(account_page, bg=BG, relief=RELIEF, bd=BD)
         self.container_change_password_header = tk.Label(self.change_password_container, text='Change Password', font=FONT, bg=BG)
 
         # Current password entry
@@ -95,10 +98,10 @@ class Account():
         self.password_strength_label_1 = tk.Label(self.password_strength_container_1, text='Password must be a minimum of 8 characters.', bg=BG, fg=DANGER_FG)
 
         self.password_strength_container_2 = tk.Frame(self.change_password_container, bg=BG)
-        self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol)\n([!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]""", bg=BG, fg=DANGER_FG)
+        self.password_strength_label_2 = tk.Label(self.password_strength_container_2, text="""Besides letters, include at least a number or symbol)\n([!@#$%^*-_+=|\{}[]`¬;:@"'<>,./?]""", bg=BG, fg=DANGER_FG)
 
         # Delete Account Container
-        self.delete_account_container = tk.Frame(account_page, bg=BG)
+        self.delete_account_container = tk.Frame(account_page, bg=BG, relief=RELIEF, bd=BD)
         self.container_delete_account_header = tk.Label(self.delete_account_container, text='Delete Account', font=FONT, bg=BG)
 
         # Password entry

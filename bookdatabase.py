@@ -20,18 +20,29 @@ conn = sqlite3.connect('LibrarySystem.db')
 c = conn.cursor()
 
 # File Configurations
-WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt',1))
-PADX = re.sub('^.*?=', '', linecache.getline('config.txt',2))
-PADY = re.sub('^.*?=', '', linecache.getline('config.txt',3))
-BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
-MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt',9)).strip()
-FONT = re.sub('^.*?=', '', linecache.getline('config.txt',10)).strip()
-HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
+WIDTH = re.sub('^.*?=', '', linecache.getline('config.txt', 1))
+PADX = re.sub('^.*?=', '', linecache.getline('config.txt', 2))
+PADY = re.sub('^.*?=', '', linecache.getline('config.txt', 3))
+BG = re.sub('^.*?=', '', linecache.getline('config.txt', 6)).strip()
+MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt', 9)).strip()
+FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 10)).strip()
+HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 11)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
 # List of genres
 c.execute("SELECT genre FROM Genres")
 genres_list_fetch = c.fetchall()
 genre_choice_list = [x[0] for x in genres_list_fetch]
+
+
+# List of genres for add book feature
+# Remove the -EMPTY- from being selectable when adding a book.
+c.execute("SELECT genre FROM Genres")
+add_genres_list_fetch = c.fetchall()
+add_genre_choice_list = [x[0] for x in add_genres_list_fetch]
+add_genre_choice_list.pop(0)
 
 
 # List of locations
@@ -41,6 +52,21 @@ location_empty_insert = location_choice_list.insert(0, '-EMPTY-')
 
 # List of issued
 issued_choice_list = ['-EMPTY-', '0', '1']
+
+global ISSUE_ID_FLAG
+global ISSUE_TITLE_FLAG
+ISSUE_ID_FLAG = False
+ISSUE_TITLE_FLAG = False
+
+global RETURN_ID_FLAG
+global RETURN_TITLE_FLAG
+RETURN_ID_FLAG = False
+RETURN_TITLE_FLAG = False
+
+global REMOVE_ID_FLAG
+global REMOVE_TITLE_FLAG
+REMOVE_ID_FLAG = False
+REMOVE_TITLE_FLAG = False
 
 
 class BookDatabase():
@@ -78,7 +104,7 @@ class BookDatabase():
         header.pack(side=tk.TOP)
 
         #  Book database TreeView
-        tree_container = tk.Frame(book_database_page, bg=BG)
+        tree_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
         tree_container.pack(side=tk.BOTTOM, anchor=tk.N, padx=PADX, pady=PADY)
 
         tree_header = tk.Label(tree_container, text='Database', font=FONT, bg=BG)
@@ -218,7 +244,7 @@ class BookDatabase():
                                       command=lambda c=self.col: self.sort_upon_press(c))
 
         # Issue/Return Books UI
-        filter_container = tk.Frame(book_database_page, bg=BG)
+        filter_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
         filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
         filter_header = tk.Label(filter_container, text='Issue Book', font=FONT, bg=BG)
@@ -255,7 +281,7 @@ class BookDatabase():
 
         self.title_var = tk.StringVar()
 
-        self.title_entry = ttk.Entry(self.search_container_title, textvariable=self.title_var, state=tk.DISABLED)
+        self.title_entry = ttk.Entry(self.search_container_title, textvariable=self.title_var)
         self.title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Author Entry Field
@@ -319,9 +345,11 @@ class BookDatabase():
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         AutoCompleteEntryBD_IssueBookID(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
 
+        AutoCompleteEntryBD_IssueTitle(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
+
         # # #  Book Return ('ret' following the variable name is short for 'return' to differentiate between the variables above and below)
         # Return Books UI
-        ret_filter_container = tk.Frame(book_database_page, bg=BG)
+        ret_filter_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
         ret_filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
         ret_filter_header = tk.Label(ret_filter_container, text='Return Book', font=FONT, bg=BG)
@@ -358,7 +386,7 @@ class BookDatabase():
 
         self.ret_title_var = tk.StringVar()
 
-        self.ret_title_entry = ttk.Entry(self.ret_search_container_title, textvariable=self.ret_title_var, state=tk.DISABLED)
+        self.ret_title_entry = ttk.Entry(self.ret_search_container_title, textvariable=self.ret_title_var)
         self.ret_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Author Entry Field
@@ -406,9 +434,10 @@ class BookDatabase():
 
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         AutoCompleteEntryBD_ReturnBookID(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
+        AutoCompleteEntryBD_ReturnTitle(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
 
         # Remove Books UI
-        remove_book_container = tk.Frame(book_database_page, bg=BG)
+        remove_book_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
         remove_book_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX, pady=PADY)
 
         remove_book_header = tk.Label(remove_book_container, text='Remove Book From System', font=FONT, bg=BG)
@@ -445,7 +474,7 @@ class BookDatabase():
 
         self.remove_title_var = tk.StringVar()
 
-        self.remove_title_entry = ttk.Entry(self.remove_container_title, textvariable=self.remove_title_var, state=tk.DISABLED)
+        self.remove_title_entry = ttk.Entry(self.remove_container_title, textvariable=self.remove_title_var)
         self.remove_title_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Author Entry Field
@@ -471,6 +500,7 @@ class BookDatabase():
         self.remove_genre_var.set("-EMPTY-")
 
         self.remove_genre_menu = ttk.OptionMenu(self.remove_container_genre, self.remove_genre_var, genre_choice_list[0], *genre_choice_list)
+        self.remove_genre_menu.configure(state=tk.DISABLED)
         self.remove_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Remove Book Button Frame
@@ -483,9 +513,10 @@ class BookDatabase():
 
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
         AutoCompleteEntryBD_RemoveBookID(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
+        AutoCompleteEntryBD_RemoveTitle(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
 
         # Add Books UI
-        add_book_container = tk.Frame(book_database_page, bg=BG)
+        add_book_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
         add_book_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX, pady=PADY)
 
         add_book_header = tk.Label(add_book_container, text='Add Book Into System', font=FONT, bg=BG)
@@ -542,7 +573,7 @@ class BookDatabase():
         self.add_genre_var = tk.StringVar()
         self.add_genre_var.set("-EMPTY-")
 
-        self.add_genre_menu = ttk.OptionMenu(self.add_container_genre, self.add_genre_var,genre_choice_list[0], *genre_choice_list)
+        self.add_genre_menu = ttk.OptionMenu(self.add_container_genre, self.add_genre_var,add_genre_choice_list[0], *add_genre_choice_list)
         self.add_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Add Book Button Frame
@@ -554,10 +585,10 @@ class BookDatabase():
         add_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         # Add New Genre Entry Field
-        self.container_newgenre = tk.Frame(add_book_container, bg=BG)
+        self.container_newgenre = tk.Frame(add_book_container, bg=BG, relief=RELIEF, bd=BD)
         self.container_newgenre.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 
-        newgenre_main_label = tk.Label(self.container_newgenre, text='Add Genre Into the System', font=FONT, bg=BG)
+        newgenre_main_label = tk.Label(self.container_newgenre, text='Manage Genres', font=FONT, bg=BG)
         newgenre_main_label.pack(anchor=tk.W, padx=PADX, pady=PADY)
 
         newgenre_label = tk.Label(self.container_newgenre, text='Genre Name: ', bg=BG)
@@ -778,62 +809,79 @@ class BookDatabase():
 
         # Fetch entry field values
         remove_bookID_var = self.remove_bookID_var.get()
+        remove_title_var = self.remove_title_var.get()
 
-        # Delete the book with said book ID
-        c.execute('DELETE FROM Books WHERE bookID=?', (remove_bookID_var,))
-        conn.commit()
+        try:
+            # Check if the bookID matches the title to make sure the user hasnt deleted one or the other after autocompleting.
+            real_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?", (remove_bookID_var,)).fetchall()
+            real_title_at_id = [x[0] for x in real_title_fetch][0]
 
-        # Check if anyone owns said book and remove it from their My Books table
-        check_book_owned = c.execute('SELECT user_id FROM MyBooks WHERE bookID=?', (remove_bookID_var,)).fetchall()
-        book_owner = [x[0] for x in check_book_owned]
+            real_bookID_fetch = c.execute("SELECT bookID FROM Books WHERE title=?", (remove_title_var,)).fetchall()
+            real_bookID_at_title = [x[0] for x in real_bookID_fetch][0]
 
-        if len(book_owner) == 1:
-            c.execute('DELETE FROM MyBooks WHERE bookID=?',(remove_bookID_var,))
-            conn.commit()
-
-        # Set entryfields to empty after removal
-        self.remove_bookID_var.set('')
-        self.remove_title_var.set('')
-        self.remove_author_var.set('')
-
-        # Run database fetch function
-        db_fetch = self.database_fetch()
-
-        # Extract return values from function.
-        bookID_list = db_fetch[0]
-        title_list = db_fetch[1]
-        author_list = db_fetch[2]
-        genre_list = db_fetch[3]
-        location_list = db_fetch[4]
-        issued_list = db_fetch[5]
-
-        for k in self.tree.get_children():
-            self.tree.delete(k)
-
-        for i in range(len(bookID_list)):
-            # Issue Date
-            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
-            date_issued_fetch = c.fetchall()
-            date_issued_list = [x[0] for x in date_issued_fetch]
-
-            # Return Date
-            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
-            return_date_fetch = c.fetchall()
-            return_date_list = [x[0] for x in return_date_fetch]
-
-            # creates an entry in the tree for each element of the list
-            # then stores the id of the tree in the self.ids list
-            if len(date_issued_list)==0 or len(return_date_list)==0:
-                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+            if int(real_bookID_at_title) != int(remove_bookID_var):
+                ms.showerror('Error', 'The BookID and Title values do not match.')
+            elif str(real_title_at_id) != str(remove_title_var):
+                ms.showerror('Error', 'The BookID and Title values do not match.')
             else:
-                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
-        self.tree.pack()
+                # Delete the book with said book ID
+                c.execute('DELETE FROM Books WHERE bookID=?', (remove_bookID_var,))
+                conn.commit()
 
-        for self.col in self.columns:
-                self.tree.heading(self.col, text=self.col,
-                                      command=lambda c=self.col: self.sort_upon_press(c))
+                # Check if anyone owns said book and remove it from their My Books table
+                check_book_owned = c.execute('SELECT user_id FROM MyBooks WHERE bookID=?', (remove_bookID_var,)).fetchall()
+                book_owner = [x[0] for x in check_book_owned]
 
-        ms.showinfo('Success', 'Book removed from the database successfully')
+                if len(book_owner) == 1:
+                    c.execute('DELETE FROM MyBooks WHERE bookID=?', (remove_bookID_var,))
+                    conn.commit()
+
+                # Set entryfields to empty after removal
+                self.remove_bookID_var.set('')
+                self.remove_title_var.set('')
+                self.remove_author_var.set('')
+
+                # Run database fetch function
+                db_fetch = self.database_fetch()
+
+                # Extract return values from function.
+                bookID_list = db_fetch[0]
+                title_list = db_fetch[1]
+                author_list = db_fetch[2]
+                genre_list = db_fetch[3]
+                location_list = db_fetch[4]
+                issued_list = db_fetch[5]
+
+                for k in self.tree.get_children():
+                    self.tree.delete(k)
+
+                for i in range(len(bookID_list)):
+                    # Issue Date
+                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                    date_issued_fetch = c.fetchall()
+                    date_issued_list = [x[0] for x in date_issued_fetch]
+
+                    # Return Date
+                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                    return_date_fetch = c.fetchall()
+                    return_date_list = [x[0] for x in return_date_fetch]
+
+                    # creates an entry in the tree for each element of the list
+                    # then stores the id of the tree in the self.ids list
+                    if len(date_issued_list)==0 or len(return_date_list)==0:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                    else:
+                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                self.tree.pack()
+
+                for self.col in self.columns:
+                        self.tree.heading(self.col, text=self.col,
+                                              command=lambda c=self.col: self.sort_upon_press(c))
+                ms.showinfo('Success', 'Book removed from the database successfully')
+        except Exception:
+            ms.showerror('Error', 'Invalid Input')
+
+        
 
     def issue_book(self):
         '''
@@ -849,122 +897,211 @@ class BookDatabase():
         date_issued = self.issue_date_entry.get_date()
 
         # Convert date object into a string for easier manipulation.
-        date_issued_string = str(date_issued.strftime('%d-%m-%Y'))
+        date_issued_string = str(date_issued.strftime('%Y-%m-%d'))
 
-        # Check if the string date is equal to the date today.
-        if str(date_issued_string) == str(datetime.today().strftime('%d-%m-%Y')):
+        # Check if the bookID in the entry box matches the title entry box.
+        try:
+            real_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
+            real_title_at_id = [x[0] for x in real_title_fetch][0]
 
-            # Get the excepted, target return date.
-            expected_return_date = self.actual_return_date_entry.get_date()
+            real_bookID_fetch = c.execute("SELECT bookID FROM Books WHERE title=?", (title_var,)).fetchall()
+            real_bookID_at_title = [x[0] for x in real_bookID_fetch][0]
 
-            # Fetch the bookID that matches the title and author
-            book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ', (title_var, author_var)).fetchall()
-            book_id = [x[0] for x in book_id_search][0]
-
-            #  Send info to database
-            account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?', (recipient_email,)).fetchall()
-            if len(account_info_fetch) != 0:
-                accounts_userid_check = [x[0] for x in account_info_fetch][0]
-
-                # Check if book is already issued out
-                book_already_issued_fetch = c.execute('SELECT issued FROM Books WHERE bookID=?', (bookID_var,)).fetchall()
-                book_already_issued = [x[0] for x in book_already_issued_fetch][0]
-
-                if book_already_issued == 0:
-                    # Insert the book information into the MyBooks table under the given user id, if the book issued status is 0
-                    insert_my_bookID = 'INSERT INTO MyBooks(user_id,bookID) VALUES(?,?)'
-                    c.execute(insert_my_bookID, [(accounts_userid_check), (book_id)])
-                    conn.commit()
-
-                    # Followed by updating said book to be issued after inserting it above.
-                    c.execute('UPDATE Books SET issued=1 WHERE bookID=?', (book_id,))
-                    conn.commit()
-
-                    # Update the issue date to the current date.
-                    c.execute("""UPDATE MyBooks
-                        SET date_issued=?
-                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
-                        AND bookID=?""",(date_issued, recipient_email, bookID_var))
-                    conn.commit()
-
-                    # Update the return date to the target return date set by the staff.
-                    c.execute("""UPDATE MyBooks
-                        SET return_date=?
-                        WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
-                        AND bookID=?""", (expected_return_date, recipient_email, bookID_var))
-                    conn.commit()
-
-                    # Fetch Location
-                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
-                    book_location = [x[0] for x in book_location_fetch][0]
-
-                    # Fetch genre
-                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
-                    book_genre = [x[0] for x in book_genre_fetch][0]
-
-                    # Call the email class from the email_sys file.
-                    e = Email()
-                    # Establish the Google API connection.
-                    service = e.get_service()
-                    # Create the message along with passing any additional information that must go on the message.
-                    message = e.create_issuing_message("from@gmail.com",recipient_email,"Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date)
-                    # Send the message.
-                    e.send_message(service, "from@gmail.com", message)
-
-                    ms.showinfo('Success', 'Book issued out successfully\nAn email has been sent to\n'+recipient_email+'\nregarding the issuing information.')
-                else:
-                    ms.showerror('Error', 'This book has already been issued.')
-
-                # Set entryfields to empty after issue
-                self.bookID_var.set('')
-                self.title_var.set('')
-                self.author_var.set('')
-                self.recipient_var.set('')
-
-                # update treeview BookDatabase when the book is issued
-                # gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
-
-                # Run database fetch function
-                db_fetch = self.database_fetch()
-
-                # Extract return values from function.
-                bookID_list = db_fetch[0]
-                title_list = db_fetch[1]
-                author_list = db_fetch[2]
-                genre_list = db_fetch[3]
-                location_list = db_fetch[4]
-                issued_list = db_fetch[5]
-
-                # Delete all rows in the tree.
-                for k in self.tree.get_children():
-                    self.tree.delete(k)
-
-                # Iterate over each bookID in the database table and populate the table one row at a time.
-                for i in range(len(bookID_list)):
-                    # Issue Date
-                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
-                    date_issued_fetch = c.fetchall()
-                    date_issued_list = [x[0] for x in date_issued_fetch]
-
-                    # Return Date
-                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
-                    return_date_fetch = c.fetchall()
-                    return_date_list = [x[0] for x in return_date_fetch]
-
-                    if len(date_issued_list)==0 or len(return_date_list)==0:
-                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
-                    else:
-                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
-                self.tree.pack()
-
-                for self.col in self.columns:
-                    self.tree.heading(self.col, text=self.col,
-                                          command=lambda c=self.col: self.sort_upon_press(c))
-
+            if real_title_at_id != title_var:
+                ms.showerror('Error', 'The BookID and Title values do not match.')
+            elif int(real_bookID_at_title) != int(bookID_var):
+                ms.showerror('Error', 'The BookID and Title values do not match.')
             else:
-                ms.showerror('Error', 'Email was not found.', icon='error')
-        else:
-            ms.showerror('Error', 'Invalid DOI (Date of Issue)')
+                # Check if the string date is equal to the date today.
+                if str(date_issued_string) == str(datetime.today().strftime('%Y-%m-%d')):
+
+                    # Get the excepted, target return date.
+                    expected_return_date = self.actual_return_date_entry.get_date()
+
+                    # Fetch the bookID that matches the title and author
+                    book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ', (title_var, author_var)).fetchall()
+                    book_id = [x[0] for x in book_id_search][0]
+
+                    # Check if the patron that wants to take the book out has an account, by checking
+                    # if the staff member leaves the recipient email field empty, then that means to
+                    # take the book out under no account, but still store the information of the 'transaction'.
+                    if recipient_email == '':
+                        # The patron has no account.
+                        # Check if book is already issued out
+                        book_already_issued_fetch = c.execute('SELECT issued FROM Books WHERE bookID=?', (bookID_var,)).fetchall()
+                        book_already_issued = [x[0] for x in book_already_issued_fetch][0]
+
+                        if book_already_issued == 0:
+                            # No need to insert the book into the MyBooks table.
+
+                            # Check if the user meant to leave this field empty.
+                            confirm_action = ms.askquestion("No Account Issuing", "You are about to issue a book to a patron with no account.\nAre you sure you want to continue?")
+                            if confirm_action == "yes":
+                                # Update that it is currently issued on the Books table.
+                                c.execute('UPDATE Books SET issued=1 WHERE bookID=?', (book_id,))
+                                conn.commit()
+
+                                ms.showinfo('Success', 'Book Issued Successfully.')
+
+                                # Set entryfields to empty after issue
+                                self.bookID_var.set('')
+                                self.title_var.set('')
+                                self.author_var.set('')
+                                self.recipient_var.set('')
+
+                                # update treeview BookDatabase when the book is issued
+                                # gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
+
+                                # Run database fetch function
+                                db_fetch = self.database_fetch()
+
+                                # Extract return values from function.
+                                bookID_list = db_fetch[0]
+                                title_list = db_fetch[1]
+                                author_list = db_fetch[2]
+                                genre_list = db_fetch[3]
+                                location_list = db_fetch[4]
+                                issued_list = db_fetch[5]
+
+                                # Delete all rows in the tree.
+                                for k in self.tree.get_children():
+                                    self.tree.delete(k)
+
+                                # Iterate over each bookID in the database table and populate the table one row at a time.
+                                for i in range(len(bookID_list)):
+                                    # Issue Date
+                                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                                    date_issued_fetch = c.fetchall()
+                                    date_issued_list = [x[0] for x in date_issued_fetch]
+
+                                    # Return Date
+                                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                                    return_date_fetch = c.fetchall()
+                                    return_date_list = [x[0] for x in return_date_fetch]
+
+                                    if len(date_issued_list) == 0 or len(return_date_list) == 0:
+                                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                                    else:
+                                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                                self.tree.pack()
+
+                                for self.col in self.columns:
+                                    self.tree.heading(self.col, text=self.col,
+                                                          command=lambda c=self.col: self.sort_upon_press(c))
+                            else:
+                                ms.showwarning('Alert', 'Issuing Cancelled')
+                        else:
+                            ms.showerror('Error', 'This book has already been issued.')
+                    elif recipient_email != '':
+                        #  Send info to database
+                        account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?', (recipient_email,)).fetchall()
+                        if len(account_info_fetch) != 0:
+                            accounts_userid_check = [x[0] for x in account_info_fetch][0]
+
+                            # Check if book is already issued out
+                            book_already_issued_fetch = c.execute('SELECT issued FROM Books WHERE bookID=?', (bookID_var,)).fetchall()
+                            book_already_issued = [x[0] for x in book_already_issued_fetch][0]
+
+                            if book_already_issued == 0:
+                                # Insert the book information into the MyBooks table under the given user id, if the book issued status is 0
+                                insert_my_bookID = 'INSERT INTO MyBooks(user_id,bookID) VALUES(?,?)'
+                                c.execute(insert_my_bookID, [(accounts_userid_check), (book_id)])
+                                conn.commit()
+
+                                # Followed by updating said book to be issued after inserting it above.
+                                c.execute('UPDATE Books SET issued=1 WHERE bookID=?', (book_id,))
+                                conn.commit()
+
+                                # Update the issue date to the current date.
+                                c.execute("""UPDATE MyBooks
+                                    SET date_issued=?
+                                    WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
+                                    AND bookID=?""" , (date_issued, recipient_email, bookID_var))
+                                conn.commit()
+
+                                # Update the return date to the target return date set by the staff.
+                                c.execute("""UPDATE MyBooks
+                                    SET return_date=?
+                                    WHERE user_id = (SELECT user_id FROM Accounts WHERE email_address=?)
+                                    AND bookID=?""", (expected_return_date, recipient_email, bookID_var))
+                                conn.commit()
+
+                                # Fetch Location
+                                book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
+                                book_location = [x[0] for x in book_location_fetch][0]
+
+                                # Fetch genre
+                                book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
+                                book_genre = [x[0] for x in book_genre_fetch][0]
+
+                                # Call the email class from the email_sys file.
+                                e = Email()
+                                # Establish the Google API connection.
+                                service = e.get_service()
+                                # Create the message along with passing any additional information that must go on the message.
+                                message = e.create_issuing_message("from@gmail.com", recipient_email, "Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date)
+                                # Send the message.
+                                e.send_message(service, "from@gmail.com", message)
+
+                                ms.showinfo('Success', 'Book issued out successfully\nAn email has been sent to\n'+recipient_email+'\nregarding the issuing information.')
+                            else:
+                                ms.showerror('Error', 'This book has already been issued.')
+
+                        else:
+                            ms.showerror("Error", "Account does not exist")
+
+                        # Set entryfields to empty after issue
+                        self.bookID_var.set('')
+                        self.title_var.set('')
+                        self.author_var.set('')
+                        self.recipient_var.set('')
+
+                        # update treeview BookDatabase when the book is issued
+                        # gather db info to check if book has been issued, so that we only show the books that have NOT been issued.
+
+                        # Run database fetch function
+                        db_fetch = self.database_fetch()
+
+                        # Extract return values from function.
+                        bookID_list = db_fetch[0]
+                        title_list = db_fetch[1]
+                        author_list = db_fetch[2]
+                        genre_list = db_fetch[3]
+                        location_list = db_fetch[4]
+                        issued_list = db_fetch[5]
+
+                        # Delete all rows in the tree.
+                        for k in self.tree.get_children():
+                            self.tree.delete(k)
+
+                        # Iterate over each bookID in the database table and populate the table one row at a time.
+                        for i in range(len(bookID_list)):
+                            # Issue Date
+                            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                            date_issued_fetch = c.fetchall()
+                            date_issued_list = [x[0] for x in date_issued_fetch]
+
+                            # Return Date
+                            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                            return_date_fetch = c.fetchall()
+                            return_date_list = [x[0] for x in return_date_fetch]
+
+                            if len(date_issued_list) == 0 or len(return_date_list) == 0:
+                                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                            else:
+                                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                        self.tree.pack()
+
+                        for self.col in self.columns:
+                            self.tree.heading(self.col, text=self.col,
+                                                  command=lambda c=self.col: self.sort_upon_press(c))
+
+                    else:
+                        ms.showerror('Error', 'Email was not found.', icon='error')
+                else:
+                    ms.showerror('Error', 'Invalid DOI (Date of Issue)')
+        except Exception:
+            ms.showerror("Error", "Invalid Input")
 
     def return_book(self):
         '''
@@ -974,53 +1111,31 @@ class BookDatabase():
         Structuraly the same as the issue book.
         '''
         # Retrieve all entryboxes variables
+        bookID_var = self.ret_bookID_var.get()
         title_var = self.ret_title_var.get()
         author_var = self.ret_author_var.get()
         return_email = self.return_email_var.get()
         actual_return_date = self.ret_date_entry.get_date()
 
-        book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ', (title_var, author_var)).fetchall()
-        book_id = [x[0] for x in book_id_search][0]
+        try:
+            book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ', (title_var, author_var)).fetchall()
+            book_id = [x[0] for x in book_id_search][0]
 
-        #  Send info to db
-        account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?', (return_email,)).fetchall()
+            real_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
+            real_title_at_id = [x[0] for x in real_title_fetch][0]
 
-        # Check if email matches the owner of the loaned book.
-        book_owner_email_fetch = c.execute('SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)', (book_id,)).fetchall()
-        book_owner_email = [x[0] for x in book_owner_email_fetch][0]
-
-        if return_email != book_owner_email:
-            ms.showerror('Error', 'Email address does not match its rightful owner.')
-        else:
-            if len(account_info_fetch) != 0:
-                accounts_userid_check = [x[0] for x in account_info_fetch][0]
-
-                # Update the MyBooks table to set the actual return date. (the real date the patron returned the book, not the target date).
-                c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID = ?', (actual_return_date, book_id,))
-                conn.commit()
-
-                # Check if the user has returned on time
-                accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE user_id=?',(accounts_userid_check,)).fetchall()
-                accounts_return_date_check = [x[0] for x in accounts_return_date_fetch][0]
-
-                accounts_return_date_check_time = datetime.strptime(accounts_return_date_check, '%Y-%m-%d').date()
-
-                if accounts_return_date_check_time > actual_return_date:
-                    # Handed late
-                    # Find the number of days the book is late by.
-                    days_since_return_date = (accounts_return_date_check_time - actual_return_date)
-                    # Format the output to be just an integer days to fetch just the integer
-                    days_since_return_date_formatted = str(days_since_return_date).split("d")[0]
-                    # Fetch the number in string and convert it into an absolute value integer.
-                    days_since_return_date_formatted_integer = int(re.search(r'\d+', days_since_return_date_formatted).group())
-                    result = ms.askyesno('Warning','This user has returned the book late by %s days\nDo you wish to Continue?' % days_since_return_date_formatted_integer)
-
-                    if result is True:
-                        # Delete the user where the bookID is equal to the returned book.
-                        remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-                        c.execute(remove_user_id, [(book_id)])
-                        conn.commit()
-
+            if real_title_at_id != title_var:
+                ms.showerror('Error', 'The BookID and Title values do not match.')
+            elif int(book_id) != int(bookID_var):
+                ms.showerror('Error', 'The BookID and Title values do not match.')
+            else:
+                if return_email == '':
+                    # Patron has no account.
+                    # Check if the book is connected to another email address.
+                    account_linked_book = c.execute("SELECT user_id FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
+                    if len(account_linked_book) != 0:
+                        ms.showerror('Error', 'Email address does not match the address linked to the book.')
+                    else:
                         # Set the book issued status to 0 (meaning its now available).
                         c.execute('UPDATE Books SET issued = 0 WHERE bookID=?', (book_id,))
                         conn.commit()
@@ -1031,88 +1146,201 @@ class BookDatabase():
                         self.ret_author_var.set('')
                         self.return_email_var.set('')
 
+                        # Run database fetch function
+                        db_fetch = self.database_fetch()
+
+                        # Extract return values from function.
+                        bookID_list = db_fetch[0]
+                        title_list = db_fetch[1]
+                        author_list = db_fetch[2]
+                        genre_list = db_fetch[3]
+                        location_list = db_fetch[4]
+                        issued_list = db_fetch[5]
+
+                        # Delete all rows in the table.
+                        for k in self.tree.get_children():
+                            self.tree.delete(k)
+
+                        # Iterate over each bookID and populate the table row by row.
+                        for i in range(len(bookID_list)):
+                            # Issue Date
+                            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                            date_issued_fetch = c.fetchall()
+                            date_issued_list = [x[0] for x in date_issued_fetch]
+
+                            # Return Date
+                            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                            return_date_fetch = c.fetchall()
+                            return_date_list = [x[0] for x in return_date_fetch]
+
+                            if len(date_issued_list)==0 or len(return_date_list)==0:
+                                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                            else:
+                                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                        self.tree.pack()
+
+                        for self.col in self.columns:
+                                self.tree.heading(self.col, text=self.col,
+                                                      command=lambda c=self.col: self.sort_upon_press(c))
+
                         ms.showinfo('Success', 'Book returned successfully')
+                else:
+                    try:
+                        # Check if email matches the owner of the loaned book.
+                        book_owner_email_fetch = c.execute('SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)', (book_id,)).fetchall()
+                        book_owner_email = [x[0] for x in book_owner_email_fetch][0]
 
-                    else:
-                        ms.showerror('Cancelled', 'Book return cancelled')
+                        if return_email != book_owner_email:
+                            ms.showerror('Error', 'Email address does not match its rightful owner.')
+                        else:
+                            # Send info to db
+                            account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?', (return_email,)).fetchall()
+                            if len(account_info_fetch) != 0:
+                                accounts_userid_check = [x[0] for x in account_info_fetch][0]
 
-                elif accounts_return_date_check_time <= actual_return_date:
-                    # Handed on time
+                                # Update the MyBooks table to set the actual return date. (the real date the patron returned the book, not the target date).
+                                c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID = ?', (actual_return_date, book_id,))
+                                conn.commit()
 
-                    # Fetch Location
-                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (book_id,)).fetchall()
-                    book_location = [x[0] for x in book_location_fetch][0]
+                                # Check if the user has returned on time
+                                accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=?', (book_id,)).fetchall()
+                                accounts_return_date_check = [x[0] for x in accounts_return_date_fetch][0]
 
-                    # Fetch genre
-                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (book_id,)).fetchall()
-                    book_genre = [x[0] for x in book_genre_fetch][0]
+                                accounts_return_date_check_time = datetime.strptime(accounts_return_date_check, '%Y-%m-%d').date()
 
-                    # Fetch date issued
-                    book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
-                    date_issued = [x[0] for x in book_date_issued_fetch][0]
+                                if accounts_return_date_check_time < actual_return_date:
+                                    # Handed late
+                                    # Find the number of days the book is late by.
+                                    days_since_return_date = (accounts_return_date_check_time - actual_return_date)
 
-                    expected_return_date = accounts_return_date_check_time
+                                    # Format the output to be just an integer days to fetch just the integer
+                                    days_since_return_date_formatted = str(days_since_return_date).split("d")[0]
 
-                    e = Email()
-                    service = e.get_service()
-                    message = e.create_return_message("from@gmail.com", return_email, "Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
-                    e.send_message(service, "from@gmail.com", message)
+                                    # Fetch the number in string and convert it into an absolute value integer.
+                                    days_since_return_date_formatted_integer = int(re.search(r'\d+', days_since_return_date_formatted).group())
+                                    result = ms.askyesno('Warning', 'This user has returned the book late by %s days\nDo you wish to Continue?' % days_since_return_date_formatted_integer)
 
-                    # Remove user_id from the ownership of the user and onto the public library.
-                    remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-                    c.execute(remove_user_id, [(book_id)])
-                    conn.commit()
+                                    if result is True:
+                                        # Fetch Location
+                                        book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                        book_location = [x[0] for x in book_location_fetch][0]
 
-                    c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
-                    conn.commit()
+                                        # Fetch genre
+                                        book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                        book_genre = [x[0] for x in book_genre_fetch][0]
 
-                    ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
+                                        # Fetch date issued
+                                        book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
+                                        date_issued = [x[0] for x in book_date_issued_fetch][0]
 
-                # Set entryfields to empty after return
-                self.ret_bookID_var.set('')
-                self.ret_title_var.set('')
-                self.ret_author_var.set('')
-                self.return_email_var.set('')
+                                        expected_return_date = accounts_return_date_check_time
+                                        
+                                        e = Email()
+                                        service = e.get_service()
+                                        message = e.create_return_message("from@gmail.com", return_email, "Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
+                                        e.send_message(service, "from@gmail.com", message)
 
-                # Run database fetch function
-                db_fetch = self.database_fetch()
+                                        # Delete the user where the bookID is equal to the returned book.
+                                        remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+                                        c.execute(remove_user_id, [(book_id)])
+                                        conn.commit()
 
-                # Extract return values from function.
-                bookID_list = db_fetch[0]
-                title_list = db_fetch[1]
-                author_list = db_fetch[2]
-                genre_list = db_fetch[3]
-                location_list = db_fetch[4]
-                issued_list = db_fetch[5]
+                                        # Set the book issued status to 0 (meaning its now available).
+                                        c.execute('UPDATE Books SET issued = 0 WHERE bookID=?', (book_id,))
+                                        conn.commit()
 
-                # Delete all rows in the table.
-                for k in self.tree.get_children():
-                    self.tree.delete(k)
+                                        # Set entryfields to empty after return
+                                        self.ret_bookID_var.set('')
+                                        self.ret_title_var.set('')
+                                        self.ret_author_var.set('')
+                                        self.return_email_var.set('')
 
-                # Iterate over each bookID and populate the table row by row.
-                for i in range(len(bookID_list)):
-                    # Issue Date
-                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
-                    date_issued_fetch = c.fetchall()
-                    date_issued_list = [x[0] for x in date_issued_fetch]
+                                        ms.showinfo('Success', 'Book returned successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
 
-                    # Return Date
-                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
-                    return_date_fetch = c.fetchall()
-                    return_date_list = [x[0] for x in return_date_fetch]
+                                    else:
+                                        ms.showerror('Cancelled', 'Book return cancelled')
 
-                    if len(date_issued_list)==0 or len(return_date_list)==0:
-                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
-                    else:
-                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
-                self.tree.pack()
+                                elif accounts_return_date_check_time >= actual_return_date:
+                                    # Handed on time
 
-                for self.col in self.columns:
-                        self.tree.heading(self.col, text=self.col,
-                                              command=lambda c=self.col: self.sort_upon_press(c))
+                                    # Fetch Location
+                                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                    book_location = [x[0] for x in book_location_fetch][0]
 
-            else:
-                ms.showerror('Error', 'Email was not found.', icon='error')
+                                    # Fetch genre
+                                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                    book_genre = [x[0] for x in book_genre_fetch][0]
+
+                                    # Fetch date issued
+                                    book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
+                                    date_issued = [x[0] for x in book_date_issued_fetch][0]
+
+                                    expected_return_date = accounts_return_date_check_time
+
+                                    e = Email()
+                                    service = e.get_service()
+                                    message = e.create_return_message("from@gmail.com", return_email, "Books4All Book Issued", title_var, author_var, book_genre, book_location, date_issued, expected_return_date, actual_return_date)
+                                    e.send_message(service, "from@gmail.com", message)
+
+                                    # Remove user_id from the ownership of the user and onto the public library.
+                                    remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
+                                    c.execute(remove_user_id, [(book_id)])
+                                    conn.commit()
+
+                                    c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+                                    conn.commit()
+
+                                    ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
+
+                                # Set entryfields to empty after return
+                                self.ret_bookID_var.set('')
+                                self.ret_title_var.set('')
+                                self.ret_author_var.set('')
+                                self.return_email_var.set('')
+
+                                # Run database fetch function
+                                db_fetch = self.database_fetch()
+
+                                # Extract return values from function.
+                                bookID_list = db_fetch[0]
+                                title_list = db_fetch[1]
+                                author_list = db_fetch[2]
+                                genre_list = db_fetch[3]
+                                location_list = db_fetch[4]
+                                issued_list = db_fetch[5]
+
+                                # Delete all rows in the table.
+                                for k in self.tree.get_children():
+                                    self.tree.delete(k)
+
+                                # Iterate over each bookID and populate the table row by row.
+                                for i in range(len(bookID_list)):
+                                    # Issue Date
+                                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                                    date_issued_fetch = c.fetchall()
+                                    date_issued_list = [x[0] for x in date_issued_fetch]
+
+                                    # Return Date
+                                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                                    return_date_fetch = c.fetchall()
+                                    return_date_list = [x[0] for x in return_date_fetch]
+
+                                    if len(date_issued_list)==0 or len(return_date_list)==0:
+                                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                                    else:
+                                        self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+                                self.tree.pack()
+
+                                for self.col in self.columns:
+                                        self.tree.heading(self.col, text=self.col,
+                                                              command=lambda c=self.col: self.sort_upon_press(c))
+
+                            else:
+                                ms.showerror('Error', 'Email was not found.', icon='error')
+                    except IndexError:
+                        ms.showerror('Error', 'Email address does not match its rightful owner.')
+        except Exception:
+            ms.showerror('Error', 'Invalid Input')
 
     def bookID_validate(self, bookID_input):
         '''
@@ -1311,7 +1539,7 @@ class BookDatabase():
 
         self.quickSort(self.tree, c, self.arr, 0, self.n-1, False)
 
-    def partition(self, arr,low, high):
+    def partition(self, arr, low, high):
         '''
         Create the partition for the sort algorithm
         The partition will be sorted until its completed that section and returns the left bound pointer i, upon it reaching a value >= the pivot
@@ -1365,8 +1593,7 @@ class BookDatabase():
         # For each time that the column heading is pressed, the opposite of the reverse variable will occur.
         # Meaning if the reverse variable is currently False, because it has already been ran as a False and sorted the tree in ascending order,
         # then the next press will invert the array to be sorted in descending order.
-        tv.heading(col, command=lambda: \
-            self.quickSort(tv, col, arr, low, high, not reverse))
+        tv.heading(col, command=lambda: self.quickSort(tv, col, arr, low, high, not reverse))
 
         if reverse is True:
             # To save time and avoid having to sort the list again when it has already been sorted,
@@ -1483,64 +1710,70 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         Index: Holds the index position of the user when searching through the autocomplete box using the arrow keys.
         Mode: Holds the mode which is currently being used to search through the box.
         '''
-        # Fetch database books that have been issued (issued=1)
-        # Titles
-        c.execute("SELECT bookID FROM Books WHERE issued=1")
-        issued_bookIDs_fetch = c.fetchall()
-        issued_bookIDs = [x[0] for x in issued_bookIDs_fetch]
+        global RETURN_ID_FLAG
+        global RETURN_TITLE_FLAG
+        RETURN_ID_FLAG = True
+        if RETURN_TITLE_FLAG == False:
+            # Fetch database books that have been issued (issued=1)
+            # Titles
+            c.execute("SELECT bookID FROM Books WHERE issued=1")
+            issued_bookIDs_fetch = c.fetchall()
+            issued_bookIDs = [x[0] for x in issued_bookIDs_fetch]
 
-        self.listb = issued_bookIDs
+            self.listb = issued_bookIDs
 
-        # Check if the autocomplete container is currently on the screen.
-        if self.ret_search_container_autocomplete.winfo_ismapped() == False:
-            # If the autocomplete container is not on the screen, display it on there.
-            self.ret_search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+            # Check if the autocomplete container is currently on the screen.
+            if self.ret_search_container_autocomplete.winfo_ismapped() == False:
+                # If the autocomplete container is not on the screen, display it on there.
+                self.ret_search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
-        if self.ret_bookID_var.get() == '':
-            # If the user input is empty, destroy the autocomplete box.
-            if self.lb_up:
-                self.lb.destroy()
-                self.lb_up = False
-        else:
-            # If the user input is not empty, populate the autocomplete container with the correct values that match the input.
-            # Call the comparison function that checks if any of the bookIDs in the database match any of the characters entered by the user.
-            # Returns a list each character entered by the user. Example: input=(Yes), then words=['Y','e','s']
-            words = self.comparison()
-            if words:
-                # Since there are no operators to evaluate the variable 'words',
-                # the if statement evaluates it as a boolean, therefore if there is any kind of data in words, it will be considered a truthy statement
-                # and return True, if there is no data in the variable at all, it is considered a False.
-                if not self.lb_up:
-                    # If the opposite of the autocomplete container status is True, then the container is currently not showing, therefore it must be shown, hence the widget is packed below.
-                    self.lb = tk.Listbox(self.ret_search_container_canvas, width=self["width"], height=self.listboxLength)
-
-                    # Bind double clicking the mouse button 1 as a selection event.
-                    self.lb.bind("<Double-Button-1>", self.selection)
-
-                    # Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
-                    self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-
-                    # The autocomplete container is now showing, therefore lb_up is True.
-                    self.lb_up = True
-
-                # Delete any values that may have lingered on from the previous call of this function.
-                # Clears any possible values from the box to have an empty box to then populate.
-                self.lb.delete(0, tk.END)
-
-                # For each character in the user input list that we created earlier, insert the character back into the options in the autocomplete box.
-                for w in words:
-                    self.lb.insert(tk.END,w)
-            else:
-                # If the list of words is empty, then destroy the autocomplete box.
+            if self.ret_bookID_var.get() == '':
+                # If the user input is empty, destroy the autocomplete box.
                 if self.lb_up:
                     self.lb.destroy()
                     self.lb_up = False
+            else:
+                # If the user input is not empty, populate the autocomplete container with the correct values that match the input.
+                # Call the comparison function that checks if any of the bookIDs in the database match any of the characters entered by the user.
+                # Returns a list each character entered by the user. Example: input=(Yes), then words=['Y','e','s']
+                words = self.comparison()
+                if words:
+                    # Since there are no operators to evaluate the variable 'words',
+                    # the if statement evaluates it as a boolean, therefore if there is any kind of data in words, it will be considered a truthy statement
+                    # and return True, if there is no data in the variable at all, it is considered a False.
+                    if not self.lb_up:
+                        # If the opposite of the autocomplete container status is True, then the container is currently not showing, therefore it must be shown, hence the widget is packed below.
+                        self.lb = tk.Listbox(self.ret_search_container_canvas, width=self["width"], height=self.listboxLength)
 
-                    # Hide the box from view, not destroy.
-                    self.ret_search_container_autocomplete.pack_forget()
-                    self.ret_search_container_canvas["height"] = 0
-                    self.ret_search_container_canvas["width"] = 0
+                        # Bind double clicking the mouse button 1 as a selection event.
+                        self.lb.bind("<Double-Button-1>", self.selection)
+
+                        # Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
+                        self.lb.bind("<Right>", self.selection)
+                        self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+
+                        # The autocomplete container is now showing, therefore lb_up is True.
+                        self.lb_up = True
+
+                    # Delete any values that may have lingered on from the previous call of this function.
+                    # Clears any possible values from the box to have an empty box to then populate.
+                    self.lb.delete(0, tk.END)
+
+                    # For each character in the user input list that we created earlier, insert the character back into the options in the autocomplete box.
+                    for w in words:
+                        self.lb.insert(tk.END, w)
+                else:
+                    # If the list of words is empty, then destroy the autocomplete box.
+                    if self.lb_up:
+                        self.lb.destroy()
+                        self.lb_up = False
+
+                        # Hide the box from view, not destroy.
+                        self.ret_search_container_autocomplete.pack_forget()
+                        self.ret_search_container_canvas["height"] = 0
+                        self.ret_search_container_canvas["width"] = 0
+        else:
+            RETURN_TITLE_FLAG = False
 
     def selection(self, event):
         '''
@@ -1551,15 +1784,18 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
             self.ret_bookID_var.set(self.lb.get(tk.ACTIVE))
 
             # Fetch the book's title, author and return date based on the bookID that was selected above.
-            book_title_fetch = c.execute('SELECT title FROM Books WHERE bookID=?',(self.ret_bookID_var.get(),)).fetchall()
+            book_title_fetch = c.execute('SELECT title FROM Books WHERE bookID=?', (self.ret_bookID_var.get(),)).fetchall()
             book_title = [x[0] for x in book_title_fetch][0]
 
-            book_author_fetch = c.execute('SELECT author FROM Books WHERE bookID=?',(self.ret_bookID_var.get(),)).fetchall()
+            book_author_fetch = c.execute('SELECT author FROM Books WHERE bookID=?', (self.ret_bookID_var.get(),)).fetchall()
             book_author = [x[0] for x in book_author_fetch][0]
 
-            # Fetch return date from table
-            return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=?',(self.ret_bookID_var.get(),)).fetchall()
-            return_date = [x[0] for x in return_date_fetch][0]
+            try:
+                # Fetch return date from table
+                return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=?', (self.ret_bookID_var.get(),)).fetchall()
+                return_date = [x[0] for x in return_date_fetch][0]
+            except IndexError:
+                return_date = str(datetime.today().strftime('%Y-%m-%d'))
 
             # Set the entry fields to be the fetched values.
             self.ret_title_var.set(book_title)
@@ -1635,6 +1871,235 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         return [w for w in self.listb if re.match(pattern, str(w))]
 
 
+class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+    '''
+    def __init__(self, ret_search_container_autocomplete, ret_title_entry, ret_title_var, ret_author_entry, ret_author_var, ret_bookID_var, ret_bookID_entry, ret_date_entry, ret_search_container_canvas, *args, **kwargs):
+        '''
+        Fetch all the necessary values and setup the variables required for the upcoming functions.
+        '''
+
+        # Add self to variables to make them class instance variables and be accessed across the class.
+        self.ret_search_container_autocomplete = ret_search_container_autocomplete
+        self.ret_bookID_entry = ret_bookID_entry
+        self.ret_title_entry = ret_title_entry
+        self.ret_author_entry = ret_author_entry
+        self.ret_date_entry = ret_date_entry
+        self.ret_search_container_canvas = ret_search_container_canvas
+
+        #  Listbox length
+        if 'listboxLength' in kwargs:
+            self.listboxLength = kwargs['listboxLength']
+            del kwargs['listboxLength']
+        else:
+            self.listboxLength = 8
+
+        # Initiate the entry box for the autocomplete search field.
+        ttk.Entry.__init__(self, *args, **kwargs)
+        # Focus the user keyboard on the this field.
+        self.focus()
+
+        # Fetch database books that have been issued (issued=1)
+        # Titles
+        c.execute("SELECT title FROM Books WHERE issued=1")
+        issued_titles_fetch = c.fetchall()
+        issued_titles_list = [x[0] for x in issued_titles_fetch]
+
+        # Establish more class instance variables.
+        self.listb = issued_titles_list
+
+        self.ret_bookID_var = ret_bookID_var
+        self.ret_title_var = ret_title_var
+        self.ret_author_var = ret_author_var
+
+        self.ret_title_entry = self["textvariable"]
+        if self.ret_title_entry == '':
+            self.ret_title_entry = self["textvariable"] = tk.StringVar()
+
+        # Trace the user input in the entry field.
+        # Calls self.changed function upon any user changes in the field.
+        self.ret_title_var.trace('w', self.changed)
+
+        # Bind the user's arrow keys to different functions in the autocomplete box.
+        # <Right> arrow key allows for the user to select the currently highlighted autocomplete value.
+        self.bind("<Right>", self.selection)
+        # <Up> and <Down> arrow keys allow the user to navigate the autocomplete box.
+        self.bind("<Up>", self.up)
+        self.bind("<Down>", self.down)
+
+        # lb_up determines whether the autocomplete frame should be currently showing or not.
+        # Set to False by default, to avoid having the box showing the entire time, despite any user input or not.
+        self.lb_up = False
+
+    def changed(self, name, index, mode):
+        '''
+        Passes in the name, index and mode of the search.
+        Name: Holds the event trigger that is automatically passed by tkinter when the .trace() function is called
+        Index: Holds the index position of the user when searching through the autocomplete box using the arrow keys.
+        Mode: Holds the mode which is currently being used to search through the box.
+        '''
+        global RETURN_ID_FLAG
+        global RETURN_TITLE_FLAG
+        RETURN_TITLE_FLAG = True
+        if RETURN_ID_FLAG == False:
+            # Fetch database books that have been issued (issued=1)
+            # Titles
+            c.execute("SELECT title FROM Books WHERE issued=1")
+            issued_titles_fetch = c.fetchall()
+            issued_titles = [x[0] for x in issued_titles_fetch]
+
+            self.listb = issued_titles
+
+            # Check if the autocomplete container is currently on the screen.
+            if self.ret_search_container_autocomplete.winfo_ismapped() == False:
+                # If the autocomplete container is not on the screen, display it on there.
+                self.ret_search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+
+            if self.ret_title_var.get() == '':
+                # If the user input is empty, destroy the autocomplete box.
+                if self.lb_up:
+                    self.lb.destroy()
+                    self.lb_up = False
+            else:
+                # If the user input is not empty, populate the autocomplete container with the correct values that match the input.
+                # Call the comparison function that checks if any of the bookIDs in the database match any of the characters entered by the user.
+                # Returns a list each character entered by the user. Example: input=(Yes), then words=['Y','e','s']
+                words = self.comparison()
+                if words:
+                    # Since there are no operators to evaluate the variable 'words',
+                    # the if statement evaluates it as a boolean, therefore if there is any kind of data in words, it will be considered a truthy statement
+                    # and return True, if there is no data in the variable at all, it is considered a False.
+                    if not self.lb_up:
+                        # If the opposite of the autocomplete container status is True, then the container is currently not showing, therefore it must be shown, hence the widget is packed below.
+                        self.lb = tk.Listbox(self.ret_search_container_canvas, width=self["width"], height=self.listboxLength)
+
+                        # Bind double clicking the mouse button 1 as a selection event.
+                        self.lb.bind("<Double-Button-1>", self.selection)
+
+                        # Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
+                        self.lb.bind("<Right>", self.selection)
+                        self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+
+                        # The autocomplete container is now showing, therefore lb_up is True.
+                        self.lb_up = True
+
+                    # Delete any values that may have lingered on from the previous call of this function.
+                    # Clears any possible values from the box to have an empty box to then populate.
+                    self.lb.delete(0, tk.END)
+
+                    # For each character in the user input list that we created earlier, insert the character back into the options in the autocomplete box.
+                    for w in words:
+                        self.lb.insert(tk.END, w)
+                else:
+                    # If the list of words is empty, then destroy the autocomplete box.
+                    if self.lb_up:
+                        self.lb.destroy()
+                        self.lb_up = False
+
+                        # Hide the box from view, not destroy.
+                        self.ret_search_container_autocomplete.pack_forget()
+                        self.ret_search_container_canvas["height"] = 0
+                        self.ret_search_container_canvas["width"] = 0
+        else:
+            RETURN_ID_FLAG = False
+
+    def selection(self, event):
+        '''
+        Upon triggering this function, the selected autocomplete option will be copied over to the entry field.
+        '''
+        if self.lb_up:
+            # If the autocomplete container is currently showing, then set the entry field where the user was entering their search, to be the value that they selected.
+            self.ret_title_var.set(self.lb.get(tk.ACTIVE))
+
+            # Fetch the book's title, author and return date based on the bookID that was selected above.
+            book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.ret_title_var.get(),)).fetchall()
+            book_bookID = [x[0] for x in book_bookID_fetch][0]
+
+            book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.ret_title_var.get(),)).fetchall()
+            book_author = [x[0] for x in book_author_fetch][0]
+
+            try:
+                # Fetch return date from table
+                return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=(SELECT bookID FROM Books WHERE title=?)', (self.ret_title_var.get(),)).fetchall()
+                return_date = [x[0] for x in return_date_fetch][0]
+            except IndexError:
+                return_date = str(datetime.today().strftime('%Y-%m-%d'))
+
+            # Set the entry fields to be the fetched values.
+            self.ret_bookID_var.set(book_bookID)
+            self.ret_author_var.set(book_author)
+            self.ret_date_entry.set_date(datetime.strptime(return_date, '%Y-%m-%d'))
+
+            # Hide the autocomplete box upon setting the other entry field values.
+            self.ret_search_container_autocomplete.pack_forget()
+            self.ret_search_container_canvas["height"] = 0
+            self.ret_search_container_canvas["width"] = 0
+
+            # Destroy the container of the autocomplete box.
+            self.lb.destroy()
+
+            # The container is no longer showing, therefore lb_up should be False.
+            self.lb_up = False
+
+            # Set the cursor (flashing line when you type) to be at the end of the string in the entry field.
+            self.icursor(tk.END)
+
+    def up(self, event):
+        '''
+        Allow the user to move up the autocomplete box using the <Up> arrow key.
+        '''
+
+        if self.lb_up:
+            # only allow the user to move this way, if the autocomplete box is currently on the screen.
+            if self.lb.curselection() == ():
+                # lb.curselection() returns a tuple with the number of elements in the listbox that is the autocomplete box.
+                # If this tuple is empty, then set the index to 0 (the first element in the listbox will be highlighted)
+                index = '0'
+            else:
+                # If it is not empty, then the index will be equal to the position of the currently selected element in the listbox.
+                index = self.lb.curselection()[0]
+
+            if index != '0':
+                # If the index is not 0, then the element in the index position will be cleared
+                self.lb.selection_clear(first=index)
+                # The index will decrement by one
+                index = str(int(index)-1)
+
+                # Allow the element in the listbox at the index position to be in view.
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+
+                # Select the element specified by the index.
+                self.lb.activate(index)
+
+    def down(self, event):
+        '''
+        The same as the up function, but downward.
+        '''
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+            if index != tk.END:
+                self.lb.selection_clear(first=index)
+                index = str(int(index)+1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def comparison(self):
+        '''
+        Convert the user input into a segmented list, where each character from the input is a seperate element.
+        Compares the database issued book values to the user input, and checks if any of the characters match any characters in the other and vice versa.
+        Returns a list of elements that make up the user input.
+        '''
+        pattern = re.compile('.*' + self.ret_title_var.get() + '.*')
+        return [w for w in self.listb if re.match(pattern, str(w))]
+
+
 class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
     '''
     Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
@@ -1683,44 +2148,50 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
         self.lb_up = False
 
     def changed(self, name, index, mode):
-        # Titles
-        c.execute("SELECT bookID FROM Books WHERE issued=0")
-        books_bookID_fetch = c.fetchall()
-        book_bookID_list = [x[0] for x in books_bookID_fetch]
+        global ISSUE_ID_FLAG
+        global ISSUE_TITLE_FLAG
+        ISSUE_ID_FLAG = True
+        if ISSUE_TITLE_FLAG == False:
+            # Titles
+            c.execute("SELECT bookID FROM Books WHERE issued=0")
+            books_bookID_fetch = c.fetchall()
+            book_bookID_list = [x[0] for x in books_bookID_fetch]
 
-        self.lista = book_bookID_list
+            self.lista = book_bookID_list
 
-        if self.search_container_autocomplete.winfo_ismapped() is False:
-            self.search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+            if self.search_container_autocomplete.winfo_ismapped() is False:
+                self.search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
-        if self.bookID_var.get() == '':
-            if self.lb_up:
-                self.lb.destroy()
-                self.lb_up = False
-
-        else:
-            words = self.comparison()
-            if words:
-                if not self.lb_up:
-                    self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
-                    self.lb.bind("<Double-Button-1>", self.selection)
-                    self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-                    self.lb_up = True
-
-                self.lb.delete(0, tk.END)
-
-                for w in words:
-                    self.lb.insert(tk.END,w)
-
-            else:
+            if self.bookID_var.get() == '':
                 if self.lb_up:
                     self.lb.destroy()
                     self.lb_up = False
 
-                    self.search_container_autocomplete.pack_forget()
-                    self.search_container_canvas["height"]=0
-                    self.search_container_canvas["width"]=0
+            else:
+                words = self.comparison()
+                if words:
+                    if not self.lb_up:
+                        self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
+                        self.lb.bind("<Double-Button-1>", self.selection)
+                        self.lb.bind("<Right>", self.selection)
+                        self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+                        self.lb_up = True
+
+                    self.lb.delete(0, tk.END)
+
+                    for w in words:
+                        self.lb.insert(tk.END, w)
+
+                else:
+                    if self.lb_up:
+                        self.lb.destroy()
+                        self.lb_up = False
+
+                        self.search_container_autocomplete.pack_forget()
+                        self.search_container_canvas["height"] = 0
+                        self.search_container_canvas["width"] = 0
+        else:
+            ISSUE_TITLE_FLAG = False
 
     def selection(self, event):
         if self.lb_up:
@@ -1777,6 +2248,154 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
         return [w for w in self.lista if re.match(pattern, str(w))]
 
 
+class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+
+    Structuraly the same as all the other Autocomplete classes, however this applies to the issuing of books given the title field input.
+    Already described above.
+    '''
+    def __init__(self, search_container_autocomplete, title_entry, title_var, author_entry, author_var, bookID_var, bookID_entry, search_container_canvas, *args, **kwargs):
+
+        self.search_container_autocomplete = search_container_autocomplete
+        self.search_container_canvas = search_container_canvas
+
+        self.title_entry = title_entry
+        self.author_entry = author_entry
+
+        #  Listbox length
+        if 'listboxLength' in kwargs:
+            self.listboxLength = kwargs['listboxLength']
+            del kwargs['listboxLength']
+        else:
+            self.listboxLength = 8
+
+        ttk.Entry.__init__(self, *args, **kwargs)
+        self.focus()
+
+        # Titles
+        c.execute("SELECT title FROM Books WHERE issued=0")
+        books_titles_fetch = c.fetchall()
+        book_titles_list = [x[0] for x in books_titles_fetch]
+
+        self.lista = book_titles_list
+
+        self.bookID_var = bookID_var
+        self.title_var = title_var
+        self.author_var = author_var
+
+        self.title_entry = self["textvariable"]
+        if self.title_entry == '':
+            self.title_entry = self["textvariable"] = tk.StringVar()
+
+        self.title_var.trace('w', self.changed)
+        self.bind("<Right>", self.selection)
+        self.bind("<Up>", self.up)
+        self.bind("<Down>", self.down)
+
+        self.lb_up = False
+
+    def changed(self, name, index, mode):
+        global ISSUE_ID_FLAG
+        global ISSUE_TITLE_FLAG
+        ISSUE_TITLE_FLAG = True
+        if ISSUE_ID_FLAG == False:
+            # Titles
+            c.execute("SELECT title FROM Books WHERE issued=0")
+            books_titles_fetch = c.fetchall()
+            book_titles_list = [x[0] for x in books_titles_fetch]
+
+            self.lista = book_titles_list
+
+            if self.search_container_autocomplete.winfo_ismapped() is False:
+                self.search_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+
+            if self.title_var.get() == '':
+                if self.lb_up:
+                    self.lb.destroy()
+                    self.lb_up = False
+
+            else:
+                words = self.comparison()
+                if words:
+                    if not self.lb_up:
+                        self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
+                        self.lb.bind("<Double-Button-1>", self.selection)
+                        self.lb.bind("<Right>", self.selection)
+                        self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+                        self.lb_up = True
+
+                    self.lb.delete(0, tk.END)
+
+                    for w in words:
+                        self.lb.insert(tk.END, w)
+
+                else:
+                    if self.lb_up:
+                        self.lb.destroy()
+                        self.lb_up = False
+
+                        self.search_container_autocomplete.pack_forget()
+                        self.search_container_canvas["height"] = 0
+                        self.search_container_canvas["width"] = 0
+        else:
+            ISSUE_ID_FLAG = False
+
+    def selection(self, event):
+        if self.lb_up:
+            self.title_var.set(self.lb.get(tk.ACTIVE))
+
+            book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.title_var.get(),)).fetchall()
+            book_bookID = [x[0] for x in book_bookID_fetch][0]
+
+            book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.title_var.get(),)).fetchall()
+            book_author = [x[0] for x in book_author_fetch][0]
+
+            self.bookID_var.set(book_bookID)
+            self.author_var.set(book_author)
+
+            self.search_container_autocomplete.pack_forget()
+            self.search_container_canvas["height"] = 0
+            self.search_container_canvas["width"] = 0
+
+            self.lb.destroy()
+            self.lb_up = False
+            self.icursor(tk.END)
+
+    def up(self, event):
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+
+            if index != '0':
+                self.lb.selection_clear(first=index)
+                index = str(int(index)-1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def down(self, event):
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+            if index != tk.END:
+                self.lb.selection_clear(first=index)
+                index = str(int(index)+1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def comparison(self):
+        pattern = re.compile('.*' + self.title_var.get() + '.*')
+        return [w for w in self.lista if re.match(pattern, str(w))]
+
+
 class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
     '''
     Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
@@ -1826,41 +2445,47 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
         self.lb_up = False
 
     def changed(self, name, index, mode):
-        # Titles
-        c.execute("SELECT bookID FROM Books")
-        books_bookID_fetch = c.fetchall()
-        remove_book_bookID_list = [x[0] for x in books_bookID_fetch]
+        global REMOVE_ID_FLAG
+        global REMOVE_TITLE_FLAG
+        REMOVE_ID_FLAG = True
+        if REMOVE_TITLE_FLAG == False:
+            # Titles
+            c.execute("SELECT bookID FROM Books")
+            books_bookID_fetch = c.fetchall()
+            remove_book_bookID_list = [x[0] for x in books_bookID_fetch]
 
-        self.lista = remove_book_bookID_list
+            self.lista = remove_book_bookID_list
 
-        if self.remove_container_autocomplete.winfo_ismapped() is False:
-            self.remove_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+            if self.remove_container_autocomplete.winfo_ismapped() is False:
+                self.remove_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
 
-        if self.remove_bookID_var.get() == '':
-            if self.lb_up:
-                self.lb.destroy()
-                self.lb_up = False
-        else:
-            words = self.comparison()
-            if words:
-                if not self.lb_up:
-                    self.lb = tk.Listbox(self.remove_container_canvas, width=self["width"], height=self.listboxLength)
-                    self.lb.bind("<Double-Button-1>", self.selection)
-                    self.lb.bind("<Right>", self.selection)
-                    self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
-                    self.lb_up = True
-
-                self.lb.delete(0, tk.END)
-                for w in words:
-                    self.lb.insert(tk.END, w)
-            else:
+            if self.remove_bookID_var.get() == '':
                 if self.lb_up:
                     self.lb.destroy()
                     self.lb_up = False
+            else:
+                words = self.comparison()
+                if words:
+                    if not self.lb_up:
+                        self.lb = tk.Listbox(self.remove_container_canvas, width=self["width"], height=self.listboxLength)
+                        self.lb.bind("<Double-Button-1>", self.selection)
+                        self.lb.bind("<Right>", self.selection)
+                        self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+                        self.lb_up = True
 
-                    self.remove_container_autocomplete.pack_forget()
-                    self.remove_container_canvas["height"] = 0
-                    self.remove_container_canvas["width"] = 0
+                    self.lb.delete(0, tk.END)
+                    for w in words:
+                        self.lb.insert(tk.END, w)
+                else:
+                    if self.lb_up:
+                        self.lb.destroy()
+                        self.lb_up = False
+
+                        self.remove_container_autocomplete.pack_forget()
+                        self.remove_container_canvas["height"] = 0
+                        self.remove_container_canvas["width"] = 0
+        else:
+            REMOVE_TITLE_FLAG = False
 
     def selection(self, event):
         if self.lb_up:
@@ -1920,3 +2545,152 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
         pattern = re.compile('.*' + self.remove_bookID_var.get() + '.*')
         return [w for w in self.lista if re.match(pattern, str(w))]
 
+
+class AutoCompleteEntryBD_RemoveTitle(ttk.Entry):
+    '''
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+
+    Structuraly the same as all the other Autocomplete classes, however this applies to the removal of books.
+    Already described above.
+    '''
+    def __init__(self, remove_container_autocomplete, remove_title_entry, remove_title_var, remove_author_entry, remove_author_var, remove_bookID_var, remove_bookID_entry, remove_genre_var, remove_genre_menu, remove_container_canvas, *args, **kwargs):
+
+        self.remove_container_autocomplete = remove_container_autocomplete
+        self.remove_container_canvas = remove_container_canvas
+        self.remove_title_entry = remove_title_entry
+        self.remove_author_entry = remove_author_entry
+        self.remove_genre_menu = remove_genre_menu
+
+        #  Listbox length
+        if 'listboxLength' in kwargs:
+            self.listboxLength = kwargs['listboxLength']
+            del kwargs['listboxLength']
+        else:
+            self.listboxLength = 8
+
+        ttk.Entry.__init__(self, *args, **kwargs)
+        self.focus()
+
+        # Titles
+        c.execute("SELECT title FROM Books")
+        remove_books_titles_fetch = c.fetchall()
+        remove_book_title_list = [x[0] for x in remove_books_titles_fetch]
+
+        self.lista = remove_book_title_list
+
+        self.remove_bookID_var = remove_bookID_var
+        self.remove_title_var = remove_title_var
+        self.remove_author_var = remove_author_var
+        self.remove_genre_var = remove_genre_var
+
+        self.remove_title_entry = self["textvariable"]
+        if self.remove_title_entry == '':
+            self.remove_title_entry = self["textvariable"] = tk.StringVar()
+
+        self.remove_title_var.trace('w', self.changed)
+        self.bind("<Right>", self.selection)
+        self.bind("<Up>", self.up)
+        self.bind("<Down>", self.down)
+
+        self.lb_up = False
+
+    def changed(self, name, index, mode):
+        global REMOVE_ID_FLAG
+        global REMOVE_TITLE_FLAG
+        REMOVE_TITLE_FLAG = True
+        if REMOVE_ID_FLAG == False:
+            # Titles
+            c.execute("SELECT title FROM Books")
+            books_title_fetch = c.fetchall()
+            remove_book_title_list = [x[0] for x in books_title_fetch]
+
+            self.lista = remove_book_title_list
+
+            if self.remove_container_autocomplete.winfo_ismapped() is False:
+                self.remove_container_autocomplete.pack(anchor=tk.W, fill=tk.X, side=tk.TOP)
+
+            if self.remove_title_var.get() == '':
+                if self.lb_up:
+                    self.lb.destroy()
+                    self.lb_up = False
+            else:
+                words = self.comparison()
+                if words:
+                    if not self.lb_up:
+                        self.lb = tk.Listbox(self.remove_container_canvas, width=self["width"], height=self.listboxLength)
+                        self.lb.bind("<Double-Button-1>", self.selection)
+                        self.lb.bind("<Right>", self.selection)
+                        self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+                        self.lb_up = True
+
+                    self.lb.delete(0, tk.END)
+                    for w in words:
+                        self.lb.insert(tk.END, w)
+                else:
+                    if self.lb_up:
+                        self.lb.destroy()
+                        self.lb_up = False
+
+                        self.remove_container_autocomplete.pack_forget()
+                        self.remove_container_canvas["height"] = 0
+                        self.remove_container_canvas["width"] = 0
+        else:
+            REMOVE_ID_FLAG = False
+
+    def selection(self, event):
+        if self.lb_up:
+            self.remove_title_var.set(self.lb.get(tk.ACTIVE))
+
+            remove_book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.remove_title_var.get(),)).fetchall()
+            remove_book_bookID = [x[0] for x in remove_book_bookID_fetch][0]
+
+            remove_book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.remove_title_var.get(),)).fetchall()
+            remove_book_author = [x[0] for x in remove_book_author_fetch][0]
+
+            remove_book_genre_fetch = c.execute('SELECT genre FROM Books WHERE title=?', (self.remove_title_var.get(),)).fetchall()
+            remove_book_genre = [x[0] for x in remove_book_genre_fetch][0]
+
+            self.remove_bookID_var.set(remove_book_bookID)
+            self.remove_author_var.set(remove_book_author)
+            self.remove_genre_var.set(remove_book_genre)
+
+            self.remove_container_autocomplete.pack_forget()
+            self.remove_container_canvas["height"] = 0
+            self.remove_container_canvas["width"] = 0
+
+            self.lb.destroy()
+            self.lb_up = False
+            self.icursor(tk.END)
+
+    def up(self, event):
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+
+            if index != '0':
+                self.lb.selection_clear(first=index)
+                index = str(int(index)-1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index)
+
+    def down(self, event):
+        if self.lb_up:
+            if self.lb.curselection() == ():
+                index = '0'
+            else:
+                index = self.lb.curselection()[0]
+            if index != tk.END:
+                self.lb.selection_clear(first=index)
+                index = str(int(index)+1)
+
+                self.lb.see(index)
+                self.lb.selection_set(first=index)
+                self.lb.activate(index) 
+
+    def comparison(self):
+        pattern = re.compile('.*' + self.remove_title_var.get() + '.*')
+        return [w for w in self.lista if re.match(pattern, str(w))]

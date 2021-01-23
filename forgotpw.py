@@ -22,11 +22,14 @@ with sqlite3.connect('LibrarySystem.db') as db:
 # File Configurations
 PADX = re.sub('^.*?=', '', linecache.getline('config.txt', 2))
 PADY = re.sub('^.*?=', '', linecache.getline('config.txt', 3))
-SMALL_GEOMETRY = re.sub('^.*?=','',linecache.getline('config.txt', 5)).strip()
+SMALL_GEOMETRY = re.sub('^.*?=', '', linecache.getline('config.txt', 5)).strip()
 BG = re.sub('^.*?=', '', linecache.getline('config.txt', 6)).strip()
 DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt', 7)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 11)).strip()
-
+VERSION = re.sub('^.*?=', '', linecache.getline('config.txt', 12)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
 class ForgotPW():
     '''
@@ -47,7 +50,7 @@ class ForgotPW():
         main_frame = tk.Frame(forgot_pw_page, relief=tk.FLAT)
         main_frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        main_label = tk.Label(main_frame, text='Library System v1.0')
+        main_label = tk.Label(main_frame, text='Library System v'+VERSION)
         main_label.pack(fill=tk.X, anchor=tk.N)
 
         header_frame = tk.Frame(forgot_pw_page)
@@ -57,7 +60,7 @@ class ForgotPW():
         header.pack(side=tk.TOP)
 
         # Credentials Container
-        credentials_container = tk.Frame(forgot_pw_page, bg=BG)
+        credentials_container = tk.Frame(forgot_pw_page, bg=BG, relief=RELIEF, bd=BD)
         credentials_container.pack(padx=PADX, pady=PADY)
 
         # Email Container
@@ -117,7 +120,7 @@ class ForgotPW():
             main_frame = tk.Frame(self.forgotPassword, relief=tk.FLAT)
             main_frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-            main_label = tk.Label(main_frame, text='Library System v1.0')
+            main_label = tk.Label(main_frame, text='Library System v'+VERSION)
             main_label.pack(fill=tk.X, anchor=tk.N)
 
             header_frame = tk.Frame(self.forgotPassword)

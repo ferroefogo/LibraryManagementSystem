@@ -1,4 +1,4 @@
-#Options Page
+# Options Page
 
 import tkinter as tk
 from tkinter import ttk
@@ -14,11 +14,15 @@ SMALL_GEOMETRY = re.sub('^.*?=','',linecache.getline('config.txt',5)).strip()
 BG = re.sub('^.*?=', '', linecache.getline('config.txt',6)).strip()
 MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt',9)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt',11)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
+
 
 class Options():
-    #USER ACCESS
-    #Display program options (Theme, Font, etc...)
-    #Optionally do this. Leave for now.
+    # USER ACCESS
+    # Display program options (Theme, Font, etc...)
+    # Optionally do this. Leave for now.
     def __init__(self, root, notebook):
         option_page = tk.Frame(notebook)
         notebook.add(option_page, text='Options')
@@ -26,11 +30,11 @@ class Options():
         options_header = tk.Label(option_page, text='Options', font=HEADER_FONT)
         options_header.pack(side=tk.TOP)
 
-        #Options Main Container
-        options_container = tk.Frame(option_page, bg=BG)
+        # Options Main Container
+        options_container = tk.Frame(option_page, bg=BG, relief=RELIEF, bd=BD)
         options_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX)
 
-        #Font Choice
+        # Font Choice
         self.options_container_font = tk.Frame(options_container, bg=BG)
         self.options_container_font.pack(anchor=tk.W, fill=tk.X, expand=True, side=tk.TOP)
 

@@ -20,6 +20,9 @@ PADY = re.sub('^.*?=', '', linecache.getline('config.txt', 3))
 BG = re.sub('^.*?=', '', linecache.getline('config.txt', 6)).strip()
 FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 10)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 11)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
 # List of genres
 c.execute("SELECT genre FROM Genres")
@@ -58,7 +61,7 @@ class Library():
         header.pack(side=tk.TOP)
 
         # Library TreeView Book Database Frame
-        tree_container = tk.Frame(library_page, bg=BG)
+        tree_container = tk.Frame(library_page, bg=BG, relief=RELIEF, bd=BD)
         tree_container.pack(side=tk.RIGHT, anchor=tk.N, padx=PADX)
 
         tree_header = tk.Label(tree_container, text='Database', font=FONT, bg=BG)
@@ -80,7 +83,7 @@ class Library():
         self.tree.column("Location", width=WIDTH, anchor=tk.CENTER)
 
         # Library Book Database Filters Frame
-        filter_container = tk.Frame(library_page, bg=BG)
+        filter_container = tk.Frame(library_page, bg=BG, relief=RELIEF, bd=BD)
         filter_container.pack(side=tk.LEFT, anchor=tk.N, padx=PADX, pady=PADY)
 
         filter_header = tk.Label(filter_container, text='Filters', font=FONT, bg=BG)

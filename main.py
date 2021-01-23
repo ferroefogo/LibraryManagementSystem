@@ -42,6 +42,10 @@ BG = re.sub('^.*?=', '', linecache.getline('config.txt', 6)).strip()
 DANGER_FG = re.sub('^.*?=', '', linecache.getline('config.txt', 7)).strip()
 MAIN_APP_BG = re.sub('^.*?=', '', linecache.getline('config.txt', 9)).strip()
 HEADER_FONT = re.sub('^.*?=', '', linecache.getline('config.txt', 11)).strip()
+VERSION = re.sub('^.*?=', '', linecache.getline('config.txt', 12)).strip()
+FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
+BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
+RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
 
 class SignIn():
@@ -53,6 +57,13 @@ class SignIn():
         '''
         Initialise the visual window for the system startup.
         '''
+        # Window parameters
+        parent.geometry(SMALL_GEOMETRY)
+        parent.title('Library Management System')
+        parent.configure(bg=BG)
+        parent.option_add("*foreground", "yellow")
+        parent.option_add("*background", "gray15")
+
         self.parent = parent
         sign_in_notebook = ttk.Notebook(self.parent)
         sign_in_notebook.pack(expand=True, fill=tk.BOTH)
@@ -82,10 +93,10 @@ class Login():
         login_page = tk.Frame(sign_in_notebook)
         sign_in_notebook.add(login_page, text='Login')
 
-        main_frame = tk.Frame(login_page, relief=tk.FLAT)
+        main_frame = tk.Frame(login_page)
         main_frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        main_label = tk.Label(main_frame, text='Library System v1.0')
+        main_label = tk.Label(main_frame, text='Library System v'+VERSION)
         main_label.pack(fill=tk.X, anchor=tk.N)
 
         header_frame = tk.Frame(login_page)
@@ -95,7 +106,7 @@ class Login():
         header.pack(side=tk.TOP)
 
         # Login Container
-        login_container = tk.Frame(login_page, bg=BG)
+        login_container = tk.Frame(login_page, bg=BG, relief=RELIEF, bd=BD)
         login_container.pack(padx=PADX, pady=PADY)
 
         # Email Container
@@ -235,7 +246,7 @@ class Register():
         main_frame = tk.Frame(register_page, relief=tk.FLAT)
         main_frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        main_label = tk.Label(main_frame, text='Library System v1.0')
+        main_label = tk.Label(main_frame, text='Library System v'+VERSION)
         main_label.pack(fill=tk.X, anchor=tk.N)
 
         header_frame = tk.Frame(register_page)
@@ -245,7 +256,7 @@ class Register():
         header.pack(side=tk.TOP)
 
         # Register Container
-        register_container = tk.Frame(register_page, bg=BG)
+        register_container = tk.Frame(register_page, bg=BG, relief=RELIEF, bd=BD)
         register_container.pack(padx=PADX, pady=PADY)
 
         # Email Container
@@ -382,7 +393,7 @@ class Register():
                     main_frame = tk.Frame(self.accountVerification, relief=tk.FLAT)
                     main_frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-                    main_label = tk.Label(main_frame, text='Library System v1.0')
+                    main_label = tk.Label(main_frame, text='Library System v'+VERSION)
                     main_label.pack(fill=tk.X, anchor=tk.N)
 
                     header_frame = tk.Frame(self.accountVerification)
@@ -618,16 +629,17 @@ class MainApplication():
 
         # root window configurations
         parent.configure(bg=MAIN_APP_BG)
-        parent.title("Library System v1.0")
+        parent.title("Library System v"+VERSION)
         parent.option_add('*Font', 'System 12')
         parent.option_add('*Label.Font', 'System 12')
         parent.geometry(MAIN_GEOMETRY)
+        parent.wm_state('zoomed')
 
         # Global Header
         global_frame = tk.Frame(parent, relief=tk.FLAT)
         global_frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        global_label = tk.Label(global_frame, text='Library System v1.0')
+        global_label = tk.Label(global_frame, text='Library System v'+VERSION)
         global_label.pack(fill=tk.X, anchor=tk.N)
 
         # Logout button
