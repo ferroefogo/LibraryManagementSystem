@@ -89,7 +89,7 @@ class Admin():
         self.tree.column("Staff Mode", width=80, anchor=tk.CENTER)
         self.tree.column("Admin Mode", width=80, anchor=tk.CENTER)
         self.tree.column("Issued BookIDs", width=WIDTH, anchor=tk.CENTER)
-        self.tree.column("Earliest Return Date", width=WIDTH, anchor=tk.CENTER)
+        self.tree.column("Earliest Return Date", width=115, anchor=tk.CENTER)
 
         # Call the database fetch function to get all the most recent values
         db_fetch = self.database_fetch()
@@ -530,6 +530,11 @@ class Admin():
         mean_avg_container.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
 
         self.mean_avg_lbl = tk.Label(mean_avg_container, text='Mean Average of Books Issued\nOver the Last 7 Days\n(NOT Including today):')
+        with open("mean_avg_storage.txt", "r") as file:
+            lineArray = file.readlines()
+        mean_avg = (int(re.findall("\d+", lineArray[6])[0]) + int(re.findall("\d+", lineArray[5])[0]) + int(re.findall("\d+", lineArray[4])[0]) + int(re.findall("\d+", lineArray[3])[0]) + int(re.findall("\d+", lineArray[2])[0]) + int(re.findall("\d+", lineArray[1])[0]) + int(re.findall("\d+", lineArray[0])[0]))/7
+        file.close()
+        self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days\n(NOT Including today): {:.2f}'.format(mean_avg)
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
 
         # Button to access genre popularity graph
@@ -584,6 +589,10 @@ class Admin():
         Update all values being displayed on the page.
         '''
         week_ago = (datetime.today() - timedelta(days=7)).date()
+
+        # Write the values to a text file to read from and add upon.
+        with open("mean_avg_storage.txt", "r") as file:
+            lineArray = file.readlines()
         # Iterate over the span of 7 days.
         for j in range(7):
 
@@ -602,10 +611,6 @@ class Admin():
             fetch_issued_books_past_week = c.execute("SELECT bookID FROM MyBooks WHERE date_issued=?", (date_issued,))
             issued_books_past_week = [x[0] for x in fetch_issued_books_past_week]
 
-            # Write the values to a text file to read from and add upon.
-            with open("mean_avg_storage.txt", "r") as file:
-                lineArray = file.readlines()
-
             #  Make sure the books from the current date_issued loop are assigned to the correct variable.
             #  So if the current loop has just fetched all the books from the date 3 days ago, then all those books
             #  will be stored in the number_books_issued_3days_ago variable.
@@ -613,38 +618,38 @@ class Admin():
                 # len() is used to gauge the number of books that were issued on that particular date.
                 # This applies to all the similar variables in this if tree.
                 number_books_issued_7days_ago = str(len(issued_books_past_week))
-                lineArray[6] = "7 DAYS AGO: "+number_books_issued_7days_ago+"\n"
+                lineArray[6] = number_books_issued_7days_ago+"\n"
 
             elif date_issued_string == (week_ago + timedelta(days=1)).strftime("%Y-%m-%d"):
                 number_books_issued_6days_ago = str(len(issued_books_past_week))
-                lineArray[5] = "6 DAYS AGO: "+number_books_issued_6days_ago+"\n"
+                lineArray[5] = number_books_issued_6days_ago+"\n"
 
             elif date_issued_string == (week_ago + timedelta(days=2)).strftime("%Y-%m-%d"):
                 number_books_issued_5days_ago = str(len(issued_books_past_week))
-                lineArray[4] = "5 DAYS AGO: "+number_books_issued_5days_ago+"\n"
+                lineArray[4] = number_books_issued_5days_ago+"\n"
 
             elif date_issued_string == (week_ago + timedelta(days=3)).strftime("%Y-%m-%d"):
                 number_books_issued_4days_ago = str(len(issued_books_past_week))
-                lineArray[3] = "4 DAYS AGO: "+number_books_issued_4days_ago+"\n"
+                lineArray[3] = number_books_issued_4days_ago+"\n"
 
             elif date_issued_string == (week_ago + timedelta(days=4)).strftime("%Y-%m-%d"):
                 number_books_issued_3days_ago = str(len(issued_books_past_week))
-                lineArray[2] = "3 DAYS AGO: "+number_books_issued_3days_ago+"\n"
+                lineArray[2] = number_books_issued_3days_ago+"\n"
 
             elif date_issued_string == (week_ago + timedelta(days=5)).strftime("%Y-%m-%d"):
                 number_books_issued_2days_ago = str(len(issued_books_past_week))
-                lineArray[1] = "2 DAYS AGO: "+number_books_issued_2days_ago+"\n"
+                lineArray[1] = number_books_issued_2days_ago+"\n"
 
             elif date_issued_string == (week_ago + timedelta(days=6)).strftime("%Y-%m-%d"):
                 number_books_issued_1days_ago = str(len(issued_books_past_week))
-                lineArray[0] = "1 DAYS AGO: "+number_books_issued_1days_ago+"\n"
+                lineArray[0] = number_books_issued_1days_ago+"\n"
 
         with open('mean_avg_storage.txt', 'w') as file:
-            for line in lineArray:
-                file.write(line)
+            file.writelines(lineArray)
 
         # Add up the number of books issued on each individual day for the past 7 days, excluding the current day, and divide it by the 7 days.
-        mean_avg = (int(number_books_issued_7days_ago) + int(number_books_issued_6days_ago) + int(number_books_issued_5days_ago) + int(number_books_issued_4days_ago) + int(number_books_issued_3days_ago) + int(number_books_issued_2days_ago) + int(number_books_issued_1days_ago))/7
+        # re.findall(\d+) simply finds any number in the specific line, to avoid attempting to include '\n' in the addition, which causes a type error.
+        mean_avg = (int(re.findall("\d+", lineArray[6])[0]) + int(re.findall("\d+", lineArray[5])[0]) + int(re.findall("\d+", lineArray[4])[0]) + int(re.findall("\d+", lineArray[3])[0]) + int(re.findall("\d+", lineArray[2])[0]) + int(re.findall("\d+", lineArray[1])[0]) + int(re.findall("\d+", lineArray[0])[0]))/7
         self.mean_avg_lbl["text"] = 'Mean Average of Books Issued\nOver the Last 7 Days\n(NOT Including today): {:.2f}'.format(mean_avg)
         self.mean_avg_lbl.pack(side=tk.LEFT, anchor=tk.N)
 
@@ -748,6 +753,7 @@ class Admin():
         #  Fetch all the accounts that are within 3 days of needing to return their book
         db_return_fetch = c.execute("SELECT user_id, bookID, return_date FROM MyBooks").fetchall()
 
+        NO_BOOKS_REMINDER_FLAG = []
         # The for loop iterates over the user_id, bookID and return_date fetched from the query above.
         for parameter in db_return_fetch:
             date = parameter[2]
@@ -758,7 +764,7 @@ class Admin():
             # Fetches the date 3 days within the current date.
             within_three_days = (datetime.today() - timedelta(days=3)).date()
 
-            if within_three_days >= datetime_conversion:
+            if within_three_days <= datetime_conversion:
                 # If we're within three days of the return
 
                 # Identify the bookID behind the return date
@@ -792,10 +798,16 @@ class Admin():
                 message = e.create_reminder_message("from@gmail.com", db_target_email_address, "Books4All Return Reminder", db_title, db_author, db_genre, db_issue_date, db_expected_return_date)
                 # Send the email.
                 e.send_message(service, "from@gmail.com", message)
-
+                NO_BOOKS_REMINDER_FLAG.append(True)
             else:
-                # Return date is not within allocated time to be emailed.
-                ms.showwarning('Warning','No books within reminder limit!')
+                # Append a False to the NO_BOOKS_REMINDER_FLAG to say that the account checked on that for loop iteration does not need an email sent.
+                NO_BOOKS_REMINDER_FLAG.append(False)
+
+        if not any(NO_BOOKS_REMINDER_FLAG):
+            # Return date is not within allocated time to be emailed.
+            ms.showwarning('Warning', 'No books within reminder limit!')
+        else:
+            ms.showinfo('Success', 'Emails to the target addresses have been sent!')
 
     def add_account(self):
         '''

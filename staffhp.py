@@ -1,7 +1,5 @@
 # Staff Help
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox as ms
 import re
 import linecache
 
@@ -32,7 +30,7 @@ class StaffHelp():
 you as a staff member to do the following, with a description of how to accomplish it:
 
 Issue Book:
-    1. Enter the Book's ID in the 'ID' field that matches the ID on the book or optionally enter the Title to find the matching ID, author or genre;
+    1. Enter the Book's ID in the 'ID' field that matches the ID on the physical book;
     1.1 There will be an option to autocomplete the rest of the information. Make sure that the autocomplete fills in the correct information for the book you want;
     1.2 Optionally, you can enter the Title and autocomplete the rest of the information that way.
     2. Enter the email address of the patron that wants the book in the 'Recipient Email' field;
@@ -41,7 +39,7 @@ Issue Book:
     4. Press 'Issue Book' button.
 
 Return Book:
-    1. Enter the Book's ID in the 'ID' field that matches the ID on the book or optionally enter the Title to find the matching ID, author or genre;
+    1. Enter the Book's ID in the 'ID' field that matches the ID on the physical book;
     1.1 There will be an option to autocomplete the rest of the information. Make sure that the autocomplete fills in the correct information for the book you want;
     1.2 Optionally, you can enter the Title and autocomplete the rest of the information that way.
     2. Enter the email address of the patron that wants to return the book in the 'Return Email' field;

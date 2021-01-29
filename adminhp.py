@@ -1,7 +1,5 @@
 # Admin Help
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox as ms
 import linecache
 import re
 

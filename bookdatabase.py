@@ -1255,7 +1255,7 @@ class BookDatabase():
                                         self.ret_author_var.set('')
                                         self.return_email_var.set('')
 
-                                        ms.showinfo('Success', 'Book returned successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
+                                        ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
 
                                     else:
                                         ms.showerror('Cancelled', 'Book return cancelled')

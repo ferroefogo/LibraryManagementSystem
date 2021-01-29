@@ -64,6 +64,9 @@ class SignIn():
         parent.option_add("*foreground", "yellow")
         parent.option_add("*background", "gray15")
 
+        # Window Icon
+        parent.iconbitmap('Books4All.ico')
+
         self.parent = parent
         sign_in_notebook = ttk.Notebook(self.parent)
         sign_in_notebook.pack(expand=True, fill=tk.BOTH)

@@ -1,8 +1,6 @@
 # User Help
 
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox as ms
 import re
 import linecache
 
@@ -39,12 +37,15 @@ Additionaly, we display which bookshelf a particular book is on, therefore
 the code that can be filtered and seen on the table matches the code on the 
 bookshelf in the physical library.
 
-Account Information
+-Account Information-
 Your Account Details can be accessed in the Accounts tab on the notebook bar 
 at the top. There, you are able to change the password of your account or 
 optionally delete your account permanently.
 
+-MyBooks Page-
 The My Books tab is responsible for displaying all your currently issued books.
 You can search through it as you would with the Library page described above,
-however you can also see the return dates of your books.""", justify=tk.CENTER)
+however you can also see the return dates of your books.
+
+You can use the `F5` key to refresh the table on the MyBooks page.""", justify=tk.CENTER)
         _help.pack()

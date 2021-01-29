@@ -17,7 +17,7 @@ from datetime import datetime
 
 class Email():
     '''
-    Provides an established connection to the Google API to
+    Provides an established connection to the Google OAuth to
     connect the organisation email to the system, so that
     various formats of emails can be sent to the user.
     '''
@@ -34,9 +34,9 @@ class Email():
     # static method allows the function to not be required to initialise the instance to be used.
     def get_service():
         """
-        Gets an authorized Gmail API service instance.
+        Gets an authorized Gmail OAuth service instance.
         Returns:
-            An authorized Gmail API service instance.
+            An authorized Gmail OAuth service instance.
         """
 
         # The scopes alert the user of what the system will be doing with their address
@@ -71,12 +71,12 @@ class Email():
                 flow = InstalledAppFlow.from_client_secrets_file(
                     'credentials.json', SCOPES)
                 # Establish connection flow process.
-                creds = flow.run_console(port=0)
+                creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
 
-        # Construct a resource for interacting with the API
+        # Construct a resource for interacting with the OAuth
         # Pass in the credentials established previously.
         service = build('gmail', 'v1', credentials=creds)
         return service
@@ -88,7 +88,7 @@ class Email():
         constructed message (which includes the target address, service, and any other extra information that must be packed into the message)
         to send the email.
 
-        This function is called seperately when sending an email, and must have an established API connection
+        This function is called seperately when sending an email, and must have an established OAuth connection
         and a previously created message to be passed into this function.
         '''
         try:
