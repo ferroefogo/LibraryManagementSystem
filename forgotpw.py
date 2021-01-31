@@ -31,6 +31,7 @@ FG = re.sub('^.*?=', '', linecache.getline('config.txt', 13)).strip()
 BD = re.sub('^.*?=', '', linecache.getline('config.txt', 14)).strip()
 RELIEF = re.sub('^.*?=', '', linecache.getline('config.txt', 15)).strip()
 
+
 class ForgotPW():
     '''
     Holds the functions relating to

@@ -44,7 +44,6 @@ add_genres_list_fetch = c.fetchall()
 add_genre_choice_list = [x[0] for x in add_genres_list_fetch]
 add_genre_choice_list.pop(0)
 
-
 # List of locations
 location_choice_list = list(string.ascii_uppercase)
 location_alphabet_symbol = location_choice_list.append('*')
@@ -534,6 +533,13 @@ class BookDatabase():
         select_highest_val = c.execute('SELECT MAX(bookID) + 1 FROM Books').fetchall()
         highest_val = [x[0] for x in select_highest_val][0]
 
+        # Checks if its the first account in the system, because if it is,
+        # then the system will return None for the query above.
+        # Therefore, we want to show the next highest after the first account
+        # in the system, which logically is the 2nd account.
+        if highest_val is None:
+            highest_val = 2
+
         self.add_bookID_var.set(highest_val)
 
         self.add_bookID_entry = ttk.Entry(self.add_container_bookID, textvariable=self.add_bookID_var, state=tk.DISABLED)
@@ -573,8 +579,13 @@ class BookDatabase():
         self.add_genre_var = tk.StringVar()
         self.add_genre_var.set("-EMPTY-")
 
-        self.add_genre_menu = ttk.OptionMenu(self.add_container_genre, self.add_genre_var,add_genre_choice_list[0], *add_genre_choice_list)
-        self.add_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+        if len(add_genre_choice_list) == 0:
+            self.add_genre_menu = ttk.OptionMenu(self.add_container_genre, self.add_genre_var)
+            self.add_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
+            self.add_genre_menu.configure(state=tk.DISABLED)
+        else:
+            self.add_genre_menu = ttk.OptionMenu(self.add_container_genre, self.add_genre_var, add_genre_choice_list[0], *add_genre_choice_list)
+            self.add_genre_menu.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
         # Add Book Button Frame
         add_book_container_button = tk.Frame(add_book_container, bg=BG)
@@ -634,6 +645,9 @@ class BookDatabase():
             c.execute(insert_newgenre, [(newgenre_var)])
             conn.commit()
 
+            # Unlock the optionmenu in case this is the first genre being added to the system.
+            self.add_genre_menu.configure(state=tk.NORMAL)
+
             # Update genre_choice_list and the related OptionMenus
             # List of genres
             c.execute("SELECT genre FROM Genres")
@@ -652,7 +666,7 @@ class BookDatabase():
             remove_menu.delete(0, tk.END)
             for _string in genre_choice_list:
                 remove_menu.add_command(label=_string,
-                                 command=lambda value=_string: self.add_genre_var.set(value))
+                                 command=lambda value=_string: self.remove_genre_menu.set(value))
 
             # Update genre search in bookDB page
             search_genre_menu = self.db_search_genre_menu["menu"]
@@ -688,7 +702,7 @@ class BookDatabase():
             used_genre = [x[0] for x in used_genre_fetch]
 
             if len(used_genre) > 0:
-                ms.showerror('Error','Genre is currently in use by other books')
+                ms.showerror('Error', 'Genre is currently in use by other books')
             else:
                 # Remove new genre from db
                 c.execute('DELETE FROM Genres WHERE genre=?', (newgenre_var,))
@@ -700,25 +714,49 @@ class BookDatabase():
                 genres_list_fetch = c.fetchall()
                 genre_choice_list = [x[0] for x in genres_list_fetch]
 
-                add_menu = self.add_genre_menu["menu"]
-                add_menu.delete(0, tk.END)
-                for _string in genre_choice_list:
-                    add_menu.add_command(label=_string,
-                                            command=lambda value=_string: self.remove_genre_var.set(value))
+                if len(genre_choice_list) == 1:
+                    # Set the displayed option in the option menu back to -EMPTY- if its the last non-(-EMPTY-) genre.
+                    add_menu = self.add_genre_menu["menu"]
+                    add_menu.delete(0, tk.END)
+                    self.add_genre_var.set('-EMPTY-')
 
-                # Update Remove Book OptionMenu in BookDB Page
-                remove_menu = self.remove_genre_menu["menu"]
-                remove_menu.delete(0, tk.END)
-                for _string in genre_choice_list:
-                    remove_menu.add_command(label=_string,
-                                     command=lambda value=_string: self.remove_genre_var.set(value))
+                    # Disable the genre optionmenu again.
+                    self.add_genre_menu.configure(state=tk.DISABLED)
 
-                # Update genre search in bookDB page
-                search_genre_menu = self.db_search_genre_menu["menu"]
-                search_genre_menu.delete(0, tk.END)
-                for _string in genre_choice_list:
-                    search_genre_menu.add_command(label=_string,
-                                     command=lambda value=_string: self.db_search_genre_var.set(value))
+                    # Update Remove Book OptionMenu in BookDB Page
+                    remove_menu = self.remove_genre_menu["menu"]
+                    remove_menu.delete(0, tk.END)
+                    for _string in genre_choice_list:
+                        remove_menu.add_command(label=_string,
+                                         command=lambda value=_string: self.remove_genre_var.set(value))
+
+                    # Update genre search in bookDB page
+                    search_genre_menu = self.db_search_genre_menu["menu"]
+                    search_genre_menu.delete(0, tk.END)
+                    for _string in genre_choice_list:
+                        search_genre_menu.add_command(label=_string,
+                                         command=lambda value=_string: self.db_search_genre_var.set(value))
+                else:
+                    # Update Add Book OptionMenu in BookDB Page
+                    add_menu = self.add_genre_menu["menu"]
+                    add_menu.delete(0, tk.END)
+                    for _string in genre_choice_list:
+                        add_menu.add_command(label=_string,
+                                                command=lambda value=_string: self.add_genre_menu.set(value))
+
+                    # Update Remove Book OptionMenu in BookDB Page
+                    remove_menu = self.remove_genre_menu["menu"]
+                    remove_menu.delete(0, tk.END)
+                    for _string in genre_choice_list:
+                        remove_menu.add_command(label=_string,
+                                         command=lambda value=_string: self.remove_genre_var.set(value))
+
+                    # Update genre search in bookDB page
+                    search_genre_menu = self.db_search_genre_menu["menu"]
+                    search_genre_menu.delete(0, tk.END)
+                    for _string in genre_choice_list:
+                        search_genre_menu.add_command(label=_string,
+                                         command=lambda value=_string: self.db_search_genre_var.set(value))
 
                 ms.showinfo('Success', 'Genre removed from the database successfully')
 
@@ -734,72 +772,77 @@ class BookDatabase():
         add_author_var = self.add_author_var.get()
         add_genre_var = self.add_genre_var.get()
 
-        # The location of the book within the physical library, will be based on the first letter of its Title.
-        # The shelves will be split into 27 different locations (alphabet + an '*' to signify any book whose title doesn't start with an alphabetical character.)
-        # Example, Title= 1 step closer. Location=*
-        # Example 2, Title=Drowning, Location=D
+        # Check if the genre is equal to -EMPTY-
+        if add_genre_var == "-EMPTY-":
+            ms.showerror('Error', 'Invalid Genre')
+        else:
 
-        # Iterate over the alphabet to find the letter that the first letter of the title matches.
-        for letter in string.ascii_uppercase:
-            if letter == add_title_var[0]:
-                location = letter
-            elif add_title_var[0] not in string.ascii_uppercase:
-                # If the letter does not match an alphabetical character.
-                location = '*'
+            # The location of the book within the physical library, will be based on the first letter of its Title.
+            # The shelves will be split into 27 different locations (alphabet + an '*' to signify any book whose title doesn't start with an alphabetical character.)
+            # Example, Title= 1 step closer. Location=*
+            # Example 2, Title=Drowning, Location=D
 
-        # Insert fetched values into database
-        insert_book_info = 'INSERT INTO Books(bookID, title, author, genre, issued, location) VALUES(?,?,?,?,0,?)'
-        c.execute(insert_book_info,[(add_bookID_var), (add_title_var), (add_author_var), (add_genre_var), (location)])
-        conn.commit()
+            # Iterate over the alphabet to find the letter that the first letter of the title matches.
+            for letter in string.ascii_uppercase:
+                if letter == add_title_var[0]:
+                    location = letter
+                elif add_title_var[0] not in string.ascii_uppercase:
+                    # If the letter does not match an alphabetical character.
+                    location = '*'
 
-        # Increase the displayed bookID on the Add Book section
-        select_highest_val = c.execute('SELECT MAX(bookID) + 1 FROM Books').fetchall()
-        highest_val = [x[0] for x in select_highest_val][0]
+            # Insert fetched values into database
+            insert_book_info = 'INSERT INTO Books(bookID, title, author, genre, issued, location) VALUES(?,?,?,?,0,?)'
+            c.execute(insert_book_info,[(add_bookID_var), (add_title_var), (add_author_var), (add_genre_var), (location)])
+            conn.commit()
 
-        self.add_bookID_var.set(highest_val)
+            # Increase the displayed bookID on the Add Book section
+            select_highest_val = c.execute('SELECT MAX(bookID) + 1 FROM Books').fetchall()
+            highest_val = [x[0] for x in select_highest_val][0]
 
-        # Set entryfields to empty after addition
-        self.add_title_var.set('')
-        self.add_author_var.set('')
+            self.add_bookID_var.set(highest_val)
 
-        # Run database fetch function
-        db_fetch = self.database_fetch()
+            # Set entryfields to empty after addition
+            self.add_title_var.set('')
+            self.add_author_var.set('')
 
-        # Extract return values from function.
-        bookID_list = db_fetch[0]
-        title_list = db_fetch[1]
-        author_list = db_fetch[2]
-        genre_list = db_fetch[3]
-        location_list = db_fetch[4]
-        issued_list = db_fetch[5]
+            # Run database fetch function
+            db_fetch = self.database_fetch()
 
-        for k in self.tree.get_children():
-            self.tree.delete(k)
+            # Extract return values from function.
+            bookID_list = db_fetch[0]
+            title_list = db_fetch[1]
+            author_list = db_fetch[2]
+            genre_list = db_fetch[3]
+            location_list = db_fetch[4]
+            issued_list = db_fetch[5]
 
-        for i in range(len(bookID_list)):
-            # Issue Date
-            c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
-            date_issued_fetch = c.fetchall()
-            date_issued_list = [x[0] for x in date_issued_fetch]
+            for k in self.tree.get_children():
+                self.tree.delete(k)
 
-            # Return Date
-            c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
-            return_date_fetch = c.fetchall()
-            return_date_list = [x[0] for x in return_date_fetch]
+            for i in range(len(bookID_list)):
+                # Issue Date
+                c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                date_issued_fetch = c.fetchall()
+                date_issued_list = [x[0] for x in date_issued_fetch]
 
-            # creates an entry in the tree for each element of the list
-            # then stores the id of the tree in the self.ids list
-            if len(date_issued_list)==0 or len(return_date_list)==0:
-                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
-            else:
-                self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
-        self.tree.pack()
+                # Return Date
+                c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
+                return_date_fetch = c.fetchall()
+                return_date_list = [x[0] for x in return_date_fetch]
 
-        for self.col in self.columns:
-                self.tree.heading(self.col, text=self.col,
-                                      command=lambda c=self.col: self.sort_upon_press(c))
+                # creates an entry in the tree for each element of the list
+                # then stores the id of the tree in the self.ids list
+                if len(date_issued_list)==0 or len(return_date_list)==0:
+                    self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], 'N/A', 'N/A')))
+                else:
+                    self.tree_ids.append(self.tree.insert("", "end", values=(bookID_list[i], title_list[i], author_list[i], genre_list[i], location_list[i], issued_list[i], date_issued_list[0], return_date_list[0])))
+            self.tree.pack()
 
-        ms.showinfo('Success', 'Book added to the database successfully')
+            for self.col in self.columns:
+                    self.tree.heading(self.col, text=self.col,
+                                          command=lambda c=self.col: self.sort_upon_press(c))
+
+            ms.showinfo('Success', 'Book added to the database successfully')
 
     def remove_book(self):
         '''

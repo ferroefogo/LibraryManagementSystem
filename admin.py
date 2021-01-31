@@ -560,8 +560,12 @@ class Admin():
         issued_genres_fetch = c.execute('SELECT genre FROM Books WHERE issued=1').fetchall()
         issued_genres = [x[0] for x in issued_genres_fetch]
 
-        # Create dictionary with the keys: genre titles, linked to the values: number of books with that genre title.
-        labels, values = zip(*Counter(issued_genres).items())
+        try:
+            # Create dictionary with the keys: genre titles, linked to the values: number of books with that genre title.
+            labels, values = zip(*Counter(issued_genres).items())
+        except ValueError:
+            labels = []
+            values = []
 
         # indexes is the number of bars the graph will have, therefore the number of slices the x axis will need for each bar.
         indexes = np.arange(len(labels))

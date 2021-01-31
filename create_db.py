@@ -2,11 +2,8 @@ from sqlite3 import connect
 
 conn = connect('LibrarySystem.db')
 c = conn.cursor()
-user_id = 1
-find_email_tied_to_user = c.execute("SELECT email_address FROM Accounts WHERE user_id=?", (user_id,)).fetchall()
-user_email = [x[0] for x in find_email_tied_to_user]
 
-'''
+
 c.execute("""CREATE TABLE Accounts (
 			user_id INTEGER PRIMARY KEY,
 			email_address NVARCHAR(320) NOT NULL DEFAULT '',
@@ -46,4 +43,3 @@ conn.commit()
 
 c.execute("INSERT INTO Genres VALUES('-EMPTY-')")
 conn.commit()
-'''

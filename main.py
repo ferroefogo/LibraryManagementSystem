@@ -435,12 +435,15 @@ class Register():
                                                             validatecommand=(self.verification_code_reg, "%P"))
                     self.verification_code_entry.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
+                    # Focus on the entry field for the user to enter the code.
+                    self.email_entry.focus()
+
                     # Buttons Container
                     button_container = tk.Frame(code_container, bg=BG)
                     button_container.pack(expand=True)
 
-                    check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda:self.check_code(self.verification_code_var.get()))
-                    resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda:self.resend_code(self.verification_code_var.get()))
+                    check_code_button = ttk.Button(button_container, text='Check Verification Code', command=lambda: self.check_code(self.verification_code_var.get()))
+                    resend_code_button = ttk.Button(button_container, text='Resend Verification Code', command=lambda: self.resend_code(self.verification_code_var.get()))
 
                     check_code_button.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
                     resend_code_button.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
@@ -478,11 +481,19 @@ class Register():
             # Find the next highest user_id value, so that the new user can be entered into this empty row.
             select_highest_val = c.execute('SELECT MAX(user_id) + 1 FROM Accounts').fetchall()
             highest_val = [x[0] for x in select_highest_val][0]
+            print(highest_val)
 
-            # Insert the user information in the next highest user id.
-            insert = 'INSERT INTO Accounts(email_address,password,user_id) VALUES(?,?,?)'
-            c.execute(insert, [(self.reg_email), (self.db_hashed_pw), (highest_val)])
-            db.commit()
+            if highest_val is None:
+                # If its the first ever account, make it have admin+staff access.
+                # This is to allow the system to be setup at first.
+                insert = 'INSERT INTO Accounts(email_address,password,user_id,staff_mode,admin_mode) VALUES(?,?,?,1,1)'
+                c.execute(insert, [(self.reg_email), (self.db_hashed_pw), (highest_val)])
+                db.commit()
+            else:
+                # Insert the user information in the next highest user id.
+                insert = 'INSERT INTO Accounts(email_address,password,user_id) VALUES(?,?,?)'
+                c.execute(insert, [(self.reg_email), (self.db_hashed_pw), (highest_val)])
+                db.commit()
 
             ms.showinfo('Success!', 'Account Created!')
 
