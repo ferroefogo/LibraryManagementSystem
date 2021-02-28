@@ -860,11 +860,12 @@ class BookDatabase():
             real_title_at_id = [x[0] for x in real_title_fetch][0]
 
             real_bookID_fetch = c.execute("SELECT bookID FROM Books WHERE title=?", (remove_title_var,)).fetchall()
-            real_bookID_at_title = [x[0] for x in real_bookID_fetch][0]
+            real_bookID_at_title = [x[0] for x in real_bookID_fetch]
 
             if int(real_bookID_at_title) != int(remove_bookID_var):
                 ms.showerror('Error', 'The BookID and Title values do not match.')
-            elif str(real_title_at_id) != str(remove_title_var):
+            elif int(remove_bookID_var) not in remove_title_var:
+                # If the bookID is not in this list, throw error.
                 ms.showerror('Error', 'The BookID and Title values do not match.')
             else:
                 # Delete the book with said book ID
@@ -948,11 +949,12 @@ class BookDatabase():
             real_title_at_id = [x[0] for x in real_title_fetch][0]
 
             real_bookID_fetch = c.execute("SELECT bookID FROM Books WHERE title=?", (title_var,)).fetchall()
-            real_bookID_at_title = [x[0] for x in real_bookID_fetch][0]
+            real_bookID_at_title = [x[0] for x in real_bookID_fetch]
 
             if real_title_at_id != title_var:
                 ms.showerror('Error', 'The BookID and Title values do not match.')
-            elif int(real_bookID_at_title) != int(bookID_var):
+            elif int(bookID_var) not in real_bookID_at_title:
+                # If the bookID is not in this list, throw error.
                 ms.showerror('Error', 'The BookID and Title values do not match.')
             else:
                 # Check if the string date is equal to the date today.
@@ -1154,33 +1156,34 @@ class BookDatabase():
         Structuraly the same as the issue book.
         '''
         # Retrieve all entryboxes variables
-        bookID_var = self.ret_bookID_var.get()
-        title_var = self.ret_title_var.get()
-        author_var = self.ret_author_var.get()
+        bookID_var = int(self.ret_bookID_var.get())
+        title_var = str(self.ret_title_var.get())
+        author_var = str(self.ret_author_var.get())
         return_email = self.return_email_var.get()
         actual_return_date = self.ret_date_entry.get_date()
 
+        book_id_search = c.execute('SELECT bookID FROM Books WHERE title=?', (title_var,)).fetchall()
+        book_id = [x[0] for x in book_id_search]
+
+        real_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
+        real_title_at_id = [x[0] for x in real_title_fetch][0]
+
         try:
-            book_id_search = c.execute('SELECT bookID FROM Books WHERE title=? AND author=? ', (title_var, author_var)).fetchall()
-            book_id = [x[0] for x in book_id_search][0]
-
-            real_title_fetch = c.execute("SELECT title FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
-            real_title_at_id = [x[0] for x in real_title_fetch][0]
-
             if real_title_at_id != title_var:
                 ms.showerror('Error', 'The BookID and Title values do not match.')
-            elif int(book_id) != int(bookID_var):
+            elif int(bookID_var) not in book_id:
+                # If the bookID is not in this list, throw error.
                 ms.showerror('Error', 'The BookID and Title values do not match.')
             else:
                 if return_email == '':
                     # Patron has no account.
                     # Check if the book is connected to another email address.
-                    account_linked_book = c.execute("SELECT user_id FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
+                    account_linked_book = c.execute("SELECT user_id FROM MyBooks WHERE bookID=?", (bookID_var,)).fetchall()
                     if len(account_linked_book) != 0:
                         ms.showerror('Error', 'Email address does not match the address linked to the book.')
                     else:
                         # Set the book issued status to 0 (meaning its now available).
-                        c.execute('UPDATE Books SET issued = 0 WHERE bookID=?', (book_id,))
+                        c.execute('UPDATE Books SET issued = 0 WHERE bookID=?', (bookID_var,))
                         conn.commit()
 
                         # Set entryfields to empty after return
@@ -1230,7 +1233,7 @@ class BookDatabase():
                 else:
                     try:
                         # Check if email matches the owner of the loaned book.
-                        book_owner_email_fetch = c.execute('SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)', (book_id,)).fetchall()
+                        book_owner_email_fetch = c.execute('SELECT email_address FROM Accounts WHERE user_id=(SELECT user_id FROM MyBooks WHERE bookID=?)', (bookID_var,)).fetchall()
                         book_owner_email = [x[0] for x in book_owner_email_fetch][0]
 
                         if return_email != book_owner_email:
@@ -1239,14 +1242,9 @@ class BookDatabase():
                             # Send info to db
                             account_info_fetch = c.execute('SELECT * FROM Accounts WHERE email_address=?', (return_email,)).fetchall()
                             if len(account_info_fetch) != 0:
-                                accounts_userid_check = [x[0] for x in account_info_fetch][0]
-
-                                # Update the MyBooks table to set the actual return date. (the real date the patron returned the book, not the target date).
-                                c.execute('UPDATE MyBooks SET actual_return_date=? WHERE bookID = ?', (actual_return_date, book_id,))
-                                conn.commit()
 
                                 # Check if the user has returned on time
-                                accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=?', (book_id,)).fetchall()
+                                accounts_return_date_fetch = c.execute('SELECT return_date FROM MyBooks WHERE bookID=?', (bookID_var,)).fetchall()
                                 accounts_return_date_check = [x[0] for x in accounts_return_date_fetch][0]
 
                                 accounts_return_date_check_time = datetime.strptime(accounts_return_date_check, '%Y-%m-%d').date()
@@ -1265,15 +1263,15 @@ class BookDatabase():
 
                                     if result is True:
                                         # Fetch Location
-                                        book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                        book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
                                         book_location = [x[0] for x in book_location_fetch][0]
 
                                         # Fetch genre
-                                        book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                        book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
                                         book_genre = [x[0] for x in book_genre_fetch][0]
 
                                         # Fetch date issued
-                                        book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
+                                        book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (bookID_var,)).fetchall()
                                         date_issued = [x[0] for x in book_date_issued_fetch][0]
 
                                         expected_return_date = accounts_return_date_check_time
@@ -1285,11 +1283,11 @@ class BookDatabase():
 
                                         # Delete the user where the bookID is equal to the returned book.
                                         remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-                                        c.execute(remove_user_id, [(book_id)])
+                                        c.execute(remove_user_id, [(bookID_var)])
                                         conn.commit()
 
                                         # Set the book issued status to 0 (meaning its now available).
-                                        c.execute('UPDATE Books SET issued = 0 WHERE bookID=?', (book_id,))
+                                        c.execute('UPDATE Books SET issued = 0 WHERE bookID=?', (bookID_var,))
                                         conn.commit()
 
                                         # Set entryfields to empty after return
@@ -1307,15 +1305,15 @@ class BookDatabase():
                                     # Handed on time
 
                                     # Fetch Location
-                                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                    book_location_fetch = c.execute("SELECT location FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
                                     book_location = [x[0] for x in book_location_fetch][0]
 
                                     # Fetch genre
-                                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (book_id,)).fetchall()
+                                    book_genre_fetch = c.execute("SELECT genre FROM Books WHERE bookID=?", (bookID_var,)).fetchall()
                                     book_genre = [x[0] for x in book_genre_fetch][0]
 
                                     # Fetch date issued
-                                    book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (book_id,)).fetchall()
+                                    book_date_issued_fetch = c.execute("SELECT date_issued FROM MyBooks WHERE bookID=?", (bookID_var,)).fetchall()
                                     date_issued = [x[0] for x in book_date_issued_fetch][0]
 
                                     expected_return_date = accounts_return_date_check_time
@@ -1327,10 +1325,10 @@ class BookDatabase():
 
                                     # Remove user_id from the ownership of the user and onto the public library.
                                     remove_user_id = 'DELETE FROM MyBooks WHERE bookID=?'
-                                    c.execute(remove_user_id, [(book_id)])
+                                    c.execute(remove_user_id, [(bookID_var)])
                                     conn.commit()
 
-                                    c.execute('UPDATE Books SET issued=0 WHERE bookID=?',(book_id,))
+                                    c.execute('UPDATE Books SET issued=0 WHERE bookID=?', (bookID_var,))
                                     conn.commit()
 
                                     ms.showinfo('Success', 'Book returned out successfully\nAn email has been sent to\n'+return_email+'\nregarding the return information.')
@@ -1359,12 +1357,12 @@ class BookDatabase():
                                 # Iterate over each bookID and populate the table row by row.
                                 for i in range(len(bookID_list)):
                                     # Issue Date
-                                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                                    c.execute("SELECT date_issued FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
                                     date_issued_fetch = c.fetchall()
                                     date_issued_list = [x[0] for x in date_issued_fetch]
 
                                     # Return Date
-                                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)",(bookID_list[i],))
+                                    c.execute("SELECT return_date FROM MyBooks WHERE user_id=(SELECT user_id WHERE bookID=?)", (bookID_list[i],))
                                     return_date_fetch = c.fetchall()
                                     return_date_list = [x[0] for x in return_date_fetch]
 
@@ -1383,7 +1381,7 @@ class BookDatabase():
                     except IndexError:
                         ms.showerror('Error', 'Email address does not match its rightful owner.')
         except Exception:
-            ms.showerror('Error', 'Invalid Input')
+            ms.showerror("Error", "Invalid Input")
 
     def bookID_validate(self, bookID_input):
         '''
@@ -1739,8 +1737,6 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
         # <Right> arrow key allows for the user to select the currently highlighted autocomplete value.
         self.bind("<Right>", self.selection)
         # <Up> and <Down> arrow keys allow the user to navigate the autocomplete box.
-        self.bind("<Up>", self.up)
-        self.bind("<Down>", self.down)
 
         # lb_up determines whether the autocomplete frame should be currently showing or not.
         # Set to False by default, to avoid having the box showing the entire time, despite any user input or not.
@@ -1859,51 +1855,6 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
             # Set the cursor (flashing line when you type) to be at the end of the string in the entry field.
             self.icursor(tk.END)
 
-    def up(self, event):
-        '''
-        Allow the user to move up the autocomplete box using the <Up> arrow key.
-        '''
-
-        if self.lb_up:
-            # only allow the user to move this way, if the autocomplete box is currently on the screen.
-            if self.lb.curselection() == ():
-                # lb.curselection() returns a tuple with the number of elements in the listbox that is the autocomplete box.
-                # If this tuple is empty, then set the index to 0 (the first element in the listbox will be highlighted)
-                index = '0'
-            else:
-                # If it is not empty, then the index will be equal to the position of the currently selected element in the listbox.
-                index = self.lb.curselection()[0]
-
-            if index != '0':
-                # If the index is not 0, then the element in the index position will be cleared
-                self.lb.selection_clear(first=index)
-                # The index will decrement by one
-                index = str(int(index)-1)
-
-                # Allow the element in the listbox at the index position to be in view.
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-
-                # Select the element specified by the index.
-                self.lb.activate(index)
-
-    def down(self, event):
-        '''
-        The same as the up function, but downward.
-        '''
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-            if index != tk.END:
-                self.lb.selection_clear(first=index)
-                index = str(int(index)+1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
-
     def comparison(self):
         '''
         Convert the user input into a segmented list, where each character from the input is a seperate element.
@@ -1916,14 +1867,14 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
 
 class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
     '''
-    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the entry field.
+    Autocomplete function to display all the possible values that could go into the field, based on what is currently being typed into the title entry field.
     '''
     def __init__(self, ret_search_container_autocomplete, ret_title_entry, ret_title_var, ret_author_entry, ret_author_var, ret_bookID_var, ret_bookID_entry, ret_date_entry, ret_search_container_canvas, *args, **kwargs):
         '''
         Fetch all the necessary values and setup the variables required for the upcoming functions.
         '''
 
-        # Add self to variables to make them class instance variables and be accessed across the class.
+        # Add self to variables to make them class instance variables and able to be accessed across the class.
         self.ret_search_container_autocomplete = ret_search_container_autocomplete
         self.ret_bookID_entry = ret_bookID_entry
         self.ret_title_entry = ret_title_entry
@@ -1968,8 +1919,6 @@ class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
         # <Right> arrow key allows for the user to select the currently highlighted autocomplete value.
         self.bind("<Right>", self.selection)
         # <Up> and <Down> arrow keys allow the user to navigate the autocomplete box.
-        self.bind("<Up>", self.up)
-        self.bind("<Down>", self.down)
 
         # lb_up determines whether the autocomplete frame should be currently showing or not.
         # Set to False by default, to avoid having the box showing the entire time, despite any user input or not.
@@ -2051,16 +2000,18 @@ class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
         '''
         Upon triggering this function, the selected autocomplete option will be copied over to the entry field.
         '''
+        # Currently selected item in the listbox, get their index.
+        item_index = self.lb.curselection()[0]
         if self.lb_up:
             # If the autocomplete container is currently showing, then set the entry field where the user was entering their search, to be the value that they selected.
             self.ret_title_var.set(self.lb.get(tk.ACTIVE))
 
             # Fetch the book's title, author and return date based on the bookID that was selected above.
             book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.ret_title_var.get(),)).fetchall()
-            book_bookID = [x[0] for x in book_bookID_fetch][0]
+            book_bookID = [x[0] for x in book_bookID_fetch][item_index]
 
             book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.ret_title_var.get(),)).fetchall()
-            book_author = [x[0] for x in book_author_fetch][0]
+            book_author = [x[0] for x in book_author_fetch][item_index]
 
             try:
                 # Fetch return date from table
@@ -2087,51 +2038,6 @@ class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
 
             # Set the cursor (flashing line when you type) to be at the end of the string in the entry field.
             self.icursor(tk.END)
-
-    def up(self, event):
-        '''
-        Allow the user to move up the autocomplete box using the <Up> arrow key.
-        '''
-
-        if self.lb_up:
-            # only allow the user to move this way, if the autocomplete box is currently on the screen.
-            if self.lb.curselection() == ():
-                # lb.curselection() returns a tuple with the number of elements in the listbox that is the autocomplete box.
-                # If this tuple is empty, then set the index to 0 (the first element in the listbox will be highlighted)
-                index = '0'
-            else:
-                # If it is not empty, then the index will be equal to the position of the currently selected element in the listbox.
-                index = self.lb.curselection()[0]
-
-            if index != '0':
-                # If the index is not 0, then the element in the index position will be cleared
-                self.lb.selection_clear(first=index)
-                # The index will decrement by one
-                index = str(int(index)-1)
-
-                # Allow the element in the listbox at the index position to be in view.
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-
-                # Select the element specified by the index.
-                self.lb.activate(index)
-
-    def down(self, event):
-        '''
-        The same as the up function, but downward.
-        '''
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-            if index != tk.END:
-                self.lb.selection_clear(first=index)
-                index = str(int(index)+1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
 
     def comparison(self):
         '''
@@ -2185,8 +2091,6 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
 
         self.bookID_var.trace('w', self.changed)
         self.bind("<Right>", self.selection)
-        self.bind("<Up>", self.up)
-        self.bind("<Down>", self.down)
 
         self.lb_up = False
 
@@ -2257,35 +2161,6 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
             self.lb_up = False
             self.icursor(tk.END)
 
-    def up(self, event):
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-
-            if index != '0':
-                self.lb.selection_clear(first=index)
-                index = str(int(index)-1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
-
-    def down(self, event):
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-            if index != tk.END:
-                self.lb.selection_clear(first=index)
-                index = str(int(index)+1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
-
     def comparison(self):
         pattern = re.compile('.*' + self.bookID_var.get() + '.*')
         return [w for w in self.lista if re.match(pattern, str(w))]
@@ -2333,8 +2208,6 @@ class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
 
         self.title_var.trace('w', self.changed)
         self.bind("<Right>", self.selection)
-        self.bind("<Up>", self.up)
-        self.bind("<Down>", self.down)
 
         self.lb_up = False
 
@@ -2385,14 +2258,16 @@ class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
             ISSUE_ID_FLAG = False
 
     def selection(self, event):
+        # Currently selected item in the listbox, get their index.
+        item_index = self.lb.curselection()[0]
         if self.lb_up:
             self.title_var.set(self.lb.get(tk.ACTIVE))
 
             book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.title_var.get(),)).fetchall()
-            book_bookID = [x[0] for x in book_bookID_fetch][0]
+            book_bookID = [x[0] for x in book_bookID_fetch][item_index]
 
             book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.title_var.get(),)).fetchall()
-            book_author = [x[0] for x in book_author_fetch][0]
+            book_author = [x[0] for x in book_author_fetch][item_index]
 
             self.bookID_var.set(book_bookID)
             self.author_var.set(book_author)
@@ -2404,35 +2279,6 @@ class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
             self.lb.destroy()
             self.lb_up = False
             self.icursor(tk.END)
-
-    def up(self, event):
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-
-            if index != '0':
-                self.lb.selection_clear(first=index)
-                index = str(int(index)-1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
-
-    def down(self, event):
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-            if index != tk.END:
-                self.lb.selection_clear(first=index)
-                index = str(int(index)+1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
 
     def comparison(self):
         pattern = re.compile('.*' + self.title_var.get() + '.*')
@@ -2482,8 +2328,6 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
 
         self.remove_bookID_var.trace('w', self.changed)
         self.bind("<Right>", self.selection)
-        self.bind("<Up>", self.up)
-        self.bind("<Down>", self.down)
 
         self.lb_up = False
 
@@ -2555,35 +2399,6 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
             self.lb_up = False
             self.icursor(tk.END)
 
-    def up(self, event):
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-
-            if index != '0':
-                self.lb.selection_clear(first=index)
-                index = str(int(index)-1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index)
-
-    def down(self, event):
-        if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
-            if index != tk.END:
-                self.lb.selection_clear(first=index)
-                index = str(int(index)+1)
-
-                self.lb.see(index)
-                self.lb.selection_set(first=index)
-                self.lb.activate(index) 
-
     def comparison(self):
         pattern = re.compile('.*' + self.remove_bookID_var.get() + '.*')
         return [w for w in self.lista if re.match(pattern, str(w))]
@@ -2632,8 +2447,6 @@ class AutoCompleteEntryBD_RemoveTitle(ttk.Entry):
 
         self.remove_title_var.trace('w', self.changed)
         self.bind("<Right>", self.selection)
-        self.bind("<Up>", self.up)
-        self.bind("<Down>", self.down)
 
         self.lb_up = False
 
@@ -2681,17 +2494,19 @@ class AutoCompleteEntryBD_RemoveTitle(ttk.Entry):
             REMOVE_ID_FLAG = False
 
     def selection(self, event):
+        # Currently selected item in the listbox, get their index.
+        item_index = self.lb.curselection()[0]
         if self.lb_up:
             self.remove_title_var.set(self.lb.get(tk.ACTIVE))
 
             remove_book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=?', (self.remove_title_var.get(),)).fetchall()
-            remove_book_bookID = [x[0] for x in remove_book_bookID_fetch][0]
+            remove_book_bookID = [x[0] for x in remove_book_bookID_fetch][item_index]
 
             remove_book_author_fetch = c.execute('SELECT author FROM Books WHERE title=?', (self.remove_title_var.get(),)).fetchall()
-            remove_book_author = [x[0] for x in remove_book_author_fetch][0]
+            remove_book_author = [x[0] for x in remove_book_author_fetch][item_index]
 
             remove_book_genre_fetch = c.execute('SELECT genre FROM Books WHERE title=?', (self.remove_title_var.get(),)).fetchall()
-            remove_book_genre = [x[0] for x in remove_book_genre_fetch][0]
+            remove_book_genre = [x[0] for x in remove_book_genre_fetch][item_index]
 
             self.remove_bookID_var.set(remove_book_bookID)
             self.remove_author_var.set(remove_book_author)
