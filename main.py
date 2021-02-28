@@ -666,7 +666,6 @@ class MainApplication():
         # Instantiate Classes (HP = Home Page, MBP = My Books Page, etc...)
         self.HP = Home(self.parent, self.main_notebook)
         if email != 'guest':
-
             # Only display these tabs, if the user has not used a guest login
             # as they are user-specific pages.
             self.AP = Account(self.parent, self.main_notebook, email)
@@ -678,7 +677,6 @@ class MainApplication():
         # Needs 'Staff' powers to see this page.
         # Check if the user has staff privileges
         try:
-
             # Fetch the staff mode from the email address that was passed into the function.
             staff_mode_check = c.execute('SELECT staff_mode FROM Accounts WHERE email_address=?', (email,)).fetchall()
             staff_mode = [x[0] for x in staff_mode_check][0]
@@ -716,7 +714,6 @@ class MainApplication():
         '''
         Allow the user to logout from the system at any time, from any page.
         '''
-
         # Confirmation of logout.
         logout_confirmation = ms.askquestion('Logout', 'Are you sure you want to logout?', icon='warning')
         if logout_confirmation == 'yes':
