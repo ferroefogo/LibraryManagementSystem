@@ -30,7 +30,6 @@ c.execute("""CREATE TABLE MyBooks (
 			bookID INTEGER NOT NULL DEFAULT '',
 			date_issued TIMESTAMP NOT NULL DEFAULT '',
 			return_date TIMESTAMP NOT NULL DEFAULT '',
-			actual_return_date TIMESTAMP NOT NULL DEFAULT '',
 			FOREIGN KEY(bookID) REFERENCES Books(bookID),
 			FOREIGN KEY(user_id) REFERENCES Accounts(user_id)
 			)""")
@@ -40,6 +39,14 @@ c.execute("""CREATE TABLE Genres (
 			genre VARCHAR(100) NOT NULL DEFAULT '-EMPTY-'
 			)""")
 conn.commit()
+
+c.execute("""CREATE TABLE NoAccountBookInfo (
+			 bookID INTEGER PRIMARY KEY,
+			 date_issued TIMESTAMP NOT NULL DEFAULT '',
+			 return_date TIMESTAMP NOT NULL DEFAULT '',
+			 FOREIGN KEY(bookID) REFERENCES Books(bookID)
+			 )
+		  """)
 
 c.execute("INSERT INTO Genres VALUES('-EMPTY-')")
 conn.commit()
