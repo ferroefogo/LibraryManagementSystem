@@ -514,6 +514,17 @@ class Admin():
         self.number_issued_books_label = tk.Label(number_issued_books_frame, text='Number of Issued Books:%d' % number_issued_books)
         self.number_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
 
+        # Total no account issued book tally.
+        # Fetch all issued books from the NoAccountBookInfo table.
+        fetch_number_noacc_issued_books = c.execute("SELECT * FROM NoAccountBookInfo").fetchall()
+        number_noacc_issued_books = len([x[0] for x in fetch_number_noacc_issued_books])
+
+        number_noacc_issued_books_frame = tk.Frame(analytics_container)
+        number_noacc_issued_books_frame.pack(padx=PADX, pady=PADY, side=tk.TOP, anchor=tk.N)
+
+        self.number_noacc_issued_books_label = tk.Label(number_noacc_issued_books_frame, text='Number of Issued Books\nunder NO ACCOUNT:%d' % number_noacc_issued_books)
+        self.number_noacc_issued_books_label.pack(side=tk.LEFT, anchor=tk.N)
+
         # Total non-issued book tally
         # Fetch all non-issued books from the Books table.
         fetch_number_non_issued_books = c.execute("SELECT * FROM Books WHERE issued=0").fetchall()

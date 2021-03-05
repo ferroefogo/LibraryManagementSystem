@@ -347,6 +347,8 @@ class Register():
         # Broad email standard.
         email_regex = '^\S+@\S+$'
 
+        special_characters_regex = re.compile("""[!@#$%^*-_+=|\\\{\}\[\]`¬;:@"'<>,./?]()""")
+
         # Check if the email entered matches the email regex established.
         if (re.search(email_regex, self.reg_email)):
 
@@ -357,7 +359,11 @@ class Register():
             if reg_pw != reg_confirm_pw:
                 ms.showwarning('Warning', 'Your passwords do not match.')
             elif reg_pw == '' or reg_pw == '':
-                ms.showwarning('Warning', 'You left the password fields empty!')
+                ms.showwarning('Warning', 'You left the password/confirm password fields empty!')
+            elif len(reg_pw) < 8:
+                ms.showwarning('Warning', 'Your password is not, at least, 8 characters long.')
+            elif special_characters_regex.search(reg_pw) is None:
+                ms.showwarning('Warning', 'Your password does not have, at least, 2 non-alphabetic characters.')
             else:
                 # Encrypt+Salt PWs
                 hashable_pw = bytes(reg_pw, 'utf-8')
@@ -592,7 +598,7 @@ class Register():
             # Hide the label describing the password strength requirements
             # to show that the password meets that requirement.
             self.password_strength_container_1.pack_forget()
-            if special_characters_regex.search(password_input) != None:
+            if special_characters_regex.search(password_input) is not None:
                 self.password_strength_container_2.pack_forget()
             else:
                 self.password_strength_container_2.pack(expand=True)
@@ -601,7 +607,7 @@ class Register():
             # Show the label describing the password strength requirements
             # to show that the password does not meet that requirement.
             self.password_strength_container_1.pack(expand=True)
-            if special_characters_regex.search(password_input) != None:
+            if special_characters_regex.search(password_input) is not None:
                 self.password_strength_container_2.pack_forget()
             else:
                 self.password_strength_container_2.pack(expand=True)

@@ -45,7 +45,7 @@ Update Account:
     2. Select the priviliges to be updates on the account. Either staff mode, admin mode, both or none;
     3. Press 'Update Account'.
 
-Manual Returs Reminder:
+Manual Returns Reminder:
     Sends an email to all the email address that have a book that is close to needing to be returned.
 
 Using the database at the bottom of the page:

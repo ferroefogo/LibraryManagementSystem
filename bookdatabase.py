@@ -356,9 +356,9 @@ class BookDatabase():
 
         #  Gather an updated list of books to be displayed correctly on the autocomplete box.
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
-        AutoCompleteEntryBD_IssueBookID(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
+        #AutoCompleteEntryBD_IssueBookID(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
 
-        AutoCompleteEntryBD_IssueTitle(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
+        #AutoCompleteEntryBD_IssueTitle(self.search_container_autocomplete, self.title_entry, self.title_var, self.author_entry, self.author_var, self.bookID_var, self.bookID_entry, self.search_container_canvas)
 
         # # #  Book Return ('ret' following the variable name is short for 'return' to differentiate between the variables above and below)
         # Return Books UI
@@ -446,8 +446,8 @@ class BookDatabase():
         return_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
-        AutoCompleteEntryBD_ReturnBookID(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
-        AutoCompleteEntryBD_ReturnTitle(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
+        #AutoCompleteEntryBD_ReturnBookID(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
+        #AutoCompleteEntryBD_ReturnTitle(self.ret_search_container_autocomplete, self.ret_title_entry, self.ret_title_var, self.ret_author_entry, self.ret_author_var, self.ret_bookID_var, self.ret_bookID_entry, self.ret_date_entry, self.ret_search_container_canvas)
 
         # Remove Books UI
         remove_book_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
@@ -525,8 +525,8 @@ class BookDatabase():
         remove_book_btn.pack(side=tk.LEFT, anchor=tk.W, padx=PADX, pady=PADY)
 
         #  Send all the required variables to allow the autocomplete function to manipulate the entry data the user is entering and find the closest match, as well as manipulating the window that it displays the autocomplete information in.
-        AutoCompleteEntryBD_RemoveBookID(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
-        AutoCompleteEntryBD_RemoveTitle(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
+        #AutoCompleteEntryBD_RemoveBookID(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
+        #AutoCompleteEntryBD_RemoveTitle(self.remove_container_autocomplete, self.remove_title_entry, self.remove_title_var,self.remove_author_entry, self.remove_author_var, self.remove_bookID_var, self.remove_bookID_entry, self.remove_genre_var, self.remove_genre_menu, self.remove_container_canvas)
 
         # Add Books UI
         add_book_container = tk.Frame(book_database_page, bg=BG, relief=RELIEF, bd=BD)
@@ -1982,7 +1982,6 @@ class AutoCompleteEntryBD_ReturnBookID(ttk.Entry):
                         self.lb.bind("<Double-Button-1>", self.selection)
 
                         # Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
-                        self.lb.bind("<Right>", self.selection)
                         self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
                         # The autocomplete container is now showing, therefore lb_up is True.
@@ -2164,7 +2163,6 @@ class AutoCompleteEntryBD_ReturnTitle(ttk.Entry):
                         self.lb.bind("<Double-Button-1>", self.selection)
 
                         # Also allow the user to use the <Right> arrow key to select the currently highlighted autocomplete value.
-                        self.lb.bind("<Right>", self.selection)
                         self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
 
                         # The autocomplete container is now showing, therefore lb_up is True.
@@ -2314,7 +2312,6 @@ class AutoCompleteEntryBD_IssueBookID(ttk.Entry):
                     if not self.lb_up:
                         self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
                         self.lb.bind("<Double-Button-1>", self.selection)
-                        self.lb.bind("<Right>", self.selection)
                         self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                         self.lb_up = True
 
@@ -2431,7 +2428,6 @@ class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
                     if not self.lb_up:
                         self.lb = tk.Listbox(self.search_container_canvas, width=self["width"], height=self.listboxLength)
                         self.lb.bind("<Double-Button-1>", self.selection)
-                        self.lb.bind("<Right>", self.selection)
                         self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                         self.lb_up = True
 
@@ -2452,27 +2448,31 @@ class AutoCompleteEntryBD_IssueTitle(ttk.Entry):
             ISSUE_ID_FLAG = False
 
     def selection(self, event):
-        # Currently selected item in the listbox, get their index.
-        item_index = self.lb.curselection()[0]
-        if self.lb_up:
-            self.title_var.set(self.lb.get(tk.ACTIVE))
+        try:
+            # Currently selected item in the listbox, get their index.
+            item_index = self.lb.curselection()[0]
+            print(self.lb.curselection(), item_index)
+            if self.lb_up:
+                self.title_var.set(self.lb.get(tk.ACTIVE))
 
-            book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=? AND issued=0', (self.title_var.get(),)).fetchall()
-            book_bookID = [x[0] for x in book_bookID_fetch][item_index]
+                book_bookID_fetch = c.execute('SELECT bookID FROM Books WHERE title=? AND issued=0', (self.title_var.get(),)).fetchall()
+                book_bookID = [x[0] for x in book_bookID_fetch][item_index]
 
-            book_author_fetch = c.execute('SELECT author FROM Books WHERE title=? AND issued=0', (self.title_var.get(),)).fetchall()
-            book_author = [x[0] for x in book_author_fetch][item_index]
+                book_author_fetch = c.execute('SELECT author FROM Books WHERE title=? AND issued=0', (self.title_var.get(),)).fetchall()
+                book_author = [x[0] for x in book_author_fetch][item_index]
 
-            self.bookID_var.set(book_bookID)
-            self.author_var.set(book_author)
+                self.bookID_var.set(book_bookID)
+                self.author_var.set(book_author)
 
-            self.search_container_autocomplete.pack_forget()
-            self.search_container_canvas["height"] = 0
-            self.search_container_canvas["width"] = 0
+                self.search_container_autocomplete.pack_forget()
+                self.search_container_canvas["height"] = 0
+                self.search_container_canvas["width"] = 0
 
-            self.lb.destroy()
-            self.lb_up = False
-            self.icursor(tk.END)
+                self.lb.destroy()
+                self.lb_up = False
+                self.icursor(tk.END)
+        except IndexError:
+            pass
 
     def comparison(self):
         pattern = re.compile('.*' + self.title_var.get() + '.*')
@@ -2550,7 +2550,6 @@ class AutoCompleteEntryBD_RemoveBookID(ttk.Entry):
                     if not self.lb_up:
                         self.lb = tk.Listbox(self.remove_container_canvas, width=self["width"], height=self.listboxLength)
                         self.lb.bind("<Double-Button-1>", self.selection)
-                        self.lb.bind("<Right>", self.selection)
                         self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                         self.lb_up = True
 
@@ -2669,7 +2668,6 @@ class AutoCompleteEntryBD_RemoveTitle(ttk.Entry):
                     if not self.lb_up:
                         self.lb = tk.Listbox(self.remove_container_canvas, width=self["width"], height=self.listboxLength)
                         self.lb.bind("<Double-Button-1>", self.selection)
-                        self.lb.bind("<Right>", self.selection)
                         self.lb.pack(side=tk.RIGHT, anchor=tk.E, padx=PADX, pady=PADY)
                         self.lb_up = True
 

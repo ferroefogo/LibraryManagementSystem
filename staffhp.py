@@ -35,7 +35,8 @@ Issue Book:
     1.2 Optionally, you can enter the Title and autocomplete the rest of the information that way.
     2. Enter the email address of the patron that wants the book in the 'Recipient Email' field;
     2.1 If the user does not have an account, leave this field empty.
-    3. Select the date by which they must return the book on the 'Expected Return Date' field, using the calendar given. The system will allow dates between the current day and 3 months from the current day;
+    3. Select the date by which they must return the book on the 'Expected Return Date' field, using the calendar given.
+       The system will allow dates between the current day and 3 months from the current day;
     4. Press 'Issue Book' button.
 
 Return Book:
@@ -73,7 +74,8 @@ Using the database at the bottom of the page:
     The column headings of the database table can be pressed to sort them in ascending/descending order.
 
 Extra Information:
-    You may recieve occasional prompts when returning some books that will alert you that the book is overdue. You may then choose to return it anyway, or cancel the return and let the patron know that it is overdue,
+    You may recieve occasional prompts when returning some books that will alert you that the book is overdue.
+    You may then choose to return it anyway, or cancel the return and let the patron know that it is overdue,
     therefore fees must be paid.
 
     After every issue/return you will get a prompt that the user has been emailed details regarding the issue/return.
